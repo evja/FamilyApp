@@ -1,0 +1,25 @@
+<div class="max-w-6xl mx-auto mt-12 px-6">
+  <h2 class="text-3xl font-bold mb-8">Welcome to the <%= @family.name %> Family Dashboard</h2>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <% dashboard_items = [
+      { label: "Rhythms", icon: "repeat", path: "#" },
+      { label: "Responsibilities", icon: "check-square", path: "#" },
+      { label: "Issues", icon: "alert-circle", path: "#" },
+      { label: "Rituals", icon: "mountain", path: "#" },
+      { label: "Vision", icon: "eye", path: "#" },
+      { label: "Relationships", icon: "heart", path: "#" } # ← changed from "Members"
+    ] %>
+
+    <% dashboard_items.each do |item| %>
+      <div class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition flex flex-col items-start gap-3">
+        <div class="bg-blue-100 text-blue-600 p-2 rounded-full">
+          <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6"></svg>
+        </div>
+        <h3 class="text-xl font-semibold"><%= item[:label] %></h3>
+        <p class="text-gray-600 text-sm">Manage your family’s <%= item[:label].downcase %>.</p>
+        <%= link_to "Go to #{item[:label]}", item[:path], class: "mt-auto text-blue-600 hover:underline text-sm font-medium" %>
+      </div>
+    <% end %>
+  </div>
+</div>

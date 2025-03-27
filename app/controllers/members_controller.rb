@@ -1,0 +1,48 @@
+class MembersController < ApplicationController
+  before_action :authenticate_user!
+  before_action :set_family
+
+  def index
+    @members = @family.members
+  end
+
+  def show
+    @member = @family.members.find(params[:id])
+  end
+
+  def new
+    @member = @family.members.new
+  end
+
+  def create
+    @member = @family.members.new(member_params)
+    if @member.save
+      redirect_to family_members_path(@family), notice: "Member added."
+    else
+      render :new, status: :unprocessable_entity
+    end
+  end
+
+  def edit
+    @member = @family.members.find(params[:id])
+  end
+
+  def update
+    @member = @family.members.find(params[:id])
+    if @member.update(member_params)
+      redirect_to family_member_path(@family, @member), notice: "Member updated."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def set_family
+    @family = current_user.family
+  end
+
+  def member_params
+    params.require(:member).permit(:name, :age, :personality, :interests, :health, :development, :needs)
+  end
+end

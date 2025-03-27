@@ -1,0 +1,26 @@
+<%= form_with model: [@family, @member], local: true do |form| %>
+  <div class="grid gap-4">
+    <%= form.label :name %>
+    <%= form.text_field :name, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :age %>
+    <%= form.number_field :age, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :personality %>
+    <%= form.text_area :personality, rows: 2, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :interests %>
+    <%= form.text_area :interests, rows: 2, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :health %>
+    <%= form.text_area :health, rows: 2, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :development %>
+    <%= form.text_area :development, rows: 2, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.label :needs %>
+    <%= form.text_area :needs, rows: 2, class: "w-full border rounded px-3 py-2" %>
+
+    <%= form.submit class: "mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+  </div>
+<% end %>

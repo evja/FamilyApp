@@ -1,0 +1,12 @@
+<div class="max-w-md mx-auto mt-12 p-8 bg-white shadow rounded">
+  <h2 class="text-2xl font-bold mb-6 text-center">Create Your Family</h2>
+
+  <%= form_with model: @family, local: true do |form| %>
+    <div class="mb-4">
+      <%= form.label :name, "Family Name", class: "block mb-2 font-semibold" %>
+      <%= form.text_field :name, class: "w-full px-4 py-2 border border-gray-300 rounded" %>
+    </div>
+
+    <%= form.submit "Create Family", class: "w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition" %>
+  <% end %>
+</div>
