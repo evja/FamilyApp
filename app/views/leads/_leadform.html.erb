@@ -1,0 +1,17 @@
+<div class="bg-gray-100 p-10 rounded-lg text-center shadow-md">
+  <h2 class="text-3xl font-semibold mb-4">Be the first to join FamilyHub</h2>
+  <p class="text-lg mb-6 text-gray-700">We're building something special for families. Sign up below to get early access when we launch.</p>
+
+  <%= form_with model: Lead.new, url: leads_path, local: true do |form| %>
+    <div class="flex flex-col sm:flex-row justify-center gap-4">
+      <%= form.email_field :email, placeholder: "you@example.com", required: true,
+          class: "px-4 py-3 w-full sm:w-80 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" %>
+      <%= form.submit "Notify Me", class: "bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition" %>
+    </div>
+  <% end %>
+
+  <% if flash[:notice] %>
+    <p class="mt-4 text-green-600"><%= flash[:notice] %></p>
+  <% elsif flash[:alert] %>
+    <p class="mt-4 text-red-600"><%= flash[:alert] %></p>
+  <% end %>

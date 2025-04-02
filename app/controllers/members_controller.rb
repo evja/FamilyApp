@@ -36,6 +36,12 @@ class MembersController < ApplicationController
     end
   end
 
+  def destroy
+    @member = @family.members.find(params[:id])
+    @member.destroy
+    redirect_to family_members_path(@family), notice: "Member deleted."
+  end
+
   private
 
   def set_family

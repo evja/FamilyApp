@@ -1,0 +1,11 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  family: one
+  list_type: MyString
+   : MyString
+
+two:
+  family: two
+  list_type: MyString
+   : MyString

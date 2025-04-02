@@ -1,0 +1,57 @@
+<%= form_with model: [@family, @issue], local: true do |form| %>
+  <div class="grid gap-6">
+
+    <p class="text-gray-600 text-sm">
+      Issues are not problems to avoid — they are signals of growth. Please describe what’s happening factually and constructively.
+    </p>
+
+    <!-- Description -->
+    <div>
+      <%= form.label :description, "What's happening?", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_area :description, rows: 3, class: "w-full border rounded px-3 py-2 focus:ring focus:ring-blue-200" %>
+    </div>
+
+    <!-- List + Urgency -->
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <%= form.label :list_type, "List", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :list_type, ["Family", "Marriage", "Personal"], {}, class: "w-full border rounded px-3 py-2" %>
+      </div>
+
+      <div>
+        <%= form.label :urgency, "Urgency", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :urgency, ["Low", "Medium", "High"], {}, class: "w-full border rounded px-3 py-2" %>
+      </div>
+    </div>
+
+    <!-- Members & Values -->
+    <div>
+      <%= form.label :member_ids, "Who’s involved or affected?", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.collection_select :member_ids, @members, :id, :name, {}, multiple: true, class: "w-full border rounded px-3 py-2" %>
+    </div>
+
+    <div>
+      <%= form.label :family_value_ids, "Relevant Family Values", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.collection_select :family_value_ids, @values, :id, :name, {}, multiple: true, class: "w-full border rounded px-3 py-2" %>
+    </div>
+
+    <!-- Type and Root -->
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div>
+        <%= form.label :issue_type, "Issue Type", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.select :issue_type, ["symptom", "root"], {}, class: "w-full border rounded px-3 py-2" %>
+      </div>
+
+      <div>
+        <%= form.label :root_issue_id, "Linked Root (if symptom)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= form.collection_select :root_issue_id, @root_issues, :id, :description, { include_blank: true }, class: "w-full border rounded px-3 py-2" %>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex items-center gap-4 mt-4">
+      <%= form.submit "Save Issue", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+      <%= link_to "Cancel", family_issues_path(@family), class: "text-blue-600 hover:underline text-sm" %>
+    </div>
+  </div>
+<% end %>

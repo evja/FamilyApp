@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_03_27_085325) do
+ActiveRecord::Schema[7.1].define(version: 2025_03_28_052020) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -18,6 +18,47 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_27_085325) do
     t.string "name"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "family_values", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.string "name"
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id"], name: "index_family_values_on_family_id"
+  end
+
+  create_table "issue_members", force: :cascade do |t|
+    t.bigint "issue_id", null: false
+    t.bigint "member_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["issue_id"], name: "index_issue_members_on_issue_id"
+    t.index ["member_id"], name: "index_issue_members_on_member_id"
+  end
+
+  create_table "issue_values", force: :cascade do |t|
+    t.bigint "issue_id", null: false
+    t.bigint "family_value_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_value_id"], name: "index_issue_values_on_family_value_id"
+    t.index ["issue_id"], name: "index_issue_values_on_issue_id"
+  end
+
+  create_table "issues", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.string "list_type"
+    t.text "description"
+    t.string "category"
+    t.string "urgency"
+    t.string "status", default: "open"
+    t.string "issue_type"
+    t.integer "root_issue_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id"], name: "index_issues_on_family_id"
   end
 
   create_table "leads", force: :cascade do |t|
@@ -54,6 +95,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_03_27_085325) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
+  add_foreign_key "family_values", "families"
+  add_foreign_key "issue_members", "issues"
+  add_foreign_key "issue_members", "members"
+  add_foreign_key "issue_values", "family_values"
+  add_foreign_key "issue_values", "issues"
+  add_foreign_key "issues", "families"
   add_foreign_key "members", "families"
   add_foreign_key "users", "families"
 end
