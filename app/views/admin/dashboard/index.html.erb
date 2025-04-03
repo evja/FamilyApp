@@ -1,0 +1,29 @@
+<h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+
+<div class="grid grid-cols-2 md:grid-cols-3 gap-6">
+  <div class="bg-white shadow rounded-lg p-4">
+    <p class="text-gray-500 text-sm">Total Users</p>
+    <p class="text-3xl font-semibold"><%= @users.count %></p>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-4">
+    <p class="text-gray-500 text-sm">Families</p>
+    <p class="text-3xl font-semibold"><%= @families.count %></p>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-4 flex flex-col justify-between">
+    <div>
+      <p class="text-gray-500 text-sm">Total Leads</p>
+      <p class="text-3xl font-semibold"><%= @leads.count %></p>
+    </div>
+    <div class="mt-6">
+      <%= link_to "View All Leads", admin_leads_path, class: "inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    </div>
+  </div>
+
+  <div class="bg-white shadow rounded-lg p-4">
+    <p class="text-gray-500 text-sm">Subscribers</p>
+    <p class="text-3xl font-semibold"><%= @subscribers.count %></p>
+  </div>
+
+</div>

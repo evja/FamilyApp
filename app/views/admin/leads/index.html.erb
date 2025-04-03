@@ -1,0 +1,22 @@
+<h1 class="text-2xl font-bold mb-6">All Leads</h1>
+<div class="flex justify-between items-center mb-6">
+  <%= link_to "← Back to Dashboard", admin_dashboard_path, class: "text-sm text-gray-600 hover:underline" %>
+  <%= link_to "Export CSV", export_admin_leads_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm" %>
+</div>
+
+<table class="w-full bg-white shadow rounded-lg overflow-hidden">
+  <thead class="bg-gray-100 text-left text-sm text-gray-600">
+    <tr>
+      <th class="px-4 py-3">Email</th>
+      <th class="px-4 py-3">Submitted At</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @leads.each do |lead| %>
+      <tr class="border-t hover:bg-gray-50">
+        <td class="px-4 py-3"><%= lead.email %></td>
+        <td class="px-4 py-3 text-sm text-gray-500"><%= lead.created_at.strftime("%b %d, %Y") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

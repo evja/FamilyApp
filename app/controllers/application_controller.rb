@@ -8,5 +8,13 @@ class ApplicationController < ActionController::Base
 	    new_family_path
 	  end
 	end
-	
+
+	before_action :set_no_cache
+
+	private
+
+	def set_no_cache
+	  response.headers["Cache-Control"] = "no-store"
+	end
+
 end

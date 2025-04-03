@@ -1,0 +1,17 @@
+<%= link_to family_member_path(@family, member), class: "block hover:no-underline" do %>
+  <div class="flex flex-col items-center text-center bg-white shadow rounded-lg p-4 hover:shadow-lg transition">
+    <!-- Profile Circle Placeholder -->
+    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center text-2xl font-semibold text-gray-500 mb-3">
+      <%= member.name[0].upcase %>
+    </div>
+
+    <!-- Name & Age -->
+    <div>
+      <h3 class="text-lg font-bold text-blue-600"><%= member.name %></h3>
+      <p class="text-sm text-gray-600">Age: <%= member.age %></p>
+      <% if member.is_parent %>
+        <p class="text-xs font-medium text-green-600 mt-1">Parent</p>
+      <% end %>
+    </div>
+  </div>
+<% end %>
