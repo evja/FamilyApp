@@ -3,12 +3,12 @@
   <%= button_to "Subscribe to FamilyHub", checkout_path, method: :post, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
     <% dashboard_items = [
-      { label: "Rhythms", icon: "repeat", path: "#",                                status: :soon },
-      { label: "Responsibilities", icon: "check-square", path: "#",                 status: :soon },
-      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family),   status: :active },
-      { label: "Rituals", icon: "mountain", path: "#",                              status: :soon },
-      { label: "Vision", icon: "eye", path: "#",                                    status: :soon },
-      { label: "Relationships", icon: "heart", path: "#",                           status: :soon }
+      { label: "Rhythms", icon: "repeat", path: family_issues_path(@family),                                status: :soon },
+      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family),                 status: :soon },
+      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family),                           status: :active },
+      { label: "Rituals", icon: "mountain", path: family_issues_path(@family),                              status: :soon },
+      { label: "Vision", icon: "eye", path: family_issues_path(@family),                                    status: :soon },
+      { label: "Relationships", icon: "heart", path: family_issues_path(@family),                           status: :soon }
     ] %>
 
     <% dashboard_items.each do |item| %>
@@ -25,10 +25,10 @@
         <h3 class="text-xl font-semibold"><%= item[:label] %></h3>
         <p class="text-gray-600 text-sm">Manage your family’s <%= item[:label].downcase %>.</p>
 
-        <% if item[:path] == "#" %>
-          <span class="mt-auto text-gray-500 text-sm italic">Coming soon</span>
-        <% elsif current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" %>
+        <% if current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" %>
           <%= link_to "Go to #{item[:label]}", item[:path], class: "mt-auto text-blue-700 hover:underline text-sm font-medium" %>
+        <% elsif item[:path] == "#" %>
+          <span class="mt-auto text-gray-500 text-sm italic">Coming soon</span>
         <% else %>
           <span class="mt-auto text-red-500 text-sm font-medium">Subscribe to unlock</span>
         <% end %>

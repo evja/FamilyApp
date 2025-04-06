@@ -79,6 +79,7 @@ test:
 #
 production:
   <<: *default
-  database: family_app_production
-  username: family_app
-  password: <%= ENV["FAMILY_APP_DATABASE_PASSWORD"] %>
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+  url: <%= ENV['DATABASE_URL'] %>
