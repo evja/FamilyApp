@@ -6,20 +6,21 @@ class User < ApplicationRecord
 
   belongs_to :family, optional: true
 
-
   scope :subscribed, -> { where(is_subscribed: true) }
   scope :unsubscribed, -> { where(is_subscribed: false) }
   scope :admins, -> { where(admin: true) }
   scope :non_admins, -> { where(admin: false) }
 
-  before_destroy :destroy_family_if_last_user
+  after_destroy :destroy_family_if_last_user
+
   private
 
   def destroy_family_if_last_user
-    return unless family && family.users.count == 1
-
-    last_family = family                     # ✅ capture before nullifying
-    update_column(:family_id, nil)          # ✅ break foreign key constraint
-    last_family.destroy                      # ✅ now safe to destroy
+    return unless family
+    
+    remaining_users = family.users.where.not(id: id)
+    if remaining_users.empty?
+      family.destroy
+    end
   end
 end

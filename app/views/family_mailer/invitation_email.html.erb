@@ -1,0 +1,31 @@
+<div style="max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif;">
+  <h1 style="color: #2e452d; margin-bottom: 20px;">Join <%= @family.name %> on FamilyHub</h1>
+
+  <p style="margin-bottom: 15px;">
+    You've been invited to join <%= @family.name %> on FamilyHub. FamilyHub is a platform that helps families stay connected and organized.
+  </p>
+
+  <p style="margin-bottom: 15px;">
+    To accept this invitation:
+  </p>
+
+  <ol style="margin-bottom: 20px;">
+    <li>If you don't have a FamilyHub account yet, first <%= link_to "create an account", new_user_registration_url %></li>
+    <li>Then click the button below to join the family</li>
+  </ol>
+
+  <div style="text-align: center; margin: 30px 0;">
+    <%= link_to "Join Family", @url, 
+        style: "display: inline-block; padding: 12px 24px; background-color: #2e452d; color: white; text-decoration: none; border-radius: 4px;" %>
+  </div>
+
+  <p style="color: #666; font-size: 14px;">
+    This invitation will expire in 7 days. If you did not expect this invitation, please ignore this email.
+  </p>
+
+  <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
+
+  <p style="color: #666; font-size: 12px; text-align: center;">
+    FamilyHub - Bringing Families Together
+  </p>
+</div> 

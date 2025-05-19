@@ -1,30 +1,29 @@
 <!DOCTYPE html>
 <html>
-<script src="https://js.stripe.com/v3/"></script>
-<script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-<%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
-
   <head>
     <title>FamilyHub</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
+    <script src="https://js.stripe.com/v3/"></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <%= theme_styles.html_safe %>
   </head>
 
-  <body class="bg-gray-150
-   text-gray-800 font-sans">
-    <header class="p-6 bg-blue-600 text-white">
+  <body class="font-sans">
+    <header class="p-6 theme-header text-white">
       <div class="container mx-auto flex justify-between items-center">
         <% if user_signed_in? && current_user.family %>
           <!-- Left: Family Name + App Dropdown -->
           <div x-data="{ open: false, confirmingDelete: false }" class="relative text-white flex items-center gap-2">
-            <button @click="open = !open" class="font-semibold text-white hover:underline ">
+            <button @click="open = !open" class="font-semibold text-white hover:underline">
               <%= current_user.family.name %> - FamilyHub ▼
             </button>
 
-            <div x-show="open" x-transition @click.away="open = false" class="absolute left-0 top-full mt-2 w-48 bg-white text-gray-800 rounded shadow-md z-50">
-              <%= link_to "Account Settings", edit_user_registration_path, class: "block px-4 py-2 hover:bg-gray-100" %>
-              <%= link_to "Edit Family", edit_family_path(current_user.family), class: "block px-4 py-2 hover:bg-gray-100" %>
+            <div x-show="open" x-transition @click.away="open = false" class="absolute left-0 top-full mt-2 w-48 bg-white rounded shadow-md z-50">
+              <%= link_to "Account Settings", edit_user_registration_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
+              <%= link_to "Edit Family", edit_family_path(current_user.family), class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
 
               <button @click="open = false; confirmingDelete = true" class="block px-4 py-2 text-left text-red-700 hover:bg-red-100 w-full">
                 Delete Family
@@ -33,25 +32,13 @@
               <%= button_to "Log Out", destroy_user_session_path,
                     method: :delete,
                     form: { class: "w-full" },
-                    class: "block px-4 py-2 text-left hover:bg-gray-100 w-full" %>
+                    class: "block px-4 py-2 text-left hover:bg-gray-100 w-full theme-text" %>
             </div>
 
             <!-- Delete confirmation modal -->
-            <div 
-              x-show="confirmingDelete"
-              x-cloak
-              x-transition
-              class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center"
-            >
-              <div x-show="confirmingDelete"
-                x-transition:enter="transition ease-out duration-300"
-                x-transition:enter-start="opacity-0 scale-90"
-                x-transition:enter-end="opacity-100 scale-100"
-                x-transition:leave="transition ease-in duration-200"
-                x-transition:leave-start="opacity-100 scale-100"
-                x-transition:leave-end="opacity-0 scale-90"
-                class="bg-white rounded shadow-lg p-6 w-full max-w-md"
-              >
+            <div x-show="confirmingDelete" x-cloak x-transition
+                class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
+              <div class="bg-white rounded shadow-lg p-6 w-full max-w-md">
                 <h2 class="text-xl font-semibold text-red-700 mb-4">Are you absolutely sure?</h2>
                 <p class="text-gray-700 mb-6">
                   Deleting your family will remove all members, relationships, and associated data.
@@ -66,11 +53,10 @@
               </div>
             </div>
           </div>
-        <% elsif user_signed_in? && !current_user.family%>
+        <% elsif user_signed_in? && !current_user.family %>
           <%= link_to "Create Family", new_family_path, class: "text-sm hover:underline" %>
           <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "text-sm hover:underline" %>
         <% else %>
-          <!-- Left: App title (for non-logged in users) -->
           <%= link_to root_path, class: "text-2xl font-bold hover:underline" do %>
             FamilyHub
           <% end %>
@@ -82,7 +68,7 @@
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold" %>
           <% end %>
           <% if user_signed_in? && current_user.family %>
-          <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline" %>
+            <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline" %>
             <%= link_to "Dashboard", family_path(current_user.family), class: "hover:underline" %>
             <%= link_to "Help", about_path, class: "hover:underline" %>
           <% else %>
@@ -92,7 +78,7 @@
           <% unless user_signed_in? %>
             <%= link_to "Sign Up", new_user_registration_path, class: "hover:underline" %>
             <%= link_to "Log In", new_user_session_path, class: "hover:underline" %>
-            <%= button_to "Subscribe to FamilyHub", checkout_path, method: :post, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+            <%= button_to "Subscribe to FamilyHub", checkout_path, method: :post, class: "theme-button px-4 py-2 rounded" %>
           <% end %>
         </nav>
       </div>
@@ -102,5 +88,4 @@
       <%= yield %>
     </main>
   </body>
-
 </html>

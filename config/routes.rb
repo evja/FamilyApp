@@ -9,7 +9,10 @@ Rails.application.routes.draw do
   resources :families do
     resources :members
     resources :issues
+    resources :family_invitations, only: [:new, :create, :destroy]
   end
+
+  get 'invitations/:token/accept', to: 'family_invitations#accept', as: :accept_family_invitation
 
   get 'billing', to: 'billing#index'
   post "billing/checkout", to: "billing#checkout", as: :checkout
