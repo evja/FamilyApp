@@ -1,19 +1,65 @@
+<%
+  colors = @family.theme_colors
+%>
+
 <div class="max-w-6xl mx-auto mt-10">
-  <h2 class="text-2xl font-bold mb-6">Family Members</h2>
+  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Family Members</h2>
 
-  <%= link_to "+ Add Member", new_family_member_path(@family), class: "mb-6 inline-block bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+  <div class="flex gap-4 mb-6">
+    <%= link_to "+ Add Member", new_family_member_path(@family), 
+        class: "inline-block px-4 py-2 rounded transition-all duration-300",
+        style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+    <%= link_to new_family_family_invitation_path(@family), 
+        class: "inline-block px-4 py-2 rounded border transition-all duration-300 flex items-center gap-2",
+        style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; hover:background-color: #{colors[:primary]}; hover:color: white;" do %>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+      </svg>
+      Invite Family Member
+    <% end %>
+  </div>
 
-  <h3 class="text-xl font-semibold mb-4">Parents</h3>
+  <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Parents</h3>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6 mb-10">
     <% @members.select(&:is_parent).each do |member| %>
       <%= render "member_card", member: member %>
     <% end %>
   </div>
 
-  <h3 class="text-xl font-semibold mb-4">Children</h3>
+  <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
+    Children (<%= @members.reject(&:is_parent).count %>)
+  </h3>
   <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
     <% @members.reject(&:is_parent).each do |member| %>
       <%= render "member_card", member: member %>
     <% end %>
   </div>
+
+  <% if @family.invitations.pending.any? %>
+    <div class="mt-10">
+      <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Pending Invitations</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <% @family.invitations.pending.each do |invitation| %>
+          <div class="bg-white p-4 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
+            <div class="flex justify-between items-start">
+              <div>
+                <p class="font-medium" style="color: <%= colors[:primary] %>"><%= invitation.email %></p>
+                <p class="text-sm text-gray-500">
+                  Expires in <%= time_ago_in_words(invitation.expires_at) %>
+                </p>
+              </div>
+              <%= button_to family_family_invitation_path(@family, invitation),
+                  method: :delete,
+                  class: "text-sm text-red-600 hover:underline",
+                  data: { confirm: "Cancel this invitation?" } do %>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              <% end %>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
 </div>

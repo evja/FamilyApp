@@ -3,27 +3,35 @@
 %>
 
 <div class="max-w-6xl mx-auto mt-12 px-6">
-  <div class="flex justify-between items-center mb-8">
+  <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
     <h2 class="text-3xl font-bold" style="color: <%= colors[:primary] %>">
       Welcome to the <%= @family.name %> Family Dashboard
     </h2>
     
-    <div class="flex gap-4">
+    <div class="flex flex-wrap gap-4">
       <% unless current_user.is_subscribed? %>
-        <%= button_to "Subscribe to FamilyHub", 
-            checkout_path, 
-            method: :post, 
-            class: "px-4 py-2 rounded transition-all duration-300",
-            style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+        <%= button_to checkout_path, 
+            method: :post,
+            class: "inline-block" do %>
+          <button type="submit" 
+            class="px-4 py-2 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:scale-105"
+            style="background-color: <%= colors[:primary] %>; color: white;"
+            onmouseover="this.style.backgroundColor='<%= colors[:secondary] %>'"
+            onmouseout="this.style.backgroundColor='<%= colors[:primary] %>'">
+            Subscribe to FamilyHub
+          </button>
+        <% end %>
       <% end %>
       
-      <%= link_to new_family_family_invitation_path(@family),
-          class: "flex items-center gap-2 px-4 py-2 rounded border transition-all duration-300",
-          style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; hover:background-color: #{colors[:primary]}; hover:color: white;" do %>
+      <%= link_to edit_family_path(@family),
+          class: "px-4 py-2 rounded border transition-all duration-300 flex items-center gap-2",
+          style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; 
+                 hover:background-color: #{colors[:primary]}; hover:color: white;" do %>
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
-        Invite Family Member
+        Settings
       <% end %>
     </div>
   </div>
@@ -39,75 +47,48 @@
     ] %>
 
     <% dashboard_items.each do |item| %>
-      <% bg_class = case item[:status]
-        when :done then "bg-green-100"
-        when :active then "bg-orange-100"
-        when :soon then "bg-gray-100"
-      end %>
+      <% is_available = current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" %>
+      <%= link_to is_available ? item[:path] : "#",
+          class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
+          style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
+        <div class="flex flex-col items-start gap-3 relative z-10">
+          <div class="p-2 rounded-full bg-white shadow-sm transition-all duration-300 group-hover:shadow-md"
+               style="color: <%= colors[:primary] %>; background-color: <%= colors[:background] %>;">
+            <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6 transition-transform group-hover:scale-110"></svg>
+          </div>
+          
+          <h3 class="text-xl font-semibold transition-colors duration-300 group-hover:translate-x-1"
+              style="color: <%= colors[:primary] %>"><%= item[:label].upcase %></h3>
+              
+          <p class="text-gray-600 text-sm transition-all duration-300 group-hover:translate-x-1">
+            Manage your family's <%= item[:label].downcase %>.
+          </p>
 
-      <% if current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" %>
-        <%= link_to item[:path], class: "block #{bg_class} shadow rounded-lg p-6 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 transition-all duration-300 ease-in-out group", 
-            style: "hover:border: 2px solid #{colors[:primary]};" do %>
-          <div class="flex flex-col items-start gap-3">
-            <div class="p-2 rounded-full bg-white shadow-sm group-hover:bg-opacity-50 transition-colors duration-300"
-                 style="color: <%= colors[:primary] %>; group-hover:background-color: <%= colors[:secondary] %>;">
-              <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6 transition-colors duration-300"
-                   style="group-hover:color: <%= colors[:primary] %>;"></svg>
-            </div>
-            <h3 class="text-xl font-semibold transition-colors duration-300"
-                style="color: <%= colors[:primary] %>; group-hover:color: <%= colors[:secondary] %>;"><%= item[:label] %></h3>
-            <p class="text-gray-600 text-sm group-hover:text-opacity-75 transition-colors duration-300">Manage your family's <%= item[:label].downcase %>.</p>
+          <% if !is_available %>
+            <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">
+              Subscribe to unlock
+            </span>
+          <% elsif item[:status] == :soon %>
+            <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">
+              Coming soon
+            </span>
+          <% end %>
+        </div>
+
+        <% if !is_available %>
+          <div class="absolute top-0 right-0 mt-2 mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                 style="color: <%= colors[:secondary] %>;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
           </div>
         <% end %>
-      <% elsif item[:path] == "#" %>
-        <div class="<%= bg_class %> shadow rounded-lg p-6 flex flex-col items-start gap-3">
-          <div class="p-2 rounded-full bg-white shadow-sm" style="color: <%= colors[:primary] %>;">
-            <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6"></svg>
-          </div>
-          <h3 class="text-xl font-semibold" style="color: <%= colors[:primary] %>;"><%= item[:label] %></h3>
-          <p class="text-gray-600 text-sm">Manage your family's <%= item[:label].downcase %>.</p>
-          <span class="mt-auto text-gray-500 text-sm italic">Coming soon</span>
-        </div>
-      <% else %>
-        <div class="<%= bg_class %> shadow rounded-lg p-6 flex flex-col items-start gap-3">
-          <div class="p-2 rounded-full bg-white shadow-sm" style="color: <%= colors[:primary] %>;">
-            <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6"></svg>
-          </div>
-          <h3 class="text-xl font-semibold" style="color: <%= colors[:primary] %>;"><%= item[:label] %></h3>
-          <p class="text-gray-600 text-sm">Manage your family's <%= item[:label].downcase %>.</p>
-          <span class="mt-auto text-sm font-medium" style="color: <%= colors[:secondary] %>;">Subscribe to unlock</span>
-        </div>
+
+        <div class="absolute inset-0 bg-current opacity-0 transition-opacity duration-300 group-hover:opacity-5"
+             style="background-color: <%= colors[:primary] %>;"></div>
       <% end %>
     <% end %>
   </div>
-
-  <% if @family.invitations.pending.any? %>
-    <div class="mt-12">
-      <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Pending Invitations</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <% @family.invitations.pending.each do |invitation| %>
-          <div class="bg-white p-4 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
-            <div class="flex justify-between items-start">
-              <div>
-                <p class="font-medium"><%= invitation.email %></p>
-                <p class="text-sm text-gray-500">
-                  Expires in <%= time_ago_in_words(invitation.expires_at) %>
-                </p>
-              </div>
-              <%= button_to family_family_invitation_path(@family, invitation),
-                  method: :delete,
-                  class: "text-sm text-red-600 hover:underline",
-                  data: { confirm: "Cancel this invitation?" } do %>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              <% end %>
-            </div>
-          </div>
-        <% end %>
-      </div>
-    </div>
-  <% end %>
 </div>
 
 <script>

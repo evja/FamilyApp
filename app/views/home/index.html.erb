@@ -1,7 +1,31 @@
-<h2 class="text-3xl font-semibold mb-4">Welcome to FamilyHub</h2>
-<p class="text-lg text-gray-600 mb-4">
-  A space to help your family build vision, rhythms, and responsibility.
-</p>
-<%= link_to "Learn More", about_path, class: "inline-block bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700" %>
+<%
+  # Use default theme colors for non-logged in users
+  colors = if user_signed_in? && current_user.family
+    current_user.family.theme_colors
+  else
+    { primary: "#2563eb", secondary: "#4338ca", background: "#f3f4f6" }
+  end
+%>
 
-<%= render "leads/leadform" unless user_signed_in? %>
+<div class="max-w-4xl mx-auto px-4 py-12">
+  <h2 class="text-3xl font-bold mb-6" style="color: <%= colors[:primary] %>">Welcome to FamilyHub</h2>
+  
+  <p class="text-lg text-gray-600 mb-8">
+    A space to help your family build vision, rhythms, and responsibility.
+  </p>
+  
+  <div class="flex flex-wrap gap-4">
+    <%= link_to "Learn More", about_path, 
+        class: "inline-block px-6 py-2 rounded transition-all duration-300",
+        style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+
+    <% unless user_signed_in? %>
+      <%= link_to "Get Started", new_user_registration_path,
+          class: "inline-block px-6 py-2 rounded border transition-all duration-300",
+          style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; 
+                 hover:background-color: #{colors[:primary]}; hover:color: white;" %>
+    <% end %>
+  </div>
+
+  <%= render "leads/leadform" unless user_signed_in? %>
+</div>

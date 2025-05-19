@@ -1,44 +1,90 @@
-<%= link_to "← Back to Issues", family_issues_path(@family), class: "text-blue-600 hover:underline mb-4 inline-block" %>
+<%
+  colors = @family.theme_colors
+%>
 
-<div class="bg-white p-6 rounded-lg shadow">
-  <h2 class="text-2xl font-bold mb-4 text-gray-800">Issue Detail</h2>
+<%= link_to "← Back to Issues", family_issues_path(@family), 
+    class: "text-sm hover:underline mb-4 inline-block",
+    style: "color: #{colors[:secondary]};" %>
 
-  <p class="mb-4 text-gray-700"><strong>Description:</strong><br><%= @issue.description %></p>
+<div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
+  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Issue Detail</h2>
 
-  <p><strong>List:</strong> <%= @issue.list_type %></p>
-  <p><strong>Urgency:</strong> <%= @issue.urgency %></p>
-  <p><strong>Type:</strong> <%= @issue.issue_type.capitalize %></p>
+  <div class="space-y-4">
+    <div>
+      <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Description</h3>
+      <p class="text-gray-700"><%= @issue.description %></p>
+    </div>
 
-  <p class="mt-4"><strong>Involved Members:</strong>
-    <%= @issue.members.map(&:name).presence || "None" %>
-  </p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div>
+        <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">List</h3>
+        <p class="text-gray-700"><%= @issue.list_type %></p>
+      </div>
 
-  <p><strong>Related Family Values:</strong>
-    <%= @issue.family_values.map(&:name).presence || "None" %>
-  </p>
+      <div>
+        <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Urgency</h3>
+        <p class="text-gray-700"><%= @issue.urgency %></p>
+      </div>
 
-  <% if @issue.root_issue.present? %>
-    <p><strong>Root Issue:</strong>
-      <%= link_to truncate(@issue.root_issue.description, length: 60), family_issue_path(@family, @issue.root_issue), class: "text-blue-600 hover:underline" %>
-    </p>
-  <% end %>
+      <div>
+        <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Type</h3>
+        <p class="text-gray-700">
+          <% if @issue.issue_type == "root" %>
+            <span class="font-semibold" style="color: <%= colors[:primary] %>">Root</span>
+          <% else %>
+            Symptom
+          <% end %>
+        </p>
+      </div>
+    </div>
 
-  <% if @symptoms.present? %>
-    <p class="mt-4"><strong>Symptom Issues:</strong></p>
-    <ul class="list-disc pl-5">
-      <% @symptoms.each do |symptom| %>
-        <li>
-          <%= link_to truncate(symptom.description, length: 60), family_issue_path(@family, symptom), class: "text-blue-600 hover:underline" %>
-        </li>
-      <% end %>
-    </ul>
-  <% end %>
+    <div>
+      <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Involved Members</h3>
+      <p class="text-gray-700"><%= @issue.members.map(&:name).presence || "None" %></p>
+    </div>
 
-  <div class="mt-6 flex gap-4">
-    <%= link_to "Edit", edit_family_issue_path(@family, @issue), class: "text-yellow-600 hover:underline" %>
+    <div>
+      <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Related Family Values</h3>
+      <p class="text-gray-700"><%= @issue.family_values.map(&:name).presence || "None" %></p>
+    </div>
 
-    <%= link_to "Delete", family_issue_path(@family, @issue), method: :delete,
+    <% if @issue.root_issue.present? %>
+      <div>
+        <h3 class="text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">Root Issue</h3>
+        <p>
+          <%= link_to truncate(@issue.root_issue.description, length: 60), 
+              family_issue_path(@family, @issue.root_issue), 
+              class: "hover:underline",
+              style: "color: #{colors[:primary]};" %>
+        </p>
+      </div>
+    <% end %>
+
+    <% if @symptoms.present? %>
+      <div>
+        <h3 class="text-sm font-medium mb-2" style="color: <%= colors[:primary] %>">Symptom Issues</h3>
+        <ul class="space-y-1 pl-5 list-disc marker:text-gray-400">
+          <% @symptoms.each do |symptom| %>
+            <li>
+              <%= link_to truncate(symptom.description, length: 60), 
+                  family_issue_path(@family, symptom), 
+                  class: "hover:underline",
+                  style: "color: #{colors[:primary]};" %>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+
+    <div class="flex flex-wrap gap-4 pt-4 border-t" style="border-color: <%= colors[:secondary] %>;">
+      <%= link_to "Edit", edit_family_issue_path(@family, @issue), 
+          class: "text-sm hover:underline",
+          style: "color: #{colors[:primary]};" %>
+
+      <%= link_to "Delete", family_issue_path(@family, @issue), 
+          method: :delete,
           data: { turbo_confirm: "Are you sure you want to permanently delete this issue?" },
-          class: "text-red-600 hover:underline" %>
+          class: "text-sm hover:underline text-red-600" %>
+    </div>
   </div>
 </div>
