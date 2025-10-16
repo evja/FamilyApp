@@ -1,0 +1,106 @@
+/* Theme System */
+:root {
+  /* Default theme colors (used for non-logged in users) */
+  --primary-color: #2563eb;
+  --secondary-color: #4338ca;
+  --text-color: #1a1a1a;
+  --background-color: #f3f4f6;
+}
+
+/* Theme Base Classes */
+.theme-header {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.theme-button {
+  background-color: var(--primary-color);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.theme-button:hover {
+  background-color: var(--secondary-color);
+}
+
+.theme-text {
+  color: var(--primary-color);
+}
+
+.theme-text-secondary {
+  color: var(--secondary-color);
+}
+
+.theme-border {
+  border-color: var(--primary-color);
+}
+
+.theme-border-secondary {
+  border-color: var(--secondary-color);
+}
+
+.theme-bg {
+  background-color: var(--background-color);
+}
+
+.theme-bg-primary {
+  background-color: var(--primary-color);
+}
+
+.theme-bg-secondary {
+  background-color: var(--secondary-color);
+}
+
+.theme-hover:hover {
+  color: var(--secondary-color);
+}
+
+/* Theme Variants */
+[data-theme="forest"] {
+  --primary-color: #2e452d;
+  --secondary-color: #6f885d;
+  --text-color: #1a1a1a;
+  --background-color: #f7f9f7;
+}
+
+[data-theme="ocean"] {
+  --primary-color: #1d3557;
+  --secondary-color: #457b9d;
+  --text-color: #1a1a1a;
+  --background-color: #f1f8fc;
+}
+
+[data-theme="sunset"] {
+  --primary-color: #6a4c93;
+  --secondary-color: #8b5fbf;
+  --text-color: #1a1a1a;
+  --background-color: #f8f5fc;
+}
+
+[data-theme="earth"] {
+  --primary-color: #6f4e37;
+  --secondary-color: #9b6f4d;
+  --text-color: #1a1a1a;
+  --background-color: #faf7f5;
+}
+
+[data-theme="olive"] {
+  --primary-color: #606c38;
+  --secondary-color: #8a9a5b;
+  --text-color: #1a1a1a;
+  --background-color: #f7f8f5;
+}
+
+[data-theme="slate"] {
+  --primary-color: #2c3e50;
+  --secondary-color: #95a5a6;
+  --text-color: #ffffff;
+  --background-color: #ecf0f1;
+}
+
+[data-theme="rosegold"] {
+  --primary-color: #b76e79;
+  --secondary-color: #e5b4a1;
+  --text-color: #1a1a1a;
+  --background-color: #fdf5f6;
+} 

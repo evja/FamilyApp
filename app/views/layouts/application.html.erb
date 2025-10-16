@@ -9,11 +9,11 @@
     <%= javascript_include_tag "application", "data-turbo-track": "reload", defer: true %>
     <script src="https://js.stripe.com/v3/"></script>
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
-    <%= theme_styles.html_safe %>
   </head>
 
   <body class="font-sans" <%= "data-theme='#{@family.theme}'" if defined?(@family) && @family&.theme.present? %>>
     <header class="p-6 theme-header text-white">
+
       <div class="container mx-auto flex justify-between items-center">
         <% if user_signed_in? && current_user.family %>
           <!-- Left: Family Name + App Dropdown -->
