@@ -64,6 +64,16 @@ class IssuesController < ApplicationController
     redirect_to family_issues_path(@family), notice: "Issue deleted."
   end
 
+  def solve
+    @family = Family.find(params[:family_id])
+    if params[:issue_ids].present?
+      session[:solve_issue_ids] = params[:issue_ids].map(&:to_i)
+    end
+    @solve_issue_ids = session[:solve_issue_ids] || []
+    @issues_to_solve = current_user.family.issues.where(id: @solve_issue_ids)
+    @current_issue = @issues_to_solve.first
+    # Render the wizard view for the first issue
+  end
 
   private
 

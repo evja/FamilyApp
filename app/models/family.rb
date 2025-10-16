@@ -4,6 +4,7 @@ class Family < ApplicationRecord
   has_many :family_values, dependent: :destroy
   has_many :issues, dependent: :destroy
   has_many :invitations, class_name: 'FamilyInvitation', dependent: :destroy
+  has_one :vision, class_name: "FamilyVision", dependent: :destroy
 
   validates :name, presence: true
   validates :theme, presence: true, inclusion: { in: proc { THEME_PRESETS.keys.map(&:to_s) } }

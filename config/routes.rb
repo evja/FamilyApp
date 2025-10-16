@@ -8,8 +8,17 @@ Rails.application.routes.draw do
 
   resources :families do
     resources :members
-    resources :issues
+    
+    resources :issues do
+      collection do
+        get :solve
+      end
+    end
+
     resources :family_invitations, only: [:new, :create, :destroy]
+    resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
+      resources :values, controller: 'family_values', except: [:show]
+    end
   end
 
   get 'invitations/:token/accept', to: 'family_invitations#accept', as: :accept_family_invitation

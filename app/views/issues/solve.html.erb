@@ -1,0 +1,36 @@
+<%
+colors = @family.theme_colors
+%>
+
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow border mt-8" style="border-color: <%= colors[:secondary] %>;">
+<h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">
+  Solve Issue Wizard
+</h2>
+
+<% if @current_issue %>
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2" style="color: <%= colors[:primary] %>">Issue to Solve:</h3>
+    <div class="p-4 bg-gray-50 rounded border mb-2" style="border-color: <%= colors[:secondary] %>">
+      <strong>Description:</strong> <%= @current_issue.description %><br>
+      <strong>Urgency:</strong> <%= @current_issue.urgency %><br>
+      <strong>Type:</strong> <%= @current_issue.issue_type.capitalize %>
+    </div>
+  </div>
+
+  <%= form_with url: solve_family_issues_path(@family), method: :get, local: true do |form| %>
+    <div class="mb-4">
+      <label class="block text-sm font-medium mb-1" style="color: <%= colors[:primary] %>">
+        Is the issue stated clearly and usefully?
+      </label>
+      <%= text_area_tag :clarity_notes, nil, rows: 3, class: "w-full border rounded px-3 py-2 transition-all duration-300", style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
+    </div>
+    <div class="flex gap-4 mt-6">
+      <button type="submit" class="theme-button-filled">Next</button>
+      <%= link_to "Cancel", family_issues_path(@family), class: "theme-button-outline" %>
+    </div>
+  <% end %>
+<% else %>
+  <div class="text-gray-700">No issues selected for solving.</div>
+  <%= link_to "Back to Issues", family_issues_path(@family), class: "theme-button-outline mt-4 inline-block" %>
+<% end %>
+</div>

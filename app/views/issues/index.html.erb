@@ -3,55 +3,57 @@
 %>
 
 <div class="max-w-6xl mx-auto">
-  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Issues List</h2>
+  <h2 class="text-2xl font-bold mb-6 theme-text">Issues List</h2>
 
   <div class="flex flex-wrap gap-4 mb-6">
     <%= link_to "+ New Issue", new_family_issue_path(@family), 
-        class: "inline-block px-4 py-2 rounded transition-all duration-300",
-        style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+        class: "theme-button-filled" %>
+    <button id="solve-issues-btn" class="theme-button-filled" type="button">Solve Issues</button>
   </div>
+
+  <%= form_with url: solve_family_issues_path(@family), method: :get, local: true, id: "solve-issues-form", style: "display:none;" do %>
+    <div class="mb-4 text-sm">Select up to 2 issues to solve:</div>
+  <% end %>
 
   <!-- Mobile-friendly table with cards -->
   <div class="block md:hidden space-y-4">
     <% @issues.each do |issue| %>
-      <div class="bg-white p-4 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
+      <div class="bg-white p-4 rounded-lg shadow border theme-border">
         <div class="flex justify-between items-start mb-2">
-          <h3 class="font-medium" style="color: <%= colors[:primary] %>"><%= issue.list_type %></h3>
+          <h3 class="font-medium theme-text"><%= issue.list_type %></h3>
           <% if issue.issue_type == "root" %>
-            <span class="text-sm font-semibold" style="color: <%= colors[:primary] %>">Root</span>
+            <span class="text-sm font-semibold theme-text">Root</span>
           <% end %>
         </div>
         
-        <p class="font-medium" style="color: <%= colors[:primary] %>">Description: <%= truncate(issue.description, length:75) %></p>
+        <p class="font-medium theme-text">Description: <%= truncate(issue.description, length:75) %></p>
         
         <div class="grid grid-cols-2 gap-2 text-sm mb-3">
           <div>
-            <span class="font-medium" style="color: <%= colors[:primary] %>">Urgency:</span>
+            <span class="font-medium theme-text">Urgency:</span>
             <span class="text-gray-700"><%= issue.urgency %></span>
           </div>
           <div>
-            <span class="font-medium" style="color: <%= colors[:primary] %>">Type:</span>
+            <span class="font-medium theme-text">Type:</span>
             <span class="text-gray-700"><%= issue.issue_type.capitalize %></span>
           </div>
         </div>
 
         <div class="text-sm mb-3">
-          <span class="font-medium" style="color: <%= colors[:primary] %>">Who's Involved':</span>
+          <span class="font-medium theme-text">Who's Involved':</span>
           <span class="text-gray-700"><%= issue.members.map(&:name).join(", ") %></span>
         </div>
 
         <div class="text-sm mb-3">
-          <span class="font-medium" style="color: <%= colors[:primary] %>">Values:</span>
+          <span class="font-medium theme-text">Values:</span>
           <span class="text-gray-700"><%= issue.family_values.map(&:name).join(", ") %></span>
         </div>
 
         <div class="flex gap-3 mt-2">
           <%= link_to "View", family_issue_path(@family, issue), 
-              class: "text-sm px-3 py-1 rounded transition-all duration-300",
-              style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+              class: "theme-button-outline text-sm px-3 py-1" %>
           <%= link_to "Edit", edit_family_issue_path(@family, issue), 
-              class: "text-sm px-3 py-1 rounded transition-all duration-300",
-              style: "background-color: #{colors[:secondary]}; color: white; hover:background-color: #{colors[:primary]};" %>
+              class: "theme-button-filled text-sm px-3 py-1" %>
         </div>
       </div>
     <% end %>
@@ -59,26 +61,25 @@
 
   <!-- Desktop table -->
   <div class="hidden md:block overflow-x-auto">
-    <table class="w-full table-auto border text-sm" style="border-color: <%= colors[:secondary] %>;">
-      <thead>
-        <tr style="background-color: <%= colors[:background] %>;">
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">List</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Description</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Type</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Urgency</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Members</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Values</th>
-          <th class="px-4 py-2 text-left font-medium" style="color: <%= colors[:primary] %>">Actions</th>
-        </tr>
-      </thead>
-      <tbody class="divide-y" style="border-color: <%= colors[:secondary] %>;">
+    <form id="issues-table-form" action="<%= solve_family_issues_path(@family) %>" method="get">
+      <table class="w-full table-auto border theme-border text-sm"><thead><tr class="theme-bg">
+        <th id="solve-checkbox-header" style="display:none;"></th>
+        <th class="px-4 py-2 text-left font-medium theme-text">List</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Description</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Type</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Urgency</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Members</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Values</th>
+        <th class="px-4 py-2 text-left font-medium theme-text">Actions</th>
+      </tr></thead>
+      <tbody class="divide-y theme-border">
         <% @issues.each do |issue| %>
-          <tr class="border-t hover:bg-gray-50" style="border-color: <%= colors[:secondary] %>;">
+          <tr class="border-t theme-border hover:bg-gray-50"><td class="px-2 py-2 solve-checkbox-cell" style="display:none;"><input type="checkbox" name="issue_ids[]" value="<%= issue.id %>" class="solve-issue-checkbox"></td>
             <td class="px-4 py-2"><%= issue.list_type %></td>
             <td class="px-4 py-2 text-gray-700"><%= truncate(issue.description, length: 80) %></td>
             <td class="px-4 py-2">
               <% if issue.issue_type == "root" %>
-                <span class="font-semibold" style="color: <%= colors[:primary] %>">Root</span>
+                <span class="font-semibold theme-text">Root</span>
               <% else %>
                 Symptom
               <% end %>
@@ -92,19 +93,54 @@
             </td>
             <td class="px-4 py-2">
               <%= link_to "View", family_issue_path(@family, issue), 
-                  class: "hover:underline mr-2",
-                  style: "color: #{colors[:primary]};" %>
+                  class: "theme-button-outline text-xs px-2 py-1 mr-2" %>
               <%= link_to "Edit", edit_family_issue_path(@family, issue), 
-                  class: "hover:underline",
-                  style: "color: #{colors[:secondary]};" %>
+                  class: "theme-button-filled text-xs px-2 py-1" %>
             </td>
           </tr>
         <% end %>
       </tbody>
-    </table>
+      </table>
+      <div class="mt-4" id="solve-continue-btn" style="display:none;">
+        <button type="submit" class="theme-button-filled">Continue</button>
+      </div>
+    </form>
   </div>
 
   <%= link_to "← Back to Dashboard", family_path(@family), 
-      class: "text-sm hover:underline mt-6 inline-block",
-      style: "color: #{colors[:secondary]};" %>
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var solveBtn = document.getElementById('solve-issues-btn');
+    var solveCheckboxHeader = document.getElementById('solve-checkbox-header');
+    var solveContinueBtn = document.getElementById('solve-continue-btn');
+    var solveCheckboxCells = document.querySelectorAll('.solve-checkbox-cell');
+    var solveMode = false;
+    solveBtn.addEventListener('click', function() {
+      solveMode = !solveMode;
+      solveBtn.setAttribute('data-active', solveMode);
+      solveCheckboxHeader.style.display = solveMode ? 'table-cell' : 'none';
+      solveContinueBtn.style.display = solveMode ? 'block' : 'none';
+      solveCheckboxCells.forEach(function(cell) {
+        cell.style.display = solveMode ? 'table-cell' : 'none';
+      });
+      if (!solveMode) {
+        document.querySelectorAll('.solve-issue-checkbox').forEach(function(cb) { cb.checked = false; });
+      }
+    });
+    // Limit selection to 2 checkboxes and show/hide Continue
+    var checkboxes = document.querySelectorAll('.solve-issue-checkbox');
+    checkboxes.forEach(function(checkbox) {
+      checkbox.addEventListener('change', function() {
+        var checked = document.querySelectorAll('.solve-issue-checkbox:checked');
+        solveContinueBtn.style.display = (checked.length > 0 && checked.length <= 2) ? 'block' : 'none';
+        if (checked.length > 2) {
+          this.checked = false;
+          alert('You can only select up to 2 issues to solve at a time.');
+        }
+      });
+    });
+  });
+</script>

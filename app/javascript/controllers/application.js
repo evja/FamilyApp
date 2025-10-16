@@ -1,3 +1,5 @@
+import { Application } from "@hotwired/stimulus"
+import { createIcons, icons } from "lucide"
 
 const application = Application.start()
 
@@ -7,8 +9,12 @@ window.Stimulus   = application
 
 export { application }
 
-import { createIcons, icons } from "lucide";
-
+// Initialize Lucide icons
 document.addEventListener("DOMContentLoaded", () => {
+  createIcons({ icons });
+});
+
+// Re-initialize icons after Turbo navigation
+document.addEventListener("turbo:load", () => {
   createIcons({ icons });
 });
