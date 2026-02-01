@@ -2,7 +2,7 @@
   Craft Your Family Vision
 </h1>
 
-<%= form_with model: [@family, @vision], local: true do |f| %>
+<%= form_with model: @vision, url: family_vision_path(@family), method: :patch, local: true do |f| %>
   <div class="mb-4">
     <%= f.label :mission_statement, "Mission Statement", class: "block font-semibold mb-1", style: "color: #{@colors[:primary]};" %>
     <%= f.text_area :mission_statement, rows: 5, class: "w-full p-3 rounded border", style: "border-color: #{@colors[:primary]};" %>

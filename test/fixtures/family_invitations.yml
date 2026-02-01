@@ -2,14 +2,14 @@
 
 one:
   family: one
-  email: MyString
-  token: MyString
-  status: MyString
-  expires_at: 2025-05-18 19:14:10
+  email: invite-one@example.com
+  token: token_one
+  status: pending
+  expires_at: 2025-05-25 19:14:10
 
 two:
   family: two
-  email: MyString
-  token: MyString
-  status: MyString
-  expires_at: 2025-05-18 19:14:10
+  email: invite-two@example.com
+  token: token_two
+  status: pending
+  expires_at: 2025-05-25 19:14:10

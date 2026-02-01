@@ -2,16 +2,10 @@
 
 one:
   family: one
-  title: MyString
-  definition: MyText
-  story: MyText
-  behavior: MyText
-  position: 1
+  name: MyString
+  description: MyText
 
 two:
   family: two
-  title: MyString
-  definition: MyText
-  story: MyText
-  behavior: MyText
-  position: 1
+  name: MyString
+  description: MyText

@@ -2,10 +2,12 @@
 
 one:
   family: one
-  list_type: MyString
-   : MyString
+  list_type: Family
+  description: MyString
+  issue_type: root
 
 two:
   family: two
-  list_type: MyString
-   : MyString
+  list_type: Family
+  description: MyString
+  issue_type: root

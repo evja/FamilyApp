@@ -2,6 +2,8 @@
 
 one:
   name: MyString
+  theme: forest
 
 two:
   name: MyString
+  theme: ocean

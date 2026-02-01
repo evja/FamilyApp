@@ -1,18 +1,33 @@
 require "test_helper"
 
 class FamiliesControllerTest < ActionDispatch::IntegrationTest
-  test "should get new" do
-    get families_new_url
+  setup do
+    @user = users(:one)
+    @family = families(:one)
+    sign_in @user
+  end
+
+  test "should get new when user has no family" do
+    @user.update!(family: nil)
+    get new_family_url
     assert_response :success
   end
 
-  test "should get create" do
-    get families_create_url
-    assert_response :success
+  test "should redirect new when user already has a family" do
+    get new_family_url
+    assert_redirected_to family_url(@family)
   end
 
-  test "should get show" do
-    get families_show_url
+  test "should create family" do
+    @user.update!(family: nil)
+    assert_difference("Family.count") do
+      post families_url, params: { family: { name: "New Family" } }
+    end
+    assert_redirected_to family_url(Family.last)
+  end
+
+  test "should show family" do
+    get family_url(@family)
     assert_response :success
   end
 end

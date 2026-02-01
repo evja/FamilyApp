@@ -1,38 +1,37 @@
 require "test_helper"
 
 class IssuesControllerTest < ActionDispatch::IntegrationTest
+  setup do
+    @user = users(:one)
+    @family = families(:one)
+    @issue = issues(:one)
+    sign_in @user
+  end
+
   test "should get index" do
-    get issues_index_url
+    get family_issues_url(@family)
     assert_response :success
   end
 
   test "should get new" do
-    get issues_new_url
+    get new_family_issue_url(@family)
     assert_response :success
   end
 
-  test "should get create" do
-    get issues_create_url
-    assert_response :success
-  end
-
-  test "should get show" do
-    get issues_show_url
+  test "should show issue" do
+    get family_issue_url(@family, @issue)
     assert_response :success
   end
 
   test "should get edit" do
-    get issues_edit_url
+    get edit_family_issue_url(@family, @issue)
     assert_response :success
   end
 
-  test "should get update" do
-    get issues_update_url
-    assert_response :success
-  end
-
-  test "should get destroy" do
-    get issues_destroy_url
-    assert_response :success
+  test "should destroy issue" do
+    issue = Issue.create!(family: @family, list_type: "Family", description: "Temp")
+    assert_difference("Issue.count", -1) do
+      delete family_issue_url(@family, issue)
+    end
   end
 end

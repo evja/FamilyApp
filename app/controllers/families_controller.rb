@@ -11,7 +11,7 @@ class FamiliesController < ApplicationController
   end
 
   def new
-    redirect_to family_path(current_user.family) if current_user.family
+    return redirect_to family_path(current_user.family) if current_user.family
     @family = Family.new
   end
 
