@@ -1,5 +1,6 @@
 class FamilyVisionsController < ApplicationController
-  before_action :set_family
+  before_action :authenticate_user!
+  before_action :authorize_family!
   before_action :set_colors
 
   def show
@@ -20,10 +21,6 @@ class FamilyVisionsController < ApplicationController
   end
 
   private
-
-  def set_family
-    @family = Family.find(params[:family_id])
-  end
 
   def set_colors
     @colors = @family.theme_colors

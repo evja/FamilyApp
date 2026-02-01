@@ -16,9 +16,6 @@ class FamiliesController < ApplicationController
   end
 
   def edit
-    unless @family.users.include?(current_user)
-      redirect_to root_path, alert: 'You do not have permission to edit this family.'
-    end
   end
 
   def create
@@ -33,10 +30,6 @@ class FamiliesController < ApplicationController
   end
 
   def update
-    unless @family.users.include?(current_user)
-      return redirect_to root_path, alert: 'You do not have permission to update this family.'
-    end
-
     if @family.update(family_params)
       redirect_to @family, notice: 'Family was successfully updated.'
     else
@@ -45,10 +38,6 @@ class FamiliesController < ApplicationController
   end
 
   def destroy
-    unless @family.users.include?(current_user)
-      return redirect_to root_path, alert: 'You do not have permission to delete this family.'
-    end
-
     if @family.users.count > 1
       redirect_to @family, alert: 'Cannot delete family while other users are still members.'
     else
@@ -60,11 +49,10 @@ class FamiliesController < ApplicationController
   private
 
   def set_family
-    @family = if params[:id]
-                Family.find(params[:id])
-              else
-                current_user.family
-              end
+    @family = current_user.family
+    unless @family && @family.id == params[:id].to_i
+      redirect_to root_path, alert: 'You do not have access to this family.'
+    end
   end
 
   def family_params

@@ -1,6 +1,6 @@
 class MembersController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_family
+  before_action :authorize_family!
 
   def index
     @members = @family.members
@@ -43,10 +43,6 @@ class MembersController < ApplicationController
   end
 
   private
-
-  def set_family
-    @family = current_user.family
-  end
 
   def member_params
     params.require(:member).permit(:name, :age, :personality, :interests, :health, :development, :needs, :is_parent)
