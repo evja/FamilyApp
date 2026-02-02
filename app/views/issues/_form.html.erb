@@ -5,73 +5,144 @@
 <%= form_with model: [@family, @issue], local: true do |form| %>
   <div class="grid gap-6 max-w-3xl mx-auto">
     <div class="bg-white p-6 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
-      <p class="text-sm mb-6" style="color: <%= colors[:primary] %>;">
-        Issues are not problems to avoid — they are signals of growth. Please describe what's happening factually and constructively.
-      </p>
+      <div class="mb-6 bg-gray-50 rounded-lg p-4">
+        <p class="text-sm font-medium mb-2" style="color: <%= colors[:primary] %>;">
+          Issues are not problems to avoid — they are signals of growth.
+        </p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div>
+            <p class="font-medium text-green-700 mb-1">Try this:</p>
+            <ul class="text-gray-600 space-y-1">
+              <li>"Screen time boundaries feel inconsistent"</li>
+              <li>"Mornings are rushed and stressful"</li>
+            </ul>
+          </div>
+          <div>
+            <p class="font-medium text-red-600 mb-1">Instead of:</p>
+            <ul class="text-gray-600 space-y-1">
+              <li>"The kids are always on screens"</li>
+              <li>"Nobody helps in the morning"</li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <!-- Description -->
       <div>
         <%= form.label :description, "Describe The Issue", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-        <%= form.text_area :description, rows: 3, 
+        <%= form.text_area :description, rows: 3,
+            id: "issue_description",
             class: "w-full border rounded px-3 py-2 transition-all duration-300",
             style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
       </div>
 
-      <!-- List + Urgency -->
-      <div class="grid sm:grid-cols-2 gap-4 mt-6">
-        <div>
-          <%= form.label :list_type, "List", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-          <%= form.select :list_type, ["Family", "Marriage", "Personal"], {}, 
-              class: "w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
+      <!-- AI Assistant -->
+      <% if defined?(@assist_remaining) %>
+        <div x-data="issueAssist()" class="mt-3">
+          <button
+            type="button"
+            @click="getAssist()"
+            :disabled="loading"
+            class="text-sm font-medium px-3 py-1.5 rounded border transition-all duration-300 disabled:opacity-50"
+            style="border-color: <%= colors[:secondary] %>; color: <%= colors[:primary] %>;"
+          >
+            <span x-show="!loading">Help me say this better (<span x-text="remaining"></span> left today)</span>
+            <span x-show="loading">Thinking...</span>
+          </button>
+
+          <template x-if="error">
+            <p class="mt-2 text-sm text-red-600" x-text="error"></p>
+          </template>
+
+          <template x-if="suggested">
+            <div class="mt-3 p-4 rounded-lg border bg-green-50 border-green-200">
+              <p class="text-sm font-medium text-green-800 mb-1">Suggested reframe:</p>
+              <p class="text-sm text-gray-800 mb-2" x-text="suggested"></p>
+              <template x-if="tip">
+                <p class="text-xs text-gray-500 italic mb-3" x-text="'Tip: ' + tip"></p>
+              </template>
+              <div class="flex gap-2">
+                <button type="button" @click="useThis()" class="text-xs font-medium px-3 py-1 rounded text-white" style="background-color: <%= colors[:primary] %>;">
+                  Use This
+                </button>
+                <button type="button" @click="keepMine()" class="text-xs font-medium px-3 py-1 rounded border" style="border-color: <%= colors[:secondary] %>; color: <%= colors[:primary] %>;">
+                  Keep Mine
+                </button>
+              </div>
+            </div>
+          </template>
         </div>
 
-        <div>
-          <%= form.label :urgency, "Urgency", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-          <%= form.select :urgency, ["Low", "Medium", "High"], {}, 
-              class: "w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
-        </div>
-      </div>
+        <script>
+          function issueAssist() {
+            return {
+              loading: false,
+              suggested: null,
+              tip: null,
+              error: null,
+              remaining: <%= @assist_remaining %>,
+              async getAssist() {
+                var textarea = document.getElementById('issue_description');
+                var description = textarea.value.trim();
+                if (!description) {
+                  this.error = 'Please write a description first.';
+                  return;
+                }
+                this.loading = true;
+                this.error = null;
+                this.suggested = null;
+                this.tip = null;
+                try {
+                  var response = await fetch('<%= family_issue_assists_path(@family) %>', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ description: description })
+                  });
+                  var data = await response.json();
+                  if (!response.ok) {
+                    this.error = data.error || 'Something went wrong.';
+                  } else {
+                    this.suggested = data.suggested;
+                    this.tip = data.tip;
+                    this.remaining = data.remaining;
+                  }
+                } catch (e) {
+                  this.error = 'Could not reach the server. Please try again.';
+                } finally {
+                  this.loading = false;
+                }
+              },
+              useThis() {
+                document.getElementById('issue_description').value = this.suggested;
+                this.suggested = null;
+                this.tip = null;
+              },
+              keepMine() {
+                this.suggested = null;
+                this.tip = null;
+              }
+            };
+          }
+        </script>
+      <% end %>
 
-      <!-- Members & Values -->
+      <!-- Urgency -->
       <div class="mt-6">
-        <%= form.label :member_ids, "Who's involved or affected?", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-        <%= form.collection_select :member_ids, @members, :id, :name, {}, multiple: true, 
+        <%= form.label :urgency, "Urgency", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
+        <%= form.select :urgency, ["Low", "Medium", "High"], {},
             class: "w-full border rounded px-3 py-2 transition-all duration-300",
             style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
-      </div>
-
-      <div class="mt-6">
-        <%= form.label :family_value_ids, "Relevant Family Values", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-        <%= form.collection_select :family_value_ids, @values, :id, :name, {}, multiple: true, 
-            class: "w-full border rounded px-3 py-2 transition-all duration-300",
-            style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
-      </div>
-
-      <!-- Type and Root -->
-      <div class="grid sm:grid-cols-2 gap-4 mt-6">
-        <div>
-          <%= form.label :issue_type, "Issue Type", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-          <%= form.select :issue_type, ["symptom", "root"], {}, 
-              class: "w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
-        </div>
-
-        <div>
-          <%= form.label :root_issue_id, "Linked Root (if symptom)", class: "block text-sm font-medium mb-1", style: "color: #{colors[:primary]}" %>
-          <%= form.collection_select :root_issue_id, @root_issues, :id, :description, { include_blank: true }, 
-              class: "w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
-        </div>
       </div>
 
       <!-- Buttons -->
       <div class="flex flex-wrap items-center gap-4 mt-6">
-        <%= form.submit "Save Issue", 
+        <%= form.submit "Save Issue",
             class: "px-4 py-2 rounded transition-all duration-300",
             style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
-        <%= link_to "Cancel", family_issues_path(@family), 
+        <%= link_to "Cancel", family_issues_path(@family),
             class: "text-sm hover:underline",
             style: "color: #{colors[:secondary]};" %>
       </div>

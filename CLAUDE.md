@@ -53,6 +53,13 @@ Issue
   has_many :members, through: :issue_members
   has_many :family_values, through: :issue_values
   # Types: "root" or "symptom". Urgency: Low/Medium/High. List: Family/Marriage/Personal.
+  # Status flow: new → acknowledged → working_on_it → resolved
+  # Scopes: active (not resolved), resolved, resolved_this_week
+
+IssueAssist
+  belongs_to :family
+  belongs_to :user
+  # Logs AI writing assistant usage. Daily limit of 20 per family.
 
 FamilyValue
   belongs_to :family
@@ -68,14 +75,15 @@ FamilyInvitation
 Lead
   # Email capture from landing page, no associations.
 
-Join tables: IssueMember, IssueValue
+Join tables: IssueMember, IssueValue, IssueAssist
 ```
 
 ## Route Structure
 
 All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/members`
-- `/families/:family_id/issues` (+ collection route `solve`)
+- `/families/:family_id/issues` (+ collection route `solve`, member route `advance_status`)
+- `/families/:family_id/issue_assists` (POST only — AI writing assistant)
 - `/families/:family_id/family_invitations`
 - `/families/:family_id/vision` (singular resource)
 - `/families/:family_id/vision/values` (nested under vision)
@@ -106,7 +114,29 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Issue hierarchy**: Issues can be "root" or "symptom". Symptoms link to a root issue via `root_issue_id`.
 - **Invitations**: Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link.
 - **Admin**: Guarded by `require_admin` checking `current_user.admin?`. Located in `Admin::` namespace.
-- **No API**: This is a server-rendered app. No JSON endpoints beyond what Jbuilder scaffolding may have left.
+- **No API**: This is a server-rendered app. The only JSON endpoint is `IssueAssistsController#create` for the AI writing assistant.
+- **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
+- **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
+- **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
+
+## MVP Simplification
+
+The app has been simplified for MVP launch. Fields and features are hidden from the UI but preserved in the database for future use.
+
+### Dashboard Card Visibility
+- **MVP cards** (visible to all users): Members, Issues, Vision
+- **Non-MVP cards** (Rhythms, Responsibilities, Rituals, Relationships): only visible to admins when not in "View as User" mode, with an "Admin Preview - Hidden from users" badge
+- Controlled by the `show_admin_features?` helper in `ApplicationController`
+
+### Simplified Forms
+- **Member form** (`members/_form.html.erb`): shows only name, age, is_parent. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
+- **Issue form** (`issues/_form.html.erb`): shows only description and urgency. Hidden fields (list_type, member_ids, family_value_ids, issue_type, root_issue_id) remain in DB. `IssuesController` defaults `list_type` to "Family" and `issue_type` to "root" when not provided.
+
+### Admin "View as User" Toggle
+- Admins can toggle a "View as User" mode via `session[:view_as_user]`
+- Route: `POST /admin/toggle_view_as_user`
+- When active, `show_admin_features?` returns false, hiding non-MVP dashboard cards and showing a yellow banner
+- Helper methods: `viewing_as_user?`, `show_admin_features?` (both exposed as `helper_method` in `ApplicationController`)
 
 ## Things to Watch Out For
 

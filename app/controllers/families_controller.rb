@@ -8,6 +8,11 @@ class FamiliesController < ApplicationController
 
   def show
     redirect_to new_family_path unless @family
+    return unless @family
+
+    @open_issue_count = @family.issues.active.count
+    @resolved_this_week_count = @family.issues.resolved_this_week.count
+    @has_any_issues = @family.issues.exists?
   end
 
   def new

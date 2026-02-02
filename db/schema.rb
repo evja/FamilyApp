@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_06_30_024457) do
+ActiveRecord::Schema[7.1].define(version: 2025_07_01_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -51,6 +51,18 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_024457) do
     t.index ["family_id"], name: "index_family_visions_on_family_id"
   end
 
+  create_table "issue_assists", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.bigint "user_id", null: false
+    t.text "original_text"
+    t.text "suggested_text"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "created_at"], name: "index_issue_assists_on_family_id_and_created_at"
+    t.index ["family_id"], name: "index_issue_assists_on_family_id"
+    t.index ["user_id"], name: "index_issue_assists_on_user_id"
+  end
+
   create_table "issue_members", force: :cascade do |t|
     t.bigint "issue_id", null: false
     t.bigint "member_id", null: false
@@ -75,11 +87,12 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_024457) do
     t.text "description"
     t.string "category"
     t.string "urgency"
-    t.string "status", default: "open"
+    t.string "status", default: "new"
     t.string "issue_type"
     t.integer "root_issue_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.datetime "resolved_at"
     t.index ["family_id"], name: "index_issues_on_family_id"
   end
 
@@ -125,6 +138,8 @@ ActiveRecord::Schema[7.1].define(version: 2025_06_30_024457) do
   add_foreign_key "family_invitations", "families"
   add_foreign_key "family_values", "families"
   add_foreign_key "family_visions", "families"
+  add_foreign_key "issue_assists", "families"
+  add_foreign_key "issue_assists", "users"
   add_foreign_key "issue_members", "issues"
   add_foreign_key "issue_members", "members"
   add_foreign_key "issue_values", "family_values"

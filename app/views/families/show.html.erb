@@ -37,17 +37,21 @@
   </div>
   
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+    <% mvp_cards = ["Issues", "Members", "Vision"] %>
     <% dashboard_items = [
+      { label: "Members", icon: "users", path: family_members_path(@family), status: :active },
+      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active },
+      { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active },
       { label: "Rhythms", icon: "repeat", path: family_issues_path(@family), status: :soon },
       { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon },
-      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active },
       { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active },
-      { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active },
       { label: "Relationships", icon: "heart", path: family_issues_path(@family), status: :soon }
     ] %>
 
     <% dashboard_items.each do |item| %>
-      <% is_available = current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" %>
+      <% is_mvp = mvp_cards.include?(item[:label]) %>
+      <% next if !is_mvp && !show_admin_features? %>
+      <% is_available = current_user.admin? || current_user.is_subscribed? || item[:label] == "Issues" || item[:label] == "Members" %>
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
@@ -61,10 +65,22 @@
               style="color: <%= colors[:primary] %>"><%= item[:label].upcase %></h3>
               
           <p class="text-gray-600 text-sm transition-all duration-300 group-hover:translate-x-1">
-            Manage your family's <%= item[:label].downcase %>.
+            <% if item[:label] == "Issues" && defined?(@has_any_issues) %>
+              <% if @has_any_issues %>
+                <%= @open_issue_count %> open · <%= @resolved_this_week_count %> resolved this week
+              <% else %>
+                No issues logged yet
+              <% end %>
+            <% else %>
+              Manage your family's <%= item[:label].downcase %>.
+            <% end %>
           </p>
 
-          <% if !is_available %>
+          <% if !is_mvp && show_admin_features? %>
+            <span class="mt-2 text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
+              Admin Preview - Hidden from users
+            </span>
+          <% elsif !is_available %>
             <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">
               Subscribe to unlock
             </span>

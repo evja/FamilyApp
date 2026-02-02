@@ -3,11 +3,13 @@
 one:
   family: one
   list_type: Family
-  description: MyString
+  description: Screen time boundaries feel inconsistent
   issue_type: root
+  status: new
 
 two:
   family: two
   list_type: Family
-  description: MyString
+  description: Morning routines are stressful
   issue_type: root
+  status: new

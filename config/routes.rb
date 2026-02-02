@@ -13,7 +13,11 @@ Rails.application.routes.draw do
       collection do
         get :solve
       end
+      member do
+        patch :advance_status
+      end
     end
+    resources :issue_assists, only: [:create]
 
     resources :family_invitations, only: [:new, :create, :destroy]
     resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
@@ -26,6 +30,8 @@ Rails.application.routes.draw do
   get 'billing', to: 'billing#index'
   post "billing/checkout", to: "billing#checkout", as: :checkout
 
+  post 'admin/toggle_view_as_user', to: 'application#toggle_view_as_user', as: :toggle_view_as_user
+
   namespace :admin do
     get 'leads/index'
     get "dashboard", to: "dashboard#index", as: :dashboard
@@ -33,7 +39,7 @@ Rails.application.routes.draw do
       collection do
         get :export
       end
-    end 
+    end
   end
 
 end

@@ -7,7 +7,21 @@
     style: "color: #{colors[:secondary]};" %>
 
 <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
-  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Issue Detail</h2>
+  <div class="flex flex-wrap items-center justify-between mb-6">
+    <h2 class="text-2xl font-bold" style="color: <%= colors[:primary] %>">Issue Detail</h2>
+    <div class="flex items-center gap-3">
+      <span class="text-xs font-medium px-3 py-1 rounded-full <%= Issue::STATUS_COLORS[@issue.status] %>">
+        <%= Issue::STATUS_LABELS[@issue.status] %>
+      </span>
+      <% if @issue.next_status %>
+        <%= button_to advance_status_family_issue_path(@family, @issue),
+            method: :patch,
+            class: "text-sm font-medium px-3 py-1.5 rounded border theme-button-outline" do %>
+          &rarr; Move to <%= Issue::STATUS_LABELS[@issue.next_status] %>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
 
   <div class="space-y-4">
     <div>

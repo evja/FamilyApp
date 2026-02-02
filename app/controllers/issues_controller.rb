@@ -7,28 +7,30 @@ class IssuesController < ApplicationController
     @members = @family.members
     @values = @family.family_values
     @root_issues = @family.issues.where(issue_type: "root")
+    @assist_remaining = IssueAssist.remaining_today(@family)
   end
 
   def create
     @issue = @family.issues.new(issue_params)
+    @issue.list_type ||= "Family"
+    @issue.issue_type ||= "root"
+    @issue.status ||= "new"
 
     if @issue.save
-      @issue.member_ids = params[:issue][:member_ids]
-      @issue.family_value_ids = params[:issue][:family_value_ids]
       redirect_to family_issues_path(@family), notice: "Issue added as an opportunity for growth."
     else
       @members = @family.members
       @values = @family.family_values
       @root_issues = @family.issues.where(issue_type: "root")
+      @assist_remaining = IssueAssist.remaining_today(@family)
       render :new, status: :unprocessable_entity
     end
   end
 
   def index
-    @issues = @family.issues.includes(:members, :family_values, :root_issue)
-    @lists = ["Family", "Marriage", "Personal"]
-    @urgencies = ["Low", "Medium", "High"]
-    @types = ["root", "symptom"]
+    @active_issues = @family.issues.active.includes(:members, :family_values, :root_issue).order(created_at: :desc)
+    @resolved_issues = @family.issues.resolved.includes(:members, :family_values, :root_issue).order(resolved_at: :desc)
+    @has_any_issues = @family.issues.exists?
   end
 
   def show
@@ -41,19 +43,23 @@ class IssuesController < ApplicationController
     @members = @family.members
     @values = @family.family_values
     @root_issues = @family.issues.where(issue_type: "root").where.not(id: @issue.id)
+    @assist_remaining = IssueAssist.remaining_today(@family)
   end
 
   def update
     @issue = @family.issues.find(params[:id])
 
-    if @issue.update(issue_params)
-      @issue.member_ids = params[:issue][:member_ids]
-      @issue.family_value_ids = params[:issue][:family_value_ids]
+    update_attrs = issue_params
+    update_attrs[:list_type] ||= @issue.list_type || "Family"
+    update_attrs[:issue_type] ||= @issue.issue_type || "root"
+
+    if @issue.update(update_attrs)
       redirect_to family_issue_path(@family, @issue), notice: "Issue updated successfully."
     else
       @members = @family.members
       @values = @family.family_values
       @root_issues = @family.issues.where(issue_type: "root").where.not(id: @issue.id)
+      @assist_remaining = IssueAssist.remaining_today(@family)
       render :edit, status: :unprocessable_entity
     end
   end
@@ -71,6 +77,15 @@ class IssuesController < ApplicationController
     @solve_issue_ids = session[:solve_issue_ids] || []
     @issues_to_solve = @family.issues.where(id: @solve_issue_ids)
     @current_issue = @issues_to_solve.first
+  end
+
+  def advance_status
+    @issue = @family.issues.find(params[:id])
+    if @issue.advance_status!
+      redirect_back fallback_location: family_issues_path(@family), notice: "Issue moved to \"#{Issue::STATUS_LABELS[@issue.status]}\"."
+    else
+      redirect_back fallback_location: family_issues_path(@family), alert: "Issue is already resolved."
+    end
   end
 
   private
