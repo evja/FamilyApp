@@ -1,14 +1,64 @@
-<h1 class="text-3xl font-bold mb-6" style="color: <%= @colors[:primary] %>;">
-  Your Family Vision
-</h1>
+<div class="max-w-3xl mx-auto mt-10">
+  <% has_content = @vision.mission_statement.present? || @values.any? %>
 
-<div class="mb-6">
-  <h2 class="text-xl font-semibold mb-2" style="color: <%= @colors[:primary] %>;">Mission Statement</h2>
-  <div class="bg-white p-4 rounded border shadow" style="border-color: <%= @colors[:primary] %>;">
-    <%= @vision.mission_statement.presence || "No mission statement yet." %>
-  </div>
+  <% if has_content %>
+    <h1 class="text-3xl font-bold mb-8" style="color: <%= @colors[:primary] %>;">
+      Your Family Vision
+    </h1>
+
+    <% if @values.any? %>
+      <div class="mb-6">
+        <h2 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">Family Values</h2>
+        <div class="flex flex-wrap gap-2">
+          <% @values.each do |value| %>
+            <span class="inline-block px-3 py-1 rounded-full text-sm font-medium text-white"
+                  style="background-color: <%= @colors[:primary] %>;">
+              <%= value.name %>
+            </span>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <% if @vision.mission_statement.present? %>
+      <div class="bg-white rounded-lg border-2 p-6 mb-6" style="border-color: <%= @colors[:primary] %>;">
+        <h2 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">Mission Statement</h2>
+        <p class="text-gray-800 text-lg leading-relaxed"><%= @vision.mission_statement %></p>
+      </div>
+    <% end %>
+
+    <% if @vision.ten_year_dream.present? %>
+      <div class="bg-white rounded-lg border p-6 mb-6" style="border-color: <%= @colors[:secondary] %>;">
+        <h2 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">10-Year Dream</h2>
+        <p class="text-gray-700 whitespace-pre-line"><%= @vision.ten_year_dream %></p>
+      </div>
+    <% end %>
+
+    <div class="flex items-center justify-between mt-8">
+      <%= link_to "Edit Vision", edit_family_vision_path(@family),
+          class: "inline-block px-5 py-2 rounded text-white font-semibold",
+          style: "background-color: #{@colors[:primary]};" %>
+      <% if @vision.updated_at.present? %>
+        <span class="text-xs text-gray-400">Last updated: <%= @vision.updated_at.strftime("%B %d, %Y") %></span>
+      <% end %>
+    </div>
+
+  <% else %>
+    <!-- Empty State -->
+    <div class="text-center py-16">
+      <div class="w-20 h-20 rounded-full mx-auto mb-6 flex items-center justify-center text-3xl"
+           style="background-color: <%= @colors[:background] %>; color: <%= @colors[:primary] %>;">
+        &#9733;
+      </div>
+      <h1 class="text-3xl font-bold mb-3" style="color: <%= @colors[:primary] %>;">
+        Your Family Vision
+      </h1>
+      <p class="text-gray-500 max-w-md mx-auto mb-8">
+        A family vision gives everyone a shared sense of purpose. Define your values, write a mission statement, and dream about your future together.
+      </p>
+      <%= link_to "Start Building Your Vision", edit_family_vision_path(@family),
+          class: "inline-block px-6 py-3 rounded text-white font-semibold text-lg",
+          style: "background-color: #{@colors[:primary]};" %>
+    </div>
+  <% end %>
 </div>
-
-<%= link_to "Edit Vision", edit_family_vision_path(@family), 
-  class: "inline-block px-4 py-2 rounded text-white font-semibold",
-  style: "background-color: #{@colors[:primary]};" %>

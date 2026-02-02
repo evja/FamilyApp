@@ -1,17 +1,318 @@
-<h1 class="text-3xl font-bold mb-6" style="color: <%= @colors[:primary] %>;">
-  Craft Your Family Vision
-</h1>
+<div class="max-w-3xl mx-auto mt-10"
+  x-data='{
+    step: 1,
+    values: <%= @existing_values.to_json %>,
+    customValue: "",
+    missionStatement: <%= (@vision.mission_statement || "").to_json %>,
+    tenYearDream: <%= (@vision.ten_year_dream || "").to_json %>,
+    suggestions: [],
+    aiLoading: false,
+    aiError: null,
+    remaining: <%= @assist_remaining %>,
+    presetValues: [
+      "Kindness & Compassion",
+      "Honesty & Trust",
+      "Learning & Growth",
+      "Adventure & Fun",
+      "Faith & Spirituality",
+      "Hard Work & Responsibility",
+      "Health & Wellness",
+      "Creativity & Expression",
+      "Gratitude & Generosity",
+      "Family Time & Togetherness"
+    ],
+    toggleValue(val) {
+      const idx = this.values.indexOf(val);
+      if (idx >= 0) {
+        this.values.splice(idx, 1);
+      } else {
+        this.values.push(val);
+      }
+    },
+    addCustom() {
+      const v = this.customValue.trim();
+      if (v && !this.values.includes(v)) {
+        this.values.push(v);
+      }
+      this.customValue = "";
+    },
+    removeValue(val) {
+      this.values = this.values.filter(v => v !== val);
+    },
+    async fetchSuggestions() {
+      this.aiLoading = true;
+      this.aiError = null;
+      this.suggestions = [];
+      try {
+        const resp = await fetch("<%= assist_family_vision_path(@family) %>", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": document.querySelector("meta[name=csrf-token]").content
+          },
+          body: JSON.stringify({ values: this.values })
+        });
+        const data = await resp.json();
+        if (data.error) {
+          this.aiError = data.error;
+        } else {
+          this.suggestions = data.suggestions;
+          this.remaining = data.remaining;
+        }
+      } catch (e) {
+        this.aiError = "Something went wrong. Please try again.";
+      }
+      this.aiLoading = false;
+    },
+    useSuggestion(s) {
+      this.missionStatement = s;
+      this.suggestions = [];
+    }
+  }'
+>
 
-<%= form_with model: @vision, url: family_vision_path(@family), method: :patch, local: true do |f| %>
-  <div class="mb-4">
-    <%= f.label :mission_statement, "Mission Statement", class: "block font-semibold mb-1", style: "color: #{@colors[:primary]};" %>
-    <%= f.text_area :mission_statement, rows: 5, class: "w-full p-3 rounded border", style: "border-color: #{@colors[:primary]};" %>
+  <!-- Progress Bar -->
+  <div class="flex items-center justify-between mb-10">
+    <template x-for="s in [1,2,3,4]" :key="s">
+      <div class="flex items-center" :class="s < 4 ? 'flex-1' : ''">
+        <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
+             :style="s <= step
+               ? 'background-color: <%= @colors[:primary] %>; color: white;'
+               : 'background-color: #e5e7eb; color: #9ca3af;'">
+          <span x-text="s"></span>
+        </div>
+        <div x-show="s < 4" class="flex-1 h-1 mx-2 rounded transition-all duration-300"
+             :style="s < step
+               ? 'background-color: <%= @colors[:primary] %>;'
+               : 'background-color: #e5e7eb;'">
+        </div>
+      </div>
+    </template>
   </div>
 
-  <div class="mb-4">
-    <%= f.label :notes, "Vision Notes (optional)", class: "block font-semibold mb-1", style: "color: #{@colors[:primary]};" %>
-    <%= f.text_area :notes, rows: 4, class: "w-full p-3 rounded border", style: "border-color: #{@colors[:primary]};" %>
-  </div>
+  <h1 class="text-3xl font-bold mb-2" style="color: <%= @colors[:primary] %>;">
+    Build Your Family Vision
+  </h1>
+  <p class="text-gray-500 mb-8">A step-by-step guide to defining what matters most to your family.</p>
 
-  <%= f.submit "Save Vision", class: "px-4 py-2 rounded text-white font-semibold", style: "background-color: #{@colors[:primary]};" %>
-<% end %>
+  <%= form_with model: @vision, url: family_vision_path(@family), method: :patch, local: true do |f| %>
+    <input type="hidden" name="family_vision[value_names]" :value="JSON.stringify(values)">
+
+    <!-- Step 1: Family Values -->
+    <div x-show="step === 1" x-transition>
+      <h2 class="text-xl font-semibold mb-4" style="color: <%= @colors[:primary] %>;">
+        Step 1: Choose Your Family Values
+      </h2>
+      <p class="text-gray-600 mb-6">What matters most to your family? Select from common values or add your own.</p>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+        <template x-for="preset in presetValues" :key="preset">
+          <button type="button"
+                  @click="toggleValue(preset)"
+                  class="px-4 py-3 rounded-lg border-2 text-sm font-medium transition-all duration-200 text-left"
+                  :style="values.includes(preset)
+                    ? 'border-color: <%= @colors[:primary] %>; background-color: <%= @colors[:background] %>; color: <%= @colors[:primary] %>;'
+                    : 'border-color: #e5e7eb; color: #6b7280;'">
+            <span x-text="preset"></span>
+          </button>
+        </template>
+      </div>
+
+      <div class="flex gap-2 mb-6">
+        <input type="text" x-model="customValue" @keydown.enter.prevent="addCustom()"
+               placeholder="Add a custom value..."
+               class="flex-1 px-4 py-2 rounded border text-sm" style="border-color: <%= @colors[:secondary] %>;">
+        <button type="button" @click="addCustom()"
+                class="px-4 py-2 rounded text-white text-sm font-medium"
+                style="background-color: <%= @colors[:secondary] %>;">
+          Add
+        </button>
+      </div>
+
+      <div x-show="values.length > 0" class="mb-6">
+        <p class="text-sm font-medium mb-2" style="color: <%= @colors[:primary] %>;">Selected values:</p>
+        <div class="flex flex-wrap gap-2">
+          <template x-for="val in values" :key="val">
+            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium text-white"
+                  style="background-color: <%= @colors[:primary] %>;">
+              <span x-text="val"></span>
+              <button type="button" @click="removeValue(val)" class="ml-1 hover:opacity-75">&times;</button>
+            </span>
+          </template>
+        </div>
+      </div>
+
+      <div class="flex justify-end">
+        <button type="button" @click="step = 2"
+                :disabled="values.length === 0"
+                class="px-6 py-2 rounded text-white font-semibold transition-opacity"
+                :class="values.length === 0 ? 'opacity-50 cursor-not-allowed' : ''"
+                style="background-color: <%= @colors[:primary] %>;">
+          Next →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 2: Mission Statement -->
+    <div x-show="step === 2" x-transition>
+      <h2 class="text-xl font-semibold mb-4" style="color: <%= @colors[:primary] %>;">
+        Step 2: Write Your Mission Statement
+      </h2>
+      <p class="text-gray-600 mb-4">In 1–2 sentences, describe who your family is and what you stand for.</p>
+
+      <div class="mb-4">
+        <p class="text-sm font-medium mb-2" style="color: <%= @colors[:primary] %>;">Your values:</p>
+        <div class="flex flex-wrap gap-2 mb-4">
+          <template x-for="val in values" :key="val">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-medium"
+                  style="background-color: <%= @colors[:background] %>; color: <%= @colors[:primary] %>;">
+              <span x-text="val"></span>
+            </span>
+          </template>
+        </div>
+      </div>
+
+      <div class="bg-gray-50 border border-gray-200 rounded p-4 mb-4 text-sm text-gray-500">
+        <p class="font-medium text-gray-600 mb-1">Examples:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>"We are a family that leads with kindness, grows through honesty, and makes time for adventure together."</li>
+          <li>"Our family builds trust through open communication and celebrates each person's unique gifts."</li>
+        </ul>
+      </div>
+
+      <%= f.text_area :mission_statement,
+            rows: 4,
+            "x-model": "missionStatement",
+            class: "w-full p-3 rounded border mb-4",
+            style: "border-color: #{@colors[:primary]};",
+            placeholder: "Write your family mission statement..." %>
+
+      <div class="mb-6">
+        <button type="button" @click="fetchSuggestions()"
+                :disabled="aiLoading || remaining <= 0"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded text-sm font-medium border-2 transition-all duration-200"
+                :class="aiLoading || remaining <= 0 ? 'opacity-50 cursor-not-allowed' : ''"
+                style="border-color: <%= @colors[:secondary] %>; color: <%= @colors[:secondary] %>;">
+          <template x-if="aiLoading">
+            <svg class="animate-spin h-4 w-4" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+          </template>
+          <span x-text="aiLoading ? 'Generating...' : 'Help me write this ✨'"></span>
+        </button>
+        <span class="text-xs text-gray-400 ml-2" x-text="remaining + ' AI assists remaining today'"></span>
+      </div>
+
+      <div x-show="aiError" class="bg-red-50 text-red-600 text-sm rounded p-3 mb-4" x-text="aiError"></div>
+
+      <div x-show="suggestions.length > 0" class="space-y-3 mb-6">
+        <p class="text-sm font-medium" style="color: <%= @colors[:primary] %>;">Click a suggestion to use it:</p>
+        <template x-for="(s, i) in suggestions" :key="i">
+          <button type="button" @click="useSuggestion(s)"
+                  class="block w-full text-left p-4 rounded-lg border-2 text-sm hover:shadow-md transition-all duration-200"
+                  style="border-color: <%= @colors[:secondary] %>;">
+            <span x-text="s"></span>
+          </button>
+        </template>
+      </div>
+
+      <div class="flex justify-between">
+        <button type="button" @click="step = 1"
+                class="px-6 py-2 rounded font-semibold text-sm"
+                style="color: <%= @colors[:primary] %>;">
+          ← Back
+        </button>
+        <button type="button" @click="step = 3"
+                class="px-6 py-2 rounded text-white font-semibold"
+                style="background-color: <%= @colors[:primary] %>;">
+          Next →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 3: 10-Year Dream -->
+    <div x-show="step === 3" x-transition>
+      <h2 class="text-xl font-semibold mb-4" style="color: <%= @colors[:primary] %>;">
+        Step 3: Dream Big — Your 10-Year Vision
+      </h2>
+      <p class="text-gray-600 mb-4">Close your eyes for a moment. Picture your family 10 years from now, at your very best.</p>
+
+      <div class="bg-gray-50 border border-gray-200 rounded p-4 mb-4 text-sm text-gray-500">
+        <p class="font-medium text-gray-600 mb-1">Think about:</p>
+        <ul class="list-disc list-inside space-y-1">
+          <li>Where do you live? What does a typical day look like?</li>
+          <li>What traditions have you built together?</li>
+          <li>How would your kids describe their childhood?</li>
+          <li>What have you accomplished as a family?</li>
+        </ul>
+      </div>
+
+      <%= f.text_area :ten_year_dream,
+            rows: 6,
+            "x-model": "tenYearDream",
+            class: "w-full p-3 rounded border mb-6",
+            style: "border-color: #{@colors[:primary]};",
+            placeholder: "Describe your family's 10-year dream..." %>
+
+      <div class="flex justify-between">
+        <button type="button" @click="step = 2"
+                class="px-6 py-2 rounded font-semibold text-sm"
+                style="color: <%= @colors[:primary] %>;">
+          ← Back
+        </button>
+        <button type="button" @click="step = 4"
+                class="px-6 py-2 rounded text-white font-semibold"
+                style="background-color: <%= @colors[:primary] %>;">
+          Next →
+        </button>
+      </div>
+    </div>
+
+    <!-- Step 4: Review & Save -->
+    <div x-show="step === 4" x-transition>
+      <h2 class="text-xl font-semibold mb-4" style="color: <%= @colors[:primary] %>;">
+        Step 4: Review & Save
+      </h2>
+      <p class="text-gray-600 mb-6">Here's your family vision. Review everything and save when you're ready.</p>
+
+      <div class="space-y-6 mb-8">
+        <!-- Values Review -->
+        <div class="bg-white rounded-lg border p-5" style="border-color: <%= @colors[:secondary] %>;">
+          <h3 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">Family Values</h3>
+          <div class="flex flex-wrap gap-2">
+            <template x-for="val in values" :key="val">
+              <span class="inline-block px-3 py-1 rounded-full text-sm font-medium text-white"
+                    style="background-color: <%= @colors[:primary] %>;">
+                <span x-text="val"></span>
+              </span>
+            </template>
+          </div>
+        </div>
+
+        <!-- Mission Statement Review -->
+        <div class="bg-white rounded-lg border p-5" style="border-color: <%= @colors[:secondary] %>;">
+          <h3 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">Mission Statement</h3>
+          <p class="text-gray-700" x-text="missionStatement || 'Not written yet'"></p>
+        </div>
+
+        <!-- Dream Review -->
+        <div x-show="tenYearDream" class="bg-white rounded-lg border p-5" style="border-color: <%= @colors[:secondary] %>;">
+          <h3 class="text-sm font-semibold uppercase tracking-wide mb-3" style="color: <%= @colors[:primary] %>;">10-Year Dream</h3>
+          <p class="text-gray-700 whitespace-pre-line" x-text="tenYearDream"></p>
+        </div>
+      </div>
+
+      <div class="flex justify-between">
+        <button type="button" @click="step = 3"
+                class="px-6 py-2 rounded font-semibold text-sm"
+                style="color: <%= @colors[:primary] %>;">
+          ← Back
+        </button>
+        <%= f.submit "Save Vision ✓",
+              class: "px-6 py-2 rounded text-white font-semibold cursor-pointer",
+              style: "background-color: #{@colors[:primary]};" %>
+      </div>
+    </div>
+  <% end %>
+</div>

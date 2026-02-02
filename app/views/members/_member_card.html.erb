@@ -16,6 +16,8 @@
       <p class="text-sm text-gray-600">Age: <%= member.age %></p>
       <% if member.is_parent %>
         <p class="text-xs font-medium mt-1" style="color: <%= colors[:secondary] %>">Parent</p>
+      <% else %>
+        <p class="text-xs font-medium mt-1 text-gray-500">Child</p>
       <% end %>
     </div>
   </div>

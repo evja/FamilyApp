@@ -21,6 +21,7 @@ Rails.application.routes.draw do
 
     resources :family_invitations, only: [:new, :create, :destroy]
     resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
+      post :assist, on: :member
       resources :values, controller: 'family_values', except: [:show]
     end
   end

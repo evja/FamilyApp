@@ -114,9 +114,10 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Issue hierarchy**: Issues can be "root" or "symptom". Symptoms link to a root issue via `root_issue_id`.
 - **Invitations**: Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link.
 - **Admin**: Guarded by `require_admin` checking `current_user.admin?`. Located in `Admin::` namespace.
-- **No API**: This is a server-rendered app. The only JSON endpoint is `IssueAssistsController#create` for the AI writing assistant.
+- **No API**: This is a server-rendered app. JSON endpoints: `IssueAssistsController#create` (issue writing assistant) and `FamilyVisionsController#assist` (vision mission statement suggestions).
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
 - **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
+- **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
 - **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
 
 ## MVP Simplification
@@ -130,7 +131,10 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 
 ### Simplified Forms
 - **Member form** (`members/_form.html.erb`): shows only name, age, is_parent. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
+- **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, role (Parent/Child), edit/delete actions. Health, Interests, Needs, and Quarterly Assessments cards removed.
+- **Member card** (`members/_member_card.html.erb`): shows "Parent" or "Child" role label for all members.
 - **Issue form** (`issues/_form.html.erb`): shows only description and urgency. Hidden fields (list_type, member_ids, family_value_ids, issue_type, root_issue_id) remain in DB. `IssuesController` defaults `list_type` to "Family" and `issue_type` to "root" when not provided.
+- **Vision show page** (`family_visions/show.html.erb`): empty state with "Start Building Your Vision" CTA when no vision data exists; populated state shows values tags, mission statement card, 10-year dream card, and last updated date.
 
 ### Admin "View as User" Toggle
 - Admins can toggle a "View as User" mode via `session[:view_as_user]`
