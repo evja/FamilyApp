@@ -1,5 +1,5 @@
 class FamilyInvitationsController < ApplicationController
-  before_action :authenticate_user!
+  before_action :authenticate_user!, except: [:accept]
   before_action :set_family, except: [:accept]
   before_action :ensure_family_member, except: [:accept]
   before_action :set_invitation, only: [:destroy]
@@ -12,7 +12,6 @@ class FamilyInvitationsController < ApplicationController
     @invitation = @family.invitations.new(invitation_params)
 
     if @invitation.save
-      # TODO: Send invitation email
       FamilyMailer.invitation_email(@invitation).deliver_later
       redirect_to family_path(@family), notice: 'Invitation sent successfully.'
     else
@@ -28,13 +27,31 @@ class FamilyInvitationsController < ApplicationController
   def accept
     @invitation = FamilyInvitation.find_by(token: params[:token])
 
-    if @invitation&.valid? && @invitation.email == current_user.email
-      current_user.update(family: @invitation.family)
-      @invitation.accept!
-      redirect_to family_path(@invitation.family), notice: 'Welcome to the family!'
-    else
+    if @invitation.nil? || @invitation.expired?
       redirect_to root_path, alert: 'Invalid or expired invitation.'
+      return
     end
+
+    unless user_signed_in?
+      session[:invitation_token] = params[:token]
+      redirect_to new_user_registration_path, notice: 'Please create an account to join the family.'
+      return
+    end
+
+    unless @invitation.email.downcase == current_user.email.downcase
+      redirect_to root_path, alert: 'This invitation was sent to a different email address.'
+      return
+    end
+
+    if current_user.family.present? && current_user.family != @invitation.family
+      redirect_to family_path(current_user.family), alert: 'You are already a member of another family.'
+      return
+    end
+
+    current_user.update!(family: @invitation.family)
+    @invitation.accept!
+    session.delete(:invitation_token)
+    redirect_to family_path(@invitation.family), notice: 'Welcome to the family!'
   end
 
   private

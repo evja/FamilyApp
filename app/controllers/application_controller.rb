@@ -3,7 +3,19 @@ class ApplicationController < ActionController::Base
   helper_method :current_family, :viewing_as_user?, :show_admin_features?
 
   def after_sign_in_path_for(resource)
-    if resource.family
+    if session[:invitation_token].present?
+      accept_family_invitation_path(token: session[:invitation_token])
+    elsif resource.family
+      family_path(resource.family)
+    else
+      new_family_path
+    end
+  end
+
+  def after_sign_up_path_for(resource)
+    if session[:invitation_token].present?
+      accept_family_invitation_path(token: session[:invitation_token])
+    elsif resource.family
       family_path(resource.family)
     else
       new_family_path

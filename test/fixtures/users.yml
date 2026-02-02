@@ -20,3 +20,10 @@ admin:
   family: one
   admin: true
   is_subscribed: true
+
+no_family:
+  email: no-family@example.com
+  encrypted_password: <%= Devise::Encryptor.digest(User, 'password123') %>
+  family:
+  admin: false
+  is_subscribed: false

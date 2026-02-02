@@ -13,3 +13,17 @@ two:
   token: token_two
   status: pending
   expires_at: 2025-05-25 19:14:10
+
+valid_pending:
+  family: one
+  email: no-family@example.com
+  token: valid_token
+  status: pending
+  expires_at: <%= 7.days.from_now.to_fs(:db) %>
+
+valid_for_user_two:
+  family: one
+  email: user-two@example.com
+  token: valid_token_user_two
+  status: pending
+  expires_at: <%= 7.days.from_now.to_fs(:db) %>
