@@ -1,4 +1,4 @@
 class ApplicationMailer < ActionMailer::Base
-  default from: "bckwdsmn@gmail.com"
+  default from: "resend.dev"
   layout "mailer"
 end
