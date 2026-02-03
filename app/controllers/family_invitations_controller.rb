@@ -21,7 +21,7 @@ class FamilyInvitationsController < ApplicationController
 
   def destroy
     @invitation.expire!
-    redirect_to family_path(@family), notice: 'Invitation cancelled successfully.'
+    redirect_back fallback_location: family_path(@family), notice: 'Invitation cancelled successfully.'
   end
 
   def accept

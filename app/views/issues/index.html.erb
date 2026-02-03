@@ -99,17 +99,20 @@
                 <td class="px-4 py-2 text-gray-700"><%= truncate(issue.description, length: 80) %></td>
                 <td class="px-4 py-2"><%= issue.urgency %></td>
                 <td class="px-4 py-2 whitespace-nowrap">
-                  <%= link_to "View", family_issue_path(@family, issue),
-                      class: "theme-button-outline text-xs px-2 py-1 mr-1" %>
-                  <%= link_to "Edit", edit_family_issue_path(@family, issue),
-                      class: "theme-button-filled text-xs px-2 py-1 mr-1" %>
-                  <% if issue.next_status %>
-                    <%= button_to advance_status_family_issue_path(@family, issue),
-                        method: :patch,
-                        class: "inline-flex text-xs font-medium px-2 py-1 rounded border theme-button-outline" do %>
-                      &rarr; <%= Issue::STATUS_LABELS[issue.next_status] %>
+                  <div class="flex items-center gap-1">
+                    <%= link_to "View", family_issue_path(@family, issue),
+                        class: "theme-button-outline text-xs px-2 py-1" %>
+                    <%= link_to "Edit", edit_family_issue_path(@family, issue),
+                        class: "theme-button-filled text-xs px-2 py-1" %>
+                    <% if issue.next_status %>
+                      <%= button_to advance_status_family_issue_path(@family, issue),
+                          method: :patch,
+                          form: { class: "inline-flex" },
+                          class: "text-xs font-medium px-2 py-1 rounded border theme-button-outline" do %>
+                        &rarr; <%= Issue::STATUS_LABELS[issue.next_status] %>
+                      <% end %>
                     <% end %>
-                  <% end %>
+                  </div>
                 </td>
               </tr>
             <% end %>
