@@ -72,16 +72,16 @@
 >
 
   <!-- Progress Bar -->
-  <div class="flex items-center justify-between mb-10">
+  <div class="flex items-center justify-between mb-6 md:mb-10">
     <template x-for="s in [1,2,3,4]" :key="s">
       <div class="flex items-center" :class="s < 4 ? 'flex-1' : ''">
-        <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300"
+        <div class="w-7 h-7 md:w-9 md:h-9 rounded-full flex items-center justify-center text-xs md:text-sm font-bold transition-all duration-300"
              :style="s <= step
                ? 'background-color: <%= @colors[:primary] %>; color: white;'
                : 'background-color: #e5e7eb; color: #9ca3af;'">
           <span x-text="s"></span>
         </div>
-        <div x-show="s < 4" class="flex-1 h-1 mx-2 rounded transition-all duration-300"
+        <div x-show="s < 4" class="hidden sm:block flex-1 h-1 mx-2 rounded transition-all duration-300"
              :style="s < step
                ? 'background-color: <%= @colors[:primary] %>;'
                : 'background-color: #e5e7eb;'">
@@ -105,7 +105,7 @@
       </h2>
       <p class="text-gray-600 mb-6">What matters most to your family? Select from common values or add your own.</p>
 
-      <div class="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
         <template x-for="preset in presetValues" :key="preset">
           <button type="button"
                   @click="toggleValue(preset)"

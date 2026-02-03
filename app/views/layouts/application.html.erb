@@ -2,6 +2,7 @@
 <html>
   <head>
     <title>FamilyHub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
     <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
@@ -12,13 +13,13 @@
   </head>
 
   <body class="font-sans" data-theme="<%= (defined?(@family) && @family&.theme.presence) || current_user&.family&.theme || 'default' %>">
-    <header class="p-6 theme-header text-white">
+    <header class="p-4 md:p-6 theme-header text-white" x-data="{ mobileMenu: false }">
 
       <div class="container mx-auto flex justify-between items-center">
         <% if user_signed_in? && current_user.family %>
           <!-- Left: Family Name + App Dropdown -->
           <div x-data="{ open: false, confirmingDelete: false }" class="relative text-white flex items-center gap-2">
-            <button @click="open = !open" class="font-semibold text-white hover:underline">
+            <button @click="open = !open" class="font-semibold text-white hover:underline text-sm md:text-base">
               <%= current_user.family.name %> - FamilyHub ▼
             </button>
 
@@ -38,7 +39,7 @@
 
             <!-- Delete confirmation modal -->
             <div x-show="confirmingDelete" x-cloak x-transition
-                class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
+                class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
               <div class="bg-white rounded shadow-lg p-6 w-full max-w-md">
                 <h2 class="text-xl font-semibold text-red-700 mb-4">Are you absolutely sure?</h2>
                 <p class="text-gray-700 mb-6">
@@ -58,16 +59,25 @@
           <%= link_to "Create Family", new_family_path, class: "text-sm hover:underline" %>
           <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "text-sm hover:underline" %>
         <% else %>
-          <%= link_to root_path, class: "text-2xl font-bold hover:underline" do %>
+          <%= link_to root_path, class: "text-xl md:text-2xl font-bold hover:underline" do %>
             FamilyHub
           <% end %>
         <% end %>
 
-        <!-- Right: Nav Links -->
-        <nav class="flex items-center gap-4">
+        <!-- Hamburger button (mobile) -->
+        <button @click="mobileMenu = !mobileMenu" class="md:hidden p-2 rounded hover:bg-white/20">
+          <svg x-show="!mobileMenu" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+          <svg x-show="mobileMenu" x-cloak xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        <!-- Right: Nav Links (desktop) -->
+        <nav class="hidden md:flex items-center gap-4">
           <% if user_signed_in? && current_user.admin? %>
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold" %>
-            
           <% end %>
           <% if user_signed_in? && current_user.family %>
             <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline" %>
@@ -84,6 +94,28 @@
           <% end %>
         </nav>
       </div>
+
+      <!-- Mobile menu dropdown -->
+      <div x-show="mobileMenu" x-cloak x-transition class="md:hidden mt-4 pt-4 border-t border-white/20">
+        <nav class="flex flex-col gap-3">
+          <% if user_signed_in? && current_user.admin? %>
+            <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold py-1" %>
+          <% end %>
+          <% if user_signed_in? && current_user.family %>
+            <%= link_to "Dashboard", family_path(current_user.family), class: "hover:underline py-1" %>
+            <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline py-1" %>
+            <%= link_to "Help", about_path, class: "hover:underline py-1" %>
+          <% else %>
+            <%= link_to "Home", root_path, class: "hover:underline py-1" %>
+            <%= link_to "About", about_path, class: "hover:underline py-1" %>
+          <% end %>
+          <% unless user_signed_in? %>
+            <%= link_to "Sign Up", new_user_registration_path, class: "hover:underline py-1" %>
+            <%= link_to "Log In", new_user_session_path, class: "hover:underline py-1" %>
+            <%= button_to "Subscribe to FamilyHub", checkout_path, method: :post, class: "theme-button px-4 py-2 rounded w-full text-center" %>
+          <% end %>
+        </nav>
+      </div>
     </header>
 
     <% if viewing_as_user? %>
@@ -93,7 +125,13 @@
       </div>
     <% end %>
 
-    <main class="container mx-auto px-4 py-10">
+    <main class="container mx-auto px-4 py-6 md:py-10">
+      <% if notice %>
+        <div class="mb-4 p-3 bg-green-50 border border-green-200 text-green-700 rounded text-sm"><%= notice %></div>
+      <% end %>
+      <% if alert %>
+        <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded text-sm"><%= alert %></div>
+      <% end %>
       <%= yield %>
     </main>
   </body>

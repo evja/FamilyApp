@@ -2,7 +2,7 @@
   colors = @family.theme_colors
 %>
 
-<div class="max-w-6xl mx-auto mt-12 px-6">
+<div class="max-w-6xl mx-auto mt-6 md:mt-12 px-4 md:px-6">
   <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
     <h2 class="text-3xl font-bold" style="color: <%= colors[:primary] %>">
       Welcome to the <%= @family.name %> Family Dashboard
@@ -36,7 +36,7 @@
     </div>
   </div>
   
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
     <% mvp_cards = ["Issues", "Members", "Vision"] %>
     <% dashboard_items = [
       { label: "Members", icon: "users", path: family_members_path(@family), status: :active },

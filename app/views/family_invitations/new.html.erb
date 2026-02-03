@@ -1,4 +1,4 @@
-<div class="max-w-md mx-auto mt-12 p-8 bg-white shadow rounded">
+<div class="max-w-md mx-auto mt-6 md:mt-12 p-4 sm:p-6 md:p-8 bg-white shadow rounded">
   <h2 class="text-2xl font-bold mb-6 text-center">Invite Family Member</h2>
 
   <%= form_with model: [@family, @invitation], local: true do |form| %>
@@ -39,7 +39,7 @@
       <h3 class="font-semibold mb-4">Pending Invitations</h3>
       <div class="space-y-4">
         <% @family.invitations.pending.each do |invitation| %>
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded">
+          <div class="flex flex-wrap items-center justify-between gap-2 p-4 bg-gray-50 rounded">
             <div>
               <p class="font-medium"><%= invitation.email %></p>
               <p class="text-sm text-gray-500">
