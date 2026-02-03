@@ -17,10 +17,11 @@ class User < ApplicationRecord
 
   def destroy_family_if_last_user
     return unless family
-    
-    remaining_users = family.users.where.not(id: id)
-    if remaining_users.empty?
-      family.destroy
+
+    family.with_lock do
+      if family.users.where.not(id: id).empty?
+        family.destroy
+      end
     end
   end
 end

@@ -5,7 +5,7 @@ class BillingController < ApplicationController
     session = Stripe::Checkout::Session.create(
       payment_method_types: ["card"],
       line_items: [{
-        price: "price_1R9M0q2aFoAQb2DKGml0Cz2m", # replace with actual price ID
+        price: Rails.application.credentials.dig(:stripe, :price_id) || ENV.fetch('STRIPE_PRICE_ID'),
         quantity: 1
       }],
       mode: "subscription", # or "payment" for one-time

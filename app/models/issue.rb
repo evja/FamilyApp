@@ -24,7 +24,7 @@ class Issue < ApplicationRecord
     "resolved" => "bg-green-100 text-green-800"
   }.freeze
 
-  validates :description, presence: true
+  validates :description, presence: true, length: { minimum: 5, maximum: 2000 }
   validates :status, inclusion: { in: STATUSES }
 
   scope :active, -> { where.not(status: "resolved") }

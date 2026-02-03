@@ -21,7 +21,7 @@ class FamilyVisionsController < ApplicationController
       # Sync family values from submitted names
       if params[:family_vision][:value_names].present?
         value_names = JSON.parse(params[:family_vision][:value_names])
-        @family.family_values.destroy_all
+        @family.family_values.delete_all
         value_names.each do |name|
           @family.family_values.create!(name: name.strip) if name.strip.present?
         end

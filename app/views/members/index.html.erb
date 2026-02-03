@@ -20,26 +20,34 @@
   </div>
 
   <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Parents</h3>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
-    <% @members.select(&:is_parent).each do |member| %>
-      <%= render "member_card", member: member %>
-    <% end %>
-  </div>
+  <% if @parents.empty? %>
+    <p class="text-gray-500 mb-6">No parents added yet.</p>
+  <% else %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
+      <% @parents.each do |member| %>
+        <%= render "member_card", member: member %>
+      <% end %>
+    </div>
+  <% end %>
 
   <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
-    Children (<%= @members.reject(&:is_parent).count %>)
+    Children (<%= @children.count %>)
   </h3>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-    <% @members.reject(&:is_parent).each do |member| %>
-      <%= render "member_card", member: member %>
-    <% end %>
-  </div>
+  <% if @children.empty? %>
+    <p class="text-gray-500 mb-6">No children added yet.</p>
+  <% else %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+      <% @children.each do |member| %>
+        <%= render "member_card", member: member %>
+      <% end %>
+    </div>
+  <% end %>
 
-  <% if @family.invitations.pending.any? %>
+  <% if @pending_invitations.any? %>
     <div class="mt-10">
       <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Pending Invitations</h3>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <% @family.invitations.pending.each do |invitation| %>
+        <% @pending_invitations.each do |invitation| %>
           <div class="bg-white p-4 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
             <div class="flex justify-between items-start">
               <div>

@@ -72,7 +72,19 @@ Rails.application.configure do
   # config.active_job.queue_name_prefix = "family_app_production"
 
   config.action_mailer.perform_caching = false
-  config.action_mailer.default_url_options = { host: 'yourdomain.com', protocol: 'https' }
+  config.action_mailer.delivery_method = :smtp
+  config.action_mailer.smtp_settings = {
+    address: 'smtp.resend.com',
+    port: 587,
+    user_name: 'resend',
+    password: ENV['RESEND_API_KEY'],
+    authentication: :plain,
+    enable_starttls_auto: true
+  }
+  config.action_mailer.default_url_options = {
+    host: 'familyhub-d767a0025154.herokuapp.com',
+    protocol: 'https'
+  }
 
   # Ignore bad email addresses and do not raise email delivery errors.
   # Set this to true and configure the email server for immediate delivery to raise delivery errors.

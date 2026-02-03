@@ -57,7 +57,8 @@ class FamilyInvitationsController < ApplicationController
   private
 
   def set_family
-    @family = Family.find(params[:family_id])
+    @family = current_user.family
+    head :forbidden unless @family && @family.id.to_s == params[:family_id]
   end
 
   def set_invitation
@@ -67,6 +68,7 @@ class FamilyInvitationsController < ApplicationController
   def ensure_family_member
     unless @family.can_be_accessed_by?(current_user)
       redirect_to root_path, alert: 'You do not have permission to access this family.'
+      return
     end
   end
 

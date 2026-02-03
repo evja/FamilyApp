@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2025_07_01_000002) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_02_222823) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -30,6 +30,7 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_01_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["family_id"], name: "index_family_invitations_on_family_id"
+    t.index ["token"], name: "index_family_invitations_on_token", unique: true
   end
 
   create_table "family_values", force: :cascade do |t|
@@ -93,7 +94,9 @@ ActiveRecord::Schema[7.1].define(version: 2025_07_01_000002) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.datetime "resolved_at"
+    t.index ["family_id", "status"], name: "index_issues_on_family_id_and_status"
     t.index ["family_id"], name: "index_issues_on_family_id"
+    t.index ["root_issue_id"], name: "index_issues_on_root_issue_id"
   end
 
   create_table "leads", force: :cascade do |t|

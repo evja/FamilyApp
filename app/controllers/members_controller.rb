@@ -3,7 +3,10 @@ class MembersController < ApplicationController
   before_action :authorize_family!
 
   def index
-    @members = @family.members
+    @members = @family.members.order(is_parent: :desc, name: :asc)
+    @parents = @members.select(&:is_parent)
+    @children = @members.reject(&:is_parent)
+    @pending_invitations = @family.invitations.pending
   end
 
   def show

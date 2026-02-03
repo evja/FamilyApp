@@ -8,7 +8,7 @@ class Family < ApplicationRecord
   has_many :invitations, class_name: 'FamilyInvitation', dependent: :destroy
   has_one :vision, class_name: "FamilyVision", dependent: :destroy
 
-  validates :name, presence: true
+  validates :name, presence: true, length: { minimum: 2, maximum: 100 }
 
   before_destroy :check_last_family
 
