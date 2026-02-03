@@ -21,7 +21,7 @@ class IssueAssistant
   end
 
   def call
-    api_key = Rails.application.credentials.dig(:anthropic, :api_key)
+    api_key = ENV["ANTHROPIC_API_KEY"] || Rails.application.credentials.dig(:anthropic, :api_key)
     return { error: "AI assistant is not configured. Please add your Anthropic API key." } if api_key.blank?
 
     uri = URI(API_URL)

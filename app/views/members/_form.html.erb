@@ -28,48 +28,6 @@
       <%= form.label :is_parent, "Is a Parent?", class: "text-sm", style: "color: #{colors[:primary]}" %>
     </div>
 
-    <!-- Traits Section -->
-    <div>
-      <h3 class="text-sm font-semibold mb-2" style="color: <%= colors[:primary] %>">Personal Traits</h3>
-
-      <div class="grid gap-4 md:grid-cols-2">
-        <div>
-          <%= form.label :personality, "Personality", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-          <%= form.text_field :personality, placeholder: "e.g. Thoughtful, Curious", 
-              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
-        </div>
-
-        <div>
-          <%= form.label :interests, "Interests", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-          <%= form.text_field :interests, placeholder: "e.g. Drawing, Soccer", 
-              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
-        </div>
-
-        <div>
-          <%= form.label :health, "Health Notes", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-          <%= form.text_area :health, rows: 3, placeholder: "e.g. Allergies, recent checkup", 
-              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
-        </div>
-
-        <div>
-          <%= form.label :needs, "Current Needs", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-          <%= form.text_area :needs, rows: 3, placeholder: "e.g. Needs extra reading support", 
-              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
-        </div>
-
-        <div class="md:col-span-2">
-          <%= form.label :development, "Developmental Notes", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-          <%= form.text_area :development, rows: 3, placeholder: "e.g. Recently started showing leadership", 
-              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-              style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
-        </div>
-      </div>
-    </div>
-
     <!-- Actions -->
     <div class="flex justify-between items-center pt-4">
       <%= link_to "← Cancel", family_members_path(@family), 
