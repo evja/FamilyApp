@@ -67,11 +67,7 @@
         <nav class="flex items-center gap-4">
           <% if user_signed_in? && current_user.admin? %>
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold" %>
-            <%= button_to toggle_view_as_user_path, method: :post, class: "inline" do %>
-              <span class="hover:underline text-yellow-300 font-semibold text-sm">
-                <%= viewing_as_user? ? "Exit User View" : "View as User" %>
-              </span>
-            <% end %>
+            
           <% end %>
           <% if user_signed_in? && current_user.family %>
             <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline" %>

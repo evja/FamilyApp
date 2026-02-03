@@ -1,4 +1,9 @@
 <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+<%= button_to toggle_view_as_user_path, method: :post, class: "inline" do %>
+  <span class="hover:underline text-yellow-300 font-semibold text-sm">
+    <%= viewing_as_user? ? "Exit User View" : "View as User" %>
+  </span>
+<% end %>
 
 <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
   <!-- Total Users -->
