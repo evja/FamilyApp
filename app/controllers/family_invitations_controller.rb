@@ -55,7 +55,26 @@ class FamilyInvitationsController < ApplicationController
       return
     end
 
+    # Link user to family
     current_user.update!(family: @invitation.family)
+
+    # Link user to member if invitation has a member reference
+    if @invitation.member.present?
+      @invitation.member.update!(
+        user_id: current_user.id,
+        joined_at: Time.current
+      )
+    else
+      # Try to find a member by email match for legacy invitations
+      existing_member = @invitation.family.members.find_by(email: current_user.email)
+      if existing_member && existing_member.user_id.nil?
+        existing_member.update!(
+          user_id: current_user.id,
+          joined_at: Time.current
+        )
+      end
+    end
+
     @invitation.accept!
     session.delete(:invitation_token)
     redirect_to family_path(@invitation.family), notice: 'Welcome to the family!'
@@ -80,6 +99,6 @@ class FamilyInvitationsController < ApplicationController
   end
 
   def invitation_params
-    params.require(:family_invitation).permit(:email)
+    params.require(:family_invitation).permit(:email, :member_id)
   end
-end 
+end

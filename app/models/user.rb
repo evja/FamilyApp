@@ -5,6 +5,7 @@ class User < ApplicationRecord
          :recoverable, :rememberable, :validatable
 
   belongs_to :family, optional: true
+  has_one :member, dependent: :nullify
 
   scope :subscribed, -> { where(is_subscribed: true) }
   scope :unsubscribed, -> { where(is_subscribed: false) }
@@ -12,6 +13,18 @@ class User < ApplicationRecord
   scope :non_admins, -> { where(admin: false) }
 
   after_destroy :destroy_family_if_last_user
+
+  def family_owner?
+    member&.owner?
+  end
+
+  def family_parent?
+    member&.parent_or_above?
+  end
+
+  def family_role
+    member&.role
+  end
 
   private
 

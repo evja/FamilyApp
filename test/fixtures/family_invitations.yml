@@ -27,3 +27,11 @@ valid_for_user_two:
   token: valid_token_user_two
   status: pending
   expires_at: <%= 7.days.from_now.to_fs(:db) %>
+
+with_member:
+  family: one
+  email: parent@example.com
+  token: member_invite_token
+  status: pending
+  expires_at: <%= 7.days.from_now.to_fs(:db) %>
+  member: parent_one

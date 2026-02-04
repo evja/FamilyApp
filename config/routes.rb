@@ -7,7 +7,12 @@ Rails.application.routes.draw do
   resources :leads, only: [:create]
 
   resources :families do
-    resources :members
+    resources :members do
+      member do
+        post :invite
+        post :resend_invite
+      end
+    end
     
     resources :issues do
       collection do

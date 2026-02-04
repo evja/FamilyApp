@@ -1,5 +1,6 @@
 class FamilyInvitation < ApplicationRecord
   belongs_to :family
+  belongs_to :member, optional: true
 
   validates :email, presence: true, format: { with: URI::MailTo::EMAIL_REGEXP }
   validates :token, presence: true, uniqueness: true
@@ -7,7 +8,8 @@ class FamilyInvitation < ApplicationRecord
   validates :expires_at, presence: true
 
   before_validation :set_default_values, on: :create
-  
+  before_validation :sync_email_from_member
+
   scope :pending, -> { where(status: 'pending') }
   scope :valid, -> { where('expires_at > ? AND status = ?', Time.current, 'pending') }
 
@@ -17,12 +19,16 @@ class FamilyInvitation < ApplicationRecord
 
   def accept!
     return false if expired?
-    
+
     update(status: 'accepted')
   end
 
   def expire!
     update(status: 'expired')
+  end
+
+  def extend_expiration!
+    update(expires_at: 7.days.from_now)
   end
 
   private
@@ -31,6 +37,10 @@ class FamilyInvitation < ApplicationRecord
     self.token = generate_secure_token
     self.status ||= 'pending'
     self.expires_at ||= 7.days.from_now
+  end
+
+  def sync_email_from_member
+    self.email = member.email if member.present? && email.blank?
   end
 
   def generate_secure_token

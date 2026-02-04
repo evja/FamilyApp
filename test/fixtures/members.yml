@@ -1,21 +1,49 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+owner_one:
+  family: one
+  name: Owner One
+  age: 35
+  role: owner
+  email: user-one@example.com
+  is_parent: true
+  user: one
+  joined_at: <%= 30.days.ago.to_fs(:db) %>
+
+parent_one:
+  family: one
+  name: Parent One
+  age: 40
+  role: parent
+  email: parent@example.com
+  is_parent: true
+  invited_at: <%= 7.days.ago.to_fs(:db) %>
+
+teen_one:
+  family: one
+  name: Teen One
+  age: 16
+  role: teen
+  email: teen@example.com
+  is_parent: false
+
+child_one:
+  family: one
+  name: Child One
+  age: 10
+  role: child
+  is_parent: false
+
 one:
   family: one
   name: MyString
   age: 1
-  personality: MyText
-  interests: MyText
-  health: MyText
-  development: MyText
-  needs: MyText
+  role: child
+  is_parent: false
 
 two:
   family: two
   name: MyString
   age: 1
-  personality: MyText
-  interests: MyText
-  health: MyText
-  development: MyText
-  needs: MyText
+  role: child
+  is_parent: false

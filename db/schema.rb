@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_02_222823) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_03_220801) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -29,7 +29,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_02_222823) do
     t.datetime "expires_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "member_id"
     t.index ["family_id"], name: "index_family_invitations_on_family_id"
+    t.index ["member_id"], name: "index_family_invitations_on_member_id"
     t.index ["token"], name: "index_family_invitations_on_token", unique: true
   end
 
@@ -118,6 +120,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_02_222823) do
     t.datetime "updated_at", null: false
     t.boolean "is_parent", default: false
     t.bigint "user_id"
+    t.string "role", default: "child", null: false
+    t.string "email"
+    t.datetime "invited_at"
+    t.datetime "joined_at"
+    t.index ["email"], name: "index_members_on_email"
+    t.index ["family_id", "role"], name: "index_members_on_family_id_and_role"
     t.index ["family_id"], name: "index_members_on_family_id"
     t.index ["user_id"], name: "index_members_on_user_id"
   end
@@ -139,6 +147,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_02_222823) do
   end
 
   add_foreign_key "family_invitations", "families"
+  add_foreign_key "family_invitations", "members"
   add_foreign_key "family_values", "families"
   add_foreign_key "family_visions", "families"
   add_foreign_key "issue_assists", "families"

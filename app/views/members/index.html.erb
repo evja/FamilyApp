@@ -6,46 +6,66 @@
   <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Family Members</h2>
 
   <div class="flex gap-4 mb-6">
-    <%= link_to "+ Add Member", new_family_member_path(@family), 
+    <%= link_to "+ Add Member", new_family_member_path(@family),
         class: "inline-block px-4 py-2 rounded transition-all duration-300",
         style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
-    <%= link_to new_family_family_invitation_path(@family), 
-        class: "inline-block px-4 py-2 rounded border transition-all duration-300 flex items-center gap-2",
-        style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; hover:background-color: #{colors[:primary]}; hover:color: white;" do %>
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-      </svg>
-      Invite Family Member
-    <% end %>
   </div>
 
-  <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Parents</h3>
+  <!-- Account Owner -->
+  <% if @owner %>
+    <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Account Owner</h3>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
+      <%= render "member_card_with_status", member: @owner %>
+    </div>
+  <% end %>
+
+  <!-- Parents -->
+  <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
+    Parents (<%= @parents.count %>)
+  </h3>
   <% if @parents.empty? %>
     <p class="text-gray-500 mb-6">No parents added yet.</p>
   <% else %>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
       <% @parents.each do |member| %>
-        <%= render "member_card", member: member %>
+        <%= render "member_card_with_status", member: member %>
       <% end %>
     </div>
   <% end %>
 
+  <!-- Teens -->
+  <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
+    Teens (<%= @teens.count %>)
+  </h3>
+  <% if @teens.empty? %>
+    <p class="text-gray-500 mb-6">No teens added yet.</p>
+  <% else %>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
+      <% @teens.each do |member| %>
+        <%= render "member_card_with_status", member: member %>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Children -->
   <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
     Children (<%= @children.count %>)
   </h3>
   <% if @children.empty? %>
     <p class="text-gray-500 mb-6">No children added yet.</p>
   <% else %>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
       <% @children.each do |member| %>
-        <%= render "member_card", member: member %>
+        <%= render "member_card_with_status", member: member %>
       <% end %>
     </div>
   <% end %>
 
+  <!-- Legacy Pending Invitations (invitations without member_id) -->
   <% if @pending_invitations.any? %>
     <div class="mt-10">
-      <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Pending Invitations</h3>
+      <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Pending Invitations (Legacy)</h3>
+      <p class="text-sm text-gray-500 mb-4">These invitations were sent before the new member-first system.</p>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <% @pending_invitations.each do |invitation| %>
           <div class="bg-white p-4 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
