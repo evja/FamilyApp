@@ -12,8 +12,15 @@ class FamilyInvitationsController < ApplicationController
     @invitation = @family.invitations.new(invitation_params)
 
     if @invitation.save
-      FamilyMailer.invitation_email(@invitation).deliver_later
-      redirect_to family_path(@family), notice: 'Invitation sent successfully.'
+      invite_url = accept_family_invitation_url(@invitation.token)
+
+      if ENV["EMAIL_INVITES_ENABLED"] == "true"
+        FamilyMailer.invitation_email(@invitation).deliver_later
+        redirect_to family_path(@family), notice: "Invitation sent successfully."
+      else
+        redirect_to new_family_family_invitation_path(@family),
+          notice: "Email is disabled. Copy/share this invite link: #{invite_url}"
+      end
     else
       render :new, status: :unprocessable_entity
     end
