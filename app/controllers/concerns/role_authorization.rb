@@ -12,15 +12,15 @@ module RoleAuthorization
 
   def require_parent_access!
     unless current_user&.family_parent?
-      redirect_to family_path(current_user.family), alert: "You need parent or owner access to perform this action."
+      redirect_to family_path(current_user.family), alert: "You need parent access to perform this action."
       return false
     end
     true
   end
 
-  def require_owner_access!
-    unless current_user&.family_owner?
-      redirect_to family_path(current_user.family), alert: "Only the family owner can perform this action."
+  def require_admin_access!
+    unless current_user&.family_admin?
+      redirect_to family_path(current_user.family), alert: "Only the family admin can perform this action."
       return false
     end
     true

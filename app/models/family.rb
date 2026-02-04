@@ -34,8 +34,8 @@ class Family < ApplicationRecord
     end
   end
 
-  def ensure_owner_member(user)
-    return if members.owners.exists?
+  def ensure_admin_parent_member(user)
+    return if members.admin_parents.exists?
 
     # Check if there's an existing member that matches the user
     existing_member = members.find_by(email: user.email) ||
@@ -43,7 +43,7 @@ class Family < ApplicationRecord
 
     if existing_member
       existing_member.update!(
-        role: 'owner',
+        role: 'admin_parent',
         user_id: user.id,
         email: user.email,
         joined_at: Time.current
@@ -51,7 +51,7 @@ class Family < ApplicationRecord
     else
       members.create!(
         name: user.email.split('@').first.titleize,
-        role: 'owner',
+        role: 'admin_parent',
         user_id: user.id,
         email: user.email,
         joined_at: Time.current,
@@ -65,8 +65,8 @@ class Family < ApplicationRecord
     users.include?(user) || invitations.valid.exists?(email: user.email)
   end
 
-  def owner_member
-    members.owners.first
+  def admin_parent_member
+    members.admin_parents.first
   end
 
   private

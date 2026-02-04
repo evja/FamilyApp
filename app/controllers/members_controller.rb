@@ -4,8 +4,8 @@ class MembersController < ApplicationController
   before_action :set_member, only: [:show, :edit, :update, :destroy, :invite, :resend_invite]
 
   def index
-    @members = @family.members.order(Arel.sql("CASE role WHEN 'owner' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"), :name)
-    @owner = @members.find(&:owner?)
+    @members = @family.members.order(Arel.sql("CASE role WHEN 'admin_parent' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"), :name)
+    @admin_parent = @members.find(&:admin_parent?)
     @parents = @members.select { |m| m.role == 'parent' }
     @teens = @members.select { |m| m.role == 'teen' }
     @children = @members.select { |m| m.role == 'child' }
@@ -40,8 +40,8 @@ class MembersController < ApplicationController
   end
 
   def destroy
-    if @member.owner?
-      redirect_to family_members_path(@family), alert: "Cannot delete the family owner."
+    if @member.admin_parent?
+      redirect_to family_members_path(@family), alert: "Cannot delete the family admin."
       return
     end
 

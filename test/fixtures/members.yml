@@ -1,10 +1,10 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-owner_one:
+admin_parent_one:
   family: one
-  name: Owner One
+  name: Admin Parent One
   age: 35
-  role: owner
+  role: admin_parent
   email: user-one@example.com
   is_parent: true
   user: one

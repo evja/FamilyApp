@@ -28,7 +28,7 @@ class FamiliesController < ApplicationController
 
     if @family.save
       current_user.update(family: @family)
-      @family.ensure_owner_member(current_user)
+      @family.ensure_admin_parent_member(current_user)
       redirect_to @family, notice: 'Family was successfully created.'
     else
       render :new, status: :unprocessable_entity

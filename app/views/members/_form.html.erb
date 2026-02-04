@@ -1,7 +1,7 @@
 <%
   colors = @family.theme_colors
-  # Don't show owner role for new members or non-owner members
-  available_roles = @member.owner? ? Member::ROLES : Member::ROLES.reject { |r| r == 'owner' }
+  # Don't show admin_parent role for new members or non-admin_parent members
+  available_roles = @member.admin_parent? ? Member::ROLES : Member::ROLES.reject { |r| r == 'admin_parent' }
 %>
 
 <%= form_with model: [@family, @member], local: true, data: { controller: "member-form" } do |form| %>
@@ -31,13 +31,13 @@
           class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
           style: "border-color: #{colors[:secondary]};",
           "x-model": "role",
-          disabled: @member.owner? %>
+          disabled: @member.admin_parent? %>
       <p class="text-xs text-gray-500 mt-1">
         Parents and teens can be invited to create their own accounts.
       </p>
 
       <!-- Email field (shown only for parent/teen roles) -->
-      <div x-show="role === 'parent' || role === 'teen' || role === 'owner'" x-cloak class="mt-4">
+      <div x-show="role === 'parent' || role === 'teen' || role === 'admin_parent'" x-cloak class="mt-4">
         <%= form.label :email, "Email", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
         <%= form.email_field :email, placeholder: "e.g. sarah@example.com",
             class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",

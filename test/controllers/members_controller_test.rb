@@ -5,7 +5,7 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
     @user = users(:one)
     @family = families(:one)
     @member = members(:one)
-    @owner = members(:owner_one)
+    @admin_parent = members(:admin_parent_one)
     @parent = members(:parent_one)
     @teen = members(:teen_one)
     @child = members(:child_one)
@@ -61,16 +61,16 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
     assert_equal "teen", @child.role
   end
 
-  test "should destroy non-owner member" do
+  test "should destroy non-admin_parent member" do
     assert_difference("Member.count", -1) do
       delete family_member_url(@family, @child)
     end
     assert_redirected_to family_members_path(@family)
   end
 
-  test "should not destroy owner member" do
+  test "should not destroy admin_parent member" do
     assert_no_difference("Member.count") do
-      delete family_member_url(@family, @owner)
+      delete family_member_url(@family, @admin_parent)
     end
     assert_redirected_to family_members_path(@family)
     assert_match /Cannot delete/, flash[:alert]
@@ -123,7 +123,7 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     # Verify the page renders with role-based sections
-    assert_select "h3", /Account Owner/
+    assert_select "h3", /Admin Parent/
     assert_select "h3", /Parents/
     assert_select "h3", /Teens/
     assert_select "h3", /Children/

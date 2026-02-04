@@ -32,7 +32,7 @@ User
   belongs_to :family (optional)
   has_one :member (dependent: nullify)
   # Devise handles auth. Has admin flag. Last user destroys family on delete.
-  # Methods: family_owner?, family_parent?, family_role
+  # Methods: family_admin?, family_parent?, family_role
 
 Family
   has_many :users (dependent: nullify)
@@ -49,10 +49,10 @@ Member
   has_many :issues, through: :issue_members
   has_one :invitation (FamilyInvitation)
   # Represents a person in the family (name, age, personality, interests, health, etc.)
-  # Roles: owner, parent, teen, child (ROLES constant)
-  # Only owner/parent/teen can have accounts (can_have_account?)
+  # Roles: admin_parent, parent, teen, child (ROLES constant)
+  # Only admin_parent/parent/teen can have accounts (can_have_account?)
   # Fields: role, email, invited_at, joined_at
-  # Scopes: owners, invitable, pending_invitation, with_accounts
+  # Scopes: admin_parents, invitable, pending_invitation, with_accounts
 
 Issue
   belongs_to :family
@@ -120,16 +120,16 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 
 **RoleAuthorization Concern** (`app/controllers/concerns/role_authorization.rb`):
 - `current_member` helper — returns the Member record for the current user
-- `require_parent_access!` — checks if user has parent or owner role
-- `require_owner_access!` — checks if user is the family owner
+- `require_parent_access!` — checks if user has parent or admin_parent role
+- `require_admin_access!` — checks if user is the family admin
 
 ## Key Patterns & Conventions
 
 - **Theme system**: CSS custom properties in `theme.css.erb`, switched via `data-theme` attribute on body. The `Themeable` concern on `Family` defines `THEME_PRESETS`.
 - **Nested resources**: Everything hangs off `/families/:family_id/`. Controllers receive `params[:family_id]`.
 - **Issue hierarchy**: Issues can be "root" or "symptom". Symptoms link to a root issue via `root_issue_id`.
-- **Invitations (Member-First)**: Members must be created first, then invited. Only members with role=owner/parent/teen can receive invitations. Invitations are linked to members via `member_id`. Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link. When accepted, user is linked to the member via `user_id` and `joined_at` is set.
-- **Member Roles**: `owner` (one per family, created automatically), `parent`, `teen`, `child`. Owner/parent roles set `is_parent=true` for backward compatibility via `sync_is_parent_with_role` callback.
+- **Invitations (Member-First)**: Members must be created first, then invited. Only members with role=admin_parent/parent/teen can receive invitations. Invitations are linked to members via `member_id`. Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link. When accepted, user is linked to the member via `user_id` and `joined_at` is set.
+- **Member Roles**: `admin_parent` (one per family, created automatically), `parent`, `teen`, `child`. Admin_parent/parent roles set `is_parent=true` for backward compatibility via `sync_is_parent_with_role` callback.
 - **Admin**: Guarded by `require_admin` checking `current_user.admin?`. Located in `Admin::` namespace.
 - **No API**: This is a server-rendered app. JSON endpoints: `IssueAssistsController#create` (issue writing assistant) and `FamilyVisionsController#assist` (vision mission statement suggestions).
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
@@ -150,8 +150,8 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **Member form** (`members/_form.html.erb`): shows name, age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
 - **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, role (Parent/Child), edit/delete actions. Health, Interests, Needs, and Quarterly Assessments cards removed.
 - **Member card** (`members/_member_card.html.erb`): shows "Parent" or "Child" role label for all members.
-- **Member card with status** (`members/_member_card_with_status.html.erb`): shows member with status badge (You, Owner, Joined, Pending, Not Invited) and Invite/Resend buttons for eligible members.
-- **Members index** (`members/index.html.erb`): groups members by role (Account Owner, Parents, Teens, Children) with status badges and invite actions.
+- **Member card with status** (`members/_member_card_with_status.html.erb`): shows member with status badge (You, Admin, Joined, Pending, Not Invited) and Invite/Resend buttons for eligible members.
+- **Members index** (`members/index.html.erb`): groups members by role (Admin Parent, Parents, Teens, Children) with status badges and invite actions.
 - **Issue form** (`issues/_form.html.erb`): shows only description and urgency. Hidden fields (list_type, member_ids, family_value_ids, issue_type, root_issue_id) remain in DB. `IssuesController` defaults `list_type` to "Family" and `issue_type` to "root" when not provided.
 - **Vision show page** (`family_visions/show.html.erb`): empty state with "Start Building Your Vision" CTA when no vision data exists; populated state shows values tags, mission statement card, 10-year dream card, and last updated date.
 

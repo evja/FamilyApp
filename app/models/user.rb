@@ -14,8 +14,8 @@ class User < ApplicationRecord
 
   after_destroy :destroy_family_if_last_user
 
-  def family_owner?
-    member&.owner?
+  def family_admin?
+    member&.admin_parent?
   end
 
   def family_parent?
