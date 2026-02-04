@@ -39,13 +39,13 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
     <% mvp_cards = ["Issues", "Members", "Vision"] %>
     <% dashboard_items = [
-      { label: "Members", icon: "users", path: family_members_path(@family), status: :active },
-      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active },
-      { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active },
-      { label: "Rhythms", icon: "repeat", path: family_issues_path(@family), status: :soon },
-      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon },
-      { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active },
-      { label: "Relationships", icon: "heart", path: family_issues_path(@family), status: :soon }
+      { label: "Members", icon: "users", path: family_members_path(@family), status: :active, badge_count: @pending_invites_count },
+      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active, badge_count: @issues_needing_attention },
+      { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active, badge_count: @vision_incomplete_count },
+      { label: "Rhythms", icon: "repeat", path: family_issues_path(@family), status: :soon, badge_count: @overdue_rhythms_count },
+      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon, badge_count: @overdue_responsibilities_count },
+      { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active, badge_count: @upcoming_rituals_count },
+      { label: "Relationships", icon: "heart", path: family_issues_path(@family), status: :soon, badge_count: @relationships_needing_attention_count }
     ] %>
 
     <% dashboard_items.each do |item| %>
@@ -55,24 +55,45 @@
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
+
+        <%# Notification Badge %>
+        <% if is_available && item[:badge_count].to_i > 0 %>
+          <%= render 'shared/notification_badge', count: item[:badge_count] %>
+        <% end %>
+
         <div class="flex flex-col items-start gap-3 relative z-10">
           <div class="p-2 rounded-full bg-white shadow-sm transition-all duration-300 group-hover:shadow-md"
                style="color: <%= colors[:primary] %>; background-color: <%= colors[:background] %>;">
             <svg data-lucide="<%= item[:icon] %>" class="w-6 h-6 transition-transform group-hover:scale-110"></svg>
           </div>
-          
+
           <h3 class="text-xl font-semibold transition-colors duration-300 group-hover:translate-x-1"
               style="color: <%= colors[:primary] %>"><%= item[:label].upcase %></h3>
-              
+
           <p class="text-gray-600 text-sm transition-all duration-300 group-hover:translate-x-1">
-            <% if item[:label] == "Issues" && defined?(@has_any_issues) %>
-              <% if @has_any_issues %>
-                <%= @open_issue_count %> open · <%= @resolved_this_week_count %> resolved this week
+            <% case item[:label] %>
+            <% when "Issues" %>
+              <% if @issues_needing_attention.to_i > 0 %>
+                <%= pluralize(@issues_needing_attention, 'issue') %> needs attention
+              <% elsif @has_any_issues %>
+                All issues resolved
               <% else %>
                 No issues logged yet
               <% end %>
+            <% when "Members" %>
+              <% if @pending_invites_count.to_i > 0 %>
+                <%= pluralize(@pending_invites_count, 'invite') %> pending
+              <% else %>
+                <%= pluralize(@family.members.count, 'member') %>
+              <% end %>
+            <% when "Vision" %>
+              <% if @vision_incomplete_count.to_i > 0 %>
+                <%= pluralize(@vision_incomplete_count, 'section') %> to complete
+              <% else %>
+                Vision complete
+              <% end %>
             <% else %>
-              Manage your family's <%= item[:label].downcase %>.
+              Manage your family's <%= item[:label].downcase %>
             <% end %>
           </p>
 

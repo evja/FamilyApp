@@ -4,7 +4,13 @@ class MembersController < ApplicationController
   before_action :set_member, only: [:show, :edit, :update, :destroy, :invite, :resend_invite]
 
   def index
-    @members = @family.members.order(Arel.sql("CASE role WHEN 'admin_parent' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"), :name)
+    # Sort by role, then by age (youngest first), then by name
+    @members = @family.members.order(
+      Arel.sql("CASE role WHEN 'admin_parent' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"),
+      Arel.sql("COALESCE(birthdate, DATE('1900-01-01')) DESC"),  # Youngest first (most recent birthdate)
+      Arel.sql("COALESCE(age, 999) ASC"),  # Fallback: youngest age first
+      :name
+    )
     @parents = @members.select { |m| m.role.in?(%w[admin_parent parent]) }
     @teens = @members.select { |m| m.role == 'teen' }
     @children = @members.select { |m| m.role == 'child' }

@@ -13,6 +13,17 @@ class FamiliesController < ApplicationController
     @open_issue_count = @family.issues.active.count
     @resolved_this_week_count = @family.issues.resolved_this_week.count
     @has_any_issues = @family.issues.exists?
+
+    # Badge counts for dashboard cards
+    @issues_needing_attention = @open_issue_count
+    @vision_incomplete_count = calculate_vision_incomplete_count
+    @pending_invites_count = @family.members.where.not(invited_at: nil).where(user_id: nil).count
+
+    # Future badges (prep for later)
+    @overdue_rhythms_count = 0
+    @overdue_responsibilities_count = 0
+    @relationships_needing_attention_count = 0
+    @upcoming_rituals_count = 0
   end
 
   def new
@@ -63,5 +74,16 @@ class FamiliesController < ApplicationController
 
   def family_params
     params.require(:family).permit(:name, :theme)
+  end
+
+  def calculate_vision_incomplete_count
+    vision = @family.vision
+    return 3 if vision.nil?
+
+    count = 0
+    count += 1 if vision.mission_statement.blank?
+    count += 1 if vision.ten_year_dream.blank?
+    count += 1 if @family.family_values.empty?
+    count
   end
 end

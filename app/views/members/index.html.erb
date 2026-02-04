@@ -11,14 +11,6 @@
         style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
   </div>
 
-  <!-- Admin Parent -->
-  <% if @admin_parent %>
-    <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">Admin Parent</h3>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 mb-10">
-      <%= render "member_card_with_status", member: @admin_parent %>
-    </div>
-  <% end %>
-
   <!-- Parents -->
   <h3 class="text-xl font-semibold mb-4" style="color: <%= colors[:primary] %>">
     Parents (<%= @parents.count %>)

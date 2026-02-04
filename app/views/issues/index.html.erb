@@ -77,51 +77,42 @@
 
       <!-- Desktop table -->
       <div class="hidden md:block overflow-x-auto">
-        <form id="issues-table-form" action="<%= solve_family_issues_path(@family) %>" method="get">
-          <table class="w-full table-auto border theme-border text-sm"><thead><tr class="theme-bg">
-            <th id="solve-checkbox-header" style="display:none;"></th>
-            <th class="px-4 py-2 text-left font-medium theme-text">Status</th>
-            <th class="px-4 py-2 text-left font-medium theme-text">Description</th>
-            <th class="px-4 py-2 text-left font-medium theme-text">Urgency</th>
-            <th class="px-4 py-2 text-left font-medium theme-text">Actions</th>
-          </tr></thead>
-          <tbody class="divide-y theme-border">
-            <% @active_issues.each do |issue| %>
-              <tr class="border-t theme-border hover:bg-gray-50">
-                <td class="px-2 py-2 solve-checkbox-cell" style="display:none;">
-                  <input type="checkbox" name="issue_ids[]" value="<%= issue.id %>" class="solve-issue-checkbox">
-                </td>
-                <td class="px-4 py-2">
-                  <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %>">
-                    <%= Issue::STATUS_LABELS[issue.status] %>
-                  </span>
-                </td>
-                <td class="px-4 py-2 text-gray-700"><%= truncate(issue.description, length: 80) %></td>
-                <td class="px-4 py-2"><%= issue.urgency %></td>
-                <td class="px-4 py-2 whitespace-nowrap">
-                  <div class="flex items-center gap-1">
-                    <%= link_to "View", family_issue_path(@family, issue),
-                        class: "theme-button-outline text-xs px-2 py-1" %>
-                    <%= link_to "Edit", edit_family_issue_path(@family, issue),
-                        class: "theme-button-filled text-xs px-2 py-1" %>
-                    <% if issue.next_status %>
-                      <%= button_to advance_status_family_issue_path(@family, issue),
-                          method: :patch,
-                          form: { class: "inline-flex" },
-                          class: "text-xs font-medium px-2 py-1 rounded border theme-button-outline" do %>
-                        &rarr; <%= Issue::STATUS_LABELS[issue.next_status] %>
-                      <% end %>
+        <table class="w-full table-auto border theme-border text-sm"><thead><tr class="theme-bg">
+          <th class="px-4 py-2 text-left font-medium theme-text">Status</th>
+          <th class="px-4 py-2 text-left font-medium theme-text">Description</th>
+          <th class="px-4 py-2 text-left font-medium theme-text">Urgency</th>
+          <th class="px-4 py-2 text-left font-medium theme-text">Actions</th>
+        </tr></thead>
+        <tbody class="divide-y theme-border">
+          <% @active_issues.each do |issue| %>
+            <tr class="border-t theme-border hover:bg-gray-50">
+              <td class="px-4 py-2">
+                <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %>">
+                  <%= Issue::STATUS_LABELS[issue.status] %>
+                </span>
+              </td>
+              <td class="px-4 py-2 text-gray-700"><%= truncate(issue.description, length: 80) %></td>
+              <td class="px-4 py-2"><%= issue.urgency %></td>
+              <td class="px-4 py-2 whitespace-nowrap">
+                <div class="flex items-center gap-1">
+                  <%= link_to "View", family_issue_path(@family, issue),
+                      class: "theme-button-outline text-xs px-2 py-1" %>
+                  <%= link_to "Edit", edit_family_issue_path(@family, issue),
+                      class: "theme-button-filled text-xs px-2 py-1" %>
+                  <% if issue.next_status %>
+                    <%= button_to advance_status_family_issue_path(@family, issue),
+                        method: :patch,
+                        form: { class: "inline-flex" },
+                        class: "text-xs font-medium px-2 py-1 rounded border theme-button-outline" do %>
+                      &rarr; <%= Issue::STATUS_LABELS[issue.next_status] %>
                     <% end %>
-                  </div>
-                </td>
-              </tr>
-            <% end %>
-          </tbody>
-          </table>
-          <div class="mt-4" id="solve-continue-btn" style="display:none;">
-            <button type="submit" class="theme-button-filled">Continue</button>
-          </div>
-        </form>
+                  <% end %>
+                </div>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+        </table>
       </div>
     <% else %>
       <p class="text-gray-500 py-4">All issues resolved! Nice work.</p>
@@ -159,36 +150,3 @@
       class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var solveBtn = document.getElementById('solve-issues-btn');
-    if (!solveBtn) return;
-    var solveCheckboxHeader = document.getElementById('solve-checkbox-header');
-    var solveContinueBtn = document.getElementById('solve-continue-btn');
-    var solveCheckboxCells = document.querySelectorAll('.solve-checkbox-cell');
-    var solveMode = false;
-    solveBtn.addEventListener('click', function() {
-      solveMode = !solveMode;
-      solveBtn.setAttribute('data-active', solveMode);
-      solveCheckboxHeader.style.display = solveMode ? 'table-cell' : 'none';
-      solveContinueBtn.style.display = solveMode ? 'block' : 'none';
-      solveCheckboxCells.forEach(function(cell) {
-        cell.style.display = solveMode ? 'table-cell' : 'none';
-      });
-      if (!solveMode) {
-        document.querySelectorAll('.solve-issue-checkbox').forEach(function(cb) { cb.checked = false; });
-      }
-    });
-    var checkboxes = document.querySelectorAll('.solve-issue-checkbox');
-    checkboxes.forEach(function(checkbox) {
-      checkbox.addEventListener('change', function() {
-        var checked = document.querySelectorAll('.solve-issue-checkbox:checked');
-        solveContinueBtn.style.display = (checked.length > 0 && checked.length <= 2) ? 'block' : 'none';
-        if (checked.length > 2) {
-          this.checked = false;
-          alert('You can only select up to 2 issues to solve at a time.');
-        }
-      });
-    });
-  });
-</script>

@@ -123,7 +123,6 @@ class MembersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     # Verify the page renders with role-based sections
-    assert_select "h3", /Admin Parent/
     assert_select "h3", /Parents/
     assert_select "h3", /Teens/
     assert_select "h3", /Children/

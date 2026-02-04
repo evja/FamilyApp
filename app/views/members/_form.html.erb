@@ -11,7 +11,6 @@
          hasBirthdate: <%= @member.birthdate.present? %>,
          birthdate: '<%= @member.birthdate %>',
          calculatedAge: <%= @member.calculated_age || 'null' %>,
-         isParentRole: <%= @member.role.in?(%w[admin_parent parent]) %>,
          updateFromBirthdate() {
            if (!this.birthdate) {
              this.hasBirthdate = false;
@@ -27,10 +26,13 @@
              age--;
            }
            this.calculatedAge = age;
-           // Auto-set role for non-parent roles
-           if (!this.isParentRole) {
+           // Auto-set role for non-parent roles only
+           if (this.role !== 'admin_parent' && this.role !== 'parent') {
              this.role = age >= 13 ? 'teen' : 'child';
            }
+         },
+         isParentRole() {
+           return this.role === 'admin_parent' || this.role === 'parent';
          }
        }">
     <h2 class="text-xl font-semibold" style="color: <%= colors[:primary] %>">Member Info</h2>
@@ -52,7 +54,7 @@
           "x-model": "birthdate",
           "@change": "updateFromBirthdate()" %>
       <p class="text-xs text-gray-500 mt-1">
-        If provided, age and child/teen role will be set automatically.
+        If provided, age will be calculated automatically. For non-parent roles, the role will also be set based on age.
       </p>
     </div>
 
@@ -81,11 +83,8 @@
           class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
           style: "border-color: #{colors[:secondary]};",
           "x-model": "role",
-          "x-bind:disabled": "#{@member.admin_parent?} || (hasBirthdate && !isParentRole)" %>
-      <p x-show="hasBirthdate && !isParentRole" class="text-xs text-gray-500 mt-1">
-        Role is automatically set based on age (13+ = Teen, under 13 = Child).
-      </p>
-      <p x-show="!hasBirthdate || isParentRole" class="text-xs text-gray-500 mt-1">
+          disabled: @member.admin_parent? %>
+      <p class="text-xs text-gray-500 mt-1">
         Parents and teens can be invited to create their own accounts.
       </p>
 
