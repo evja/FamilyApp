@@ -5,8 +5,7 @@ class MembersController < ApplicationController
 
   def index
     @members = @family.members.order(Arel.sql("CASE role WHEN 'admin_parent' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"), :name)
-    @admin_parent = @members.find(&:admin_parent?)
-    @parents = @members.select { |m| m.role == 'parent' }
+    @parents = @members.select { |m| m.role.in?(%w[admin_parent parent]) }
     @teens = @members.select { |m| m.role == 'teen' }
     @children = @members.select { |m| m.role == 'child' }
     @pending_invitations = @family.invitations.pending.where(member_id: nil)
@@ -109,6 +108,6 @@ class MembersController < ApplicationController
   end
 
   def member_params
-    params.require(:member).permit(:name, :age, :personality, :interests, :health, :development, :needs, :is_parent, :role, :email)
+    params.require(:member).permit(:name, :age, :birthdate, :personality, :interests, :health, :development, :needs, :is_parent, :role, :email)
   end
 end

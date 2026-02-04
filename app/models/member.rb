@@ -1,5 +1,6 @@
 class Member < ApplicationRecord
   ROLES = %w[admin_parent parent teen child].freeze
+  TEEN_AGE_THRESHOLD = 13
 
   belongs_to :family
   belongs_to :user, optional: true
@@ -12,6 +13,8 @@ class Member < ApplicationRecord
   validates :email, presence: true, if: :requires_email?
   validate :only_one_admin_parent_per_family, on: :create
 
+  before_validation :calculate_age_from_birthdate, if: :birthdate_changed?
+  before_validation :assign_role_from_age, if: :should_auto_assign_role?
   before_save :sync_is_parent_with_role
 
   scope :parents, -> { where(is_parent: true) }
@@ -64,7 +67,35 @@ class Member < ApplicationRecord
     end
   end
 
+  # Calculate age from birthdate
+  def calculated_age
+    return nil unless birthdate.present?
+    today = Date.current
+    age = today.year - birthdate.year
+    age -= 1 if today < birthdate + age.years # Adjust if birthday hasn't occurred yet
+    age
+  end
+
+  # Determine role based on age
+  def role_for_age(age)
+    return nil if age.nil?
+    return 'child' if age < TEEN_AGE_THRESHOLD
+    'teen'
+  end
+
   private
+
+  def calculate_age_from_birthdate
+    self.age = calculated_age if birthdate.present?
+  end
+
+  def should_auto_assign_role?
+    birthdate.present? && !role.in?(%w[admin_parent parent])
+  end
+
+  def assign_role_from_age
+    self.role = role_for_age(calculated_age)
+  end
 
   def requires_email?
     role.in?(%w[admin_parent parent teen]) && invited_at.present?

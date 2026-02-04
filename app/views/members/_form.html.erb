@@ -5,7 +5,34 @@
 %>
 
 <%= form_with model: [@family, @member], local: true, data: { controller: "member-form" } do |form| %>
-  <div class="max-w-2xl mx-auto bg-white shadow rounded p-6 space-y-6 border" style="border-color: <%= colors[:secondary] %>;">
+  <div class="max-w-2xl mx-auto bg-white shadow rounded p-6 space-y-6 border" style="border-color: <%= colors[:secondary] %>;"
+       x-data="{
+         role: '<%= @member.role || 'child' %>',
+         hasBirthdate: <%= @member.birthdate.present? %>,
+         birthdate: '<%= @member.birthdate %>',
+         calculatedAge: <%= @member.calculated_age || 'null' %>,
+         isParentRole: <%= @member.role.in?(%w[admin_parent parent]) %>,
+         updateFromBirthdate() {
+           if (!this.birthdate) {
+             this.hasBirthdate = false;
+             this.calculatedAge = null;
+             return;
+           }
+           this.hasBirthdate = true;
+           const today = new Date();
+           const birth = new Date(this.birthdate);
+           let age = today.getFullYear() - birth.getFullYear();
+           const monthDiff = today.getMonth() - birth.getMonth();
+           if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+             age--;
+           }
+           this.calculatedAge = age;
+           // Auto-set role for non-parent roles
+           if (!this.isParentRole) {
+             this.role = age >= 13 ? 'teen' : 'child';
+           }
+         }
+       }">
     <h2 class="text-xl font-semibold" style="color: <%= colors[:primary] %>">Member Info</h2>
 
     <!-- Basic Info -->
@@ -16,14 +43,37 @@
           style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
     </div>
 
+    <!-- Birthdate field -->
     <div>
-      <%= form.label :age, "Age", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
-      <%= form.number_field :age, placeholder: "e.g. 12",
+      <%= form.label :birthdate, "Birthdate (optional)", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+      <%= form.date_field :birthdate,
           class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-          style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
+          style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};",
+          "x-model": "birthdate",
+          "@change": "updateFromBirthdate()" %>
+      <p class="text-xs text-gray-500 mt-1">
+        If provided, age and child/teen role will be set automatically.
+      </p>
     </div>
 
-    <div x-data="{ role: '<%= @member.role || 'child' %>' }">
+    <!-- Age field - readonly when birthdate is set -->
+    <div>
+      <%= form.label :age, "Age", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+      <template x-if="hasBirthdate">
+        <div class="mt-1 block w-full border rounded px-3 py-2 bg-gray-100"
+             style="border-color: <%= colors[:secondary] %>;">
+          <span x-text="calculatedAge + ' years old'"></span>
+          <%= form.hidden_field :age, "x-bind:value": "calculatedAge" %>
+        </div>
+      </template>
+      <template x-if="!hasBirthdate">
+        <%= form.number_field :age, placeholder: "e.g. 12",
+            class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+            style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
+      </template>
+    </div>
+
+    <div>
       <%= form.label :role, "Role", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
       <%= form.select :role,
           available_roles.map { |r| [r.titleize, r] },
@@ -31,8 +81,11 @@
           class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
           style: "border-color: #{colors[:secondary]};",
           "x-model": "role",
-          disabled: @member.admin_parent? %>
-      <p class="text-xs text-gray-500 mt-1">
+          "x-bind:disabled": "#{@member.admin_parent?} || (hasBirthdate && !isParentRole)" %>
+      <p x-show="hasBirthdate && !isParentRole" class="text-xs text-gray-500 mt-1">
+        Role is automatically set based on age (13+ = Teen, under 13 = Child).
+      </p>
+      <p x-show="!hasBirthdate || isParentRole" class="text-xs text-gray-500 mt-1">
         Parents and teens can be invited to create their own accounts.
       </p>
 

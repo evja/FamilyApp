@@ -112,4 +112,97 @@ class MemberTest < ActiveSupport::TestCase
     assert_not_includes family.members.invitable, members(:admin_parent_one)
     assert_includes family.members.with_accounts, members(:admin_parent_one)
   end
+
+  # Birthdate and age calculation tests
+  test "calculates age from birthdate" do
+    member = Member.new(birthdate: 10.years.ago.to_date)
+    assert_equal 10, member.calculated_age
+  end
+
+  test "calculates age correctly when birthday has not occurred this year" do
+    # Set birthdate to 10 years ago plus 6 months in the future
+    future_birthday = 10.years.ago.to_date + 6.months
+    member = Member.new(birthdate: future_birthday)
+    assert_equal 9, member.calculated_age
+  end
+
+  test "auto-assigns child role when age under 13" do
+    member = Member.new(family: families(:one), name: "Young", birthdate: 8.years.ago.to_date)
+    member.valid?
+    assert_equal "child", member.role
+    assert_equal 8, member.age
+  end
+
+  test "auto-assigns teen role when age 13 or over" do
+    member = Member.new(family: families(:one), name: "Teen", birthdate: 15.years.ago.to_date)
+    member.valid?
+    assert_equal "teen", member.role
+    assert_equal 15, member.age
+  end
+
+  test "auto-assigns teen role at exactly 13" do
+    member = Member.new(family: families(:one), name: "Just Teen", birthdate: 13.years.ago.to_date)
+    member.valid?
+    assert_equal "teen", member.role
+    assert_equal 13, member.age
+  end
+
+  test "does not change parent role based on birthdate" do
+    member = Member.new(family: families(:one), name: "Parent", role: "parent", birthdate: 35.years.ago.to_date)
+    member.valid?
+    assert_equal "parent", member.role
+    assert_equal 35, member.age
+  end
+
+  test "does not change admin_parent role based on birthdate" do
+    # First create a family without an admin_parent
+    family = Family.create!(name: "New Family")
+    member = Member.new(family: family, name: "Admin", role: "admin_parent", birthdate: 40.years.ago.to_date)
+    member.valid?
+    assert_equal "admin_parent", member.role
+    assert_equal 40, member.age
+  end
+
+  test "allows manual age and role when birthdate is nil" do
+    member = Member.new(family: families(:one), name: "Manual", age: 10, role: "teen")
+    member.valid?
+    assert_equal "teen", member.role
+    assert_equal 10, member.age
+  end
+
+  test "role_for_age returns child for age under 13" do
+    member = Member.new
+    assert_equal "child", member.role_for_age(12)
+    assert_equal "child", member.role_for_age(0)
+    assert_equal "child", member.role_for_age(5)
+  end
+
+  test "role_for_age returns teen for age 13 and over" do
+    member = Member.new
+    assert_equal "teen", member.role_for_age(13)
+    assert_equal "teen", member.role_for_age(17)
+    assert_equal "teen", member.role_for_age(99)
+  end
+
+  test "role_for_age returns nil for nil age" do
+    member = Member.new
+    assert_nil member.role_for_age(nil)
+  end
+
+  test "calculated_age returns nil when birthdate is nil" do
+    member = Member.new
+    assert_nil member.calculated_age
+  end
+
+  test "updating birthdate recalculates age and role" do
+    member = members(:child_one)
+    original_age = member.age
+
+    # Update birthdate to make member a teen
+    member.birthdate = 15.years.ago.to_date
+    member.valid?
+
+    assert_equal 15, member.age
+    assert_equal "teen", member.role
+  end
 end

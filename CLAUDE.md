@@ -48,11 +48,13 @@ Member
   belongs_to :user (optional)
   has_many :issues, through: :issue_members
   has_one :invitation (FamilyInvitation)
-  # Represents a person in the family (name, age, personality, interests, health, etc.)
+  # Represents a person in the family (name, age, birthdate, personality, interests, health, etc.)
   # Roles: admin_parent, parent, teen, child (ROLES constant)
   # Only admin_parent/parent/teen can have accounts (can_have_account?)
-  # Fields: role, email, invited_at, joined_at
+  # Fields: role, email, birthdate, invited_at, joined_at
   # Scopes: admin_parents, invitable, pending_invitation, with_accounts
+  # Birthdate: Optional. When set, age is auto-calculated and child/teen role is auto-assigned (TEEN_AGE_THRESHOLD = 13)
+  # Methods: calculated_age, role_for_age(age)
 
 Issue
   belongs_to :family
@@ -130,6 +132,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Issue hierarchy**: Issues can be "root" or "symptom". Symptoms link to a root issue via `root_issue_id`.
 - **Invitations (Member-First)**: Members must be created first, then invited. Only members with role=admin_parent/parent/teen can receive invitations. Invitations are linked to members via `member_id`. Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link. When accepted, user is linked to the member via `user_id` and `joined_at` is set.
 - **Member Roles**: `admin_parent` (one per family, created automatically), `parent`, `teen`, `child`. Admin_parent/parent roles set `is_parent=true` for backward compatibility via `sync_is_parent_with_role` callback.
+- **Member Birthdate & Auto-Role**: Optional `birthdate` field on Member. When set, age is auto-calculated from birthdate, and child/teen role is auto-assigned based on age (13+ = teen, under 13 = child). Parent roles (`admin_parent`, `parent`) are never auto-assigned and must be set manually. If birthdate is not provided, age and role can be set manually as before.
 - **Admin**: Guarded by `require_admin` checking `current_user.admin?`. Located in `Admin::` namespace.
 - **No API**: This is a server-rendered app. JSON endpoints: `IssueAssistsController#create` (issue writing assistant) and `FamilyVisionsController#assist` (vision mission statement suggestions).
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
@@ -147,11 +150,11 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - Controlled by the `show_admin_features?` helper in `ApplicationController`
 
 ### Simplified Forms
-- **Member form** (`members/_form.html.erb`): shows name, age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
-- **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, role (Parent/Child), edit/delete actions. Health, Interests, Needs, and Quarterly Assessments cards removed.
+- **Member form** (`members/_form.html.erb`): shows name, birthdate (optional), age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). When birthdate is provided, age is auto-calculated and child/teen role is auto-assigned (13+ = teen, under 13 = child). Parent roles are never auto-assigned. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
+- **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, birthdate (if present), role (Parent/Child), edit/delete actions. Health, Interests, Needs, and Quarterly Assessments cards removed.
 - **Member card** (`members/_member_card.html.erb`): shows "Parent" or "Child" role label for all members.
 - **Member card with status** (`members/_member_card_with_status.html.erb`): shows member with status badge (You, Admin, Joined, Pending, Not Invited) and Invite/Resend buttons for eligible members.
-- **Members index** (`members/index.html.erb`): groups members by role (Admin Parent, Parents, Teens, Children) with status badges and invite actions.
+- **Members index** (`members/index.html.erb`): groups members by role (Parents, Teens, Children) with status badges and invite actions. The admin parent appears in the Parents section with an "Admin" badge.
 - **Issue form** (`issues/_form.html.erb`): shows only description and urgency. Hidden fields (list_type, member_ids, family_value_ids, issue_type, root_issue_id) remain in DB. `IssuesController` defaults `list_type` to "Family" and `issue_type` to "root" when not provided.
 - **Vision show page** (`family_visions/show.html.erb`): empty state with "Start Building Your Vision" CTA when no vision data exists; populated state shows values tags, mission statement card, 10-year dream card, and last updated date.
 
