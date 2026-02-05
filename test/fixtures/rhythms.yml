@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+weekly_parent_sync:
+  family: one
+  name: Weekly Parent Sync
+  frequency_type: weekly
+  frequency_days: 7
+  is_active: true
+  next_due_at: <%= 2.days.from_now %>
+  rhythm_category: parent_sync
+  description: A focused weekly meeting for parents
+
+overdue_rhythm:
+  family: one
+  name: Family Huddle
+  frequency_type: weekly
+  frequency_days: 7
+  is_active: true
+  next_due_at: <%= 3.days.ago %>
+  rhythm_category: family_huddle
+  description: Weekly family check-in
+
+inactive_rhythm:
+  family: one
+  name: Quarterly Retreat
+  frequency_type: quarterly
+  frequency_days: 90
+  is_active: false
+  rhythm_category: retreat
+  description: Quarterly planning session
+
+family_two_rhythm:
+  family: two
+  name: Weekly Sync
+  frequency_type: weekly
+  frequency_days: 7
+  is_active: true
+  next_due_at: <%= 5.days.from_now %>
+  rhythm_category: parent_sync

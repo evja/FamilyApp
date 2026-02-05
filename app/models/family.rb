@@ -5,6 +5,7 @@ class Family < ApplicationRecord
   has_many :members, dependent: :destroy
   has_many :family_values, dependent: :destroy
   has_many :issues, dependent: :destroy
+  has_many :rhythms, dependent: :destroy
   has_many :invitations, class_name: 'FamilyInvitation', dependent: :destroy
   has_one :vision, class_name: "FamilyVision", dependent: :destroy
 

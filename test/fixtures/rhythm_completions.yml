@@ -1,0 +1,15 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+completed_meeting:
+  rhythm: weekly_parent_sync
+  completed_by: one
+  started_at: <%= 1.week.ago %>
+  completed_at: <%= 1.week.ago + 1.hour %>
+  status: completed
+  notes: Good discussion about schedules
+
+in_progress_meeting:
+  rhythm: overdue_rhythm
+  completed_by: one
+  started_at: <%= 1.hour.ago %>
+  status: in_progress

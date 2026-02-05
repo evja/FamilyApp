@@ -1,0 +1,64 @@
+<%
+  colors = family.theme_colors
+  current_meeting = rhythm.current_meeting
+%>
+
+<div class="bg-white p-4 rounded-lg shadow border theme-border">
+  <div class="flex justify-between items-start mb-3">
+    <h4 class="font-semibold theme-text"><%= rhythm.name %></h4>
+    <span class="text-xs font-medium px-2 py-1 rounded-full <%= rhythm.status_color %>">
+      <%= rhythm.status_label %>
+    </span>
+  </div>
+
+  <div class="text-sm text-gray-600 space-y-1 mb-4">
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <%= rhythm.frequency_label %>
+      <% if rhythm.duration_display %>
+        <span class="text-gray-400">|</span>
+        <%= rhythm.duration_display %>
+      <% end %>
+    </div>
+    <div class="flex items-center gap-2">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+      </svg>
+      <%= rhythm.agenda_items.count %> agenda items
+    </div>
+    <% if rhythm.next_due_at && rhythm.is_active %>
+      <div class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+        <% if rhythm.overdue? %>
+          <span class="text-red-600">Due <%= time_ago_in_words(rhythm.next_due_at) %> ago</span>
+        <% else %>
+          Due <%= rhythm.next_due_at.strftime('%b %d') %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <div class="flex flex-wrap gap-2">
+    <% if current_meeting %>
+      <%= link_to "Continue", run_family_rhythm_path(family, rhythm),
+          class: "theme-button-filled text-sm px-3 py-1" %>
+      <span class="text-xs text-gray-500 self-center">
+        <%= current_meeting.progress_percentage %>% done
+      </span>
+    <% elsif rhythm.is_active %>
+      <%= button_to "Start", start_family_rhythm_path(family, rhythm),
+          method: :post,
+          class: "theme-button-filled text-sm px-3 py-1" %>
+      <%= button_to "Skip", skip_family_rhythm_path(family, rhythm),
+          method: :post,
+          class: "theme-button-outline text-sm px-3 py-1",
+          form: { data: { turbo_confirm: "Skip this occurrence and schedule the next one?" } } %>
+    <% end %>
+    <%= link_to "View", family_rhythm_path(family, rhythm),
+        class: "theme-button-outline text-sm px-3 py-1" %>
+  </div>
+</div>

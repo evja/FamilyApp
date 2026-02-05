@@ -1,0 +1,30 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+completed_check_in:
+  rhythm_completion: completed_meeting
+  agenda_item: check_in
+  checked: true
+  checked_at: <%= 1.week.ago + 5.minutes %>
+
+completed_review:
+  rhythm_completion: completed_meeting
+  agenda_item: review_issues
+  checked: true
+  checked_at: <%= 1.week.ago + 15.minutes %>
+
+completed_calendar:
+  rhythm_completion: completed_meeting
+  agenda_item: calendar_review
+  checked: true
+  checked_at: <%= 1.week.ago + 25.minutes %>
+
+in_progress_item_one:
+  rhythm_completion: in_progress_meeting
+  agenda_item: huddle_item_one
+  checked: true
+  checked_at: <%= 30.minutes.ago %>
+
+in_progress_item_two:
+  rhythm_completion: in_progress_meeting
+  agenda_item: huddle_item_two
+  checked: false

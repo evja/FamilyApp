@@ -1,0 +1,39 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+check_in:
+  rhythm: weekly_parent_sync
+  position: 0
+  title: Check-in
+  duration_minutes: 5
+  instructions: Share how you're feeling
+  link_type: none
+
+review_issues:
+  rhythm: weekly_parent_sync
+  position: 1
+  title: Review open issues
+  duration_minutes: 10
+  instructions: Check on ongoing challenges
+  link_type: issues
+
+calendar_review:
+  rhythm: weekly_parent_sync
+  position: 2
+  title: Calendar review
+  duration_minutes: 10
+  instructions: Coordinate upcoming week
+  link_type: none
+
+huddle_item_one:
+  rhythm: overdue_rhythm
+  position: 0
+  title: Family highs and lows
+  duration_minutes: 15
+  link_type: none
+
+huddle_item_two:
+  rhythm: overdue_rhythm
+  position: 1
+  title: Vision check
+  duration_minutes: 10
+  link_type: vision

@@ -37,12 +37,12 @@
   </div>
   
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-    <% mvp_cards = ["Issues", "Members", "Vision"] %>
+    <% mvp_cards = ["Issues", "Members", "Vision", "Rhythms"] %>
     <% dashboard_items = [
       { label: "Members", icon: "users", path: family_members_path(@family), status: :active, badge_count: @pending_invites_count },
       { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active, badge_count: @issues_needing_attention },
       { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active, badge_count: @vision_incomplete_count },
-      { label: "Rhythms", icon: "repeat", path: family_issues_path(@family), status: :soon, badge_count: @overdue_rhythms_count },
+      { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), status: :active, badge_count: @overdue_rhythms_count },
       { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon, badge_count: @overdue_responsibilities_count },
       { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active, badge_count: @upcoming_rituals_count },
       { label: "Relationships", icon: "heart", path: family_issues_path(@family), status: :soon, badge_count: @relationships_needing_attention_count }
@@ -91,6 +91,14 @@
                 <%= pluralize(@vision_incomplete_count, 'section') %> to complete
               <% else %>
                 Vision complete
+              <% end %>
+            <% when "Rhythms" %>
+              <% if @overdue_rhythms_count.to_i > 0 %>
+                <%= pluralize(@overdue_rhythms_count, 'rhythm') %> overdue
+              <% elsif @has_any_rhythms %>
+                All rhythms on track
+              <% else %>
+                No rhythms set up yet
               <% end %>
             <% else %>
               Manage your family's <%= item[:label].downcase %>

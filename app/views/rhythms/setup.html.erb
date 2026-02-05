@@ -1,0 +1,65 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-4xl mx-auto">
+  <h2 class="text-2xl font-bold mb-2 theme-text">Set Up Your Family Rhythms</h2>
+  <p class="text-gray-600 mb-8">
+    Choose the recurring meetings that will help your family stay connected.
+    You can customize these later or add your own.
+  </p>
+
+  <%= form_with url: update_setup_family_rhythms_path(@family), method: :post, local: true do |f| %>
+    <div class="space-y-8">
+      <% @templates_by_category.each do |category, templates| %>
+        <div class="bg-white p-6 rounded-lg shadow border theme-border">
+          <h3 class="text-lg font-semibold theme-text mb-4">
+            <%= @category_labels[category] || category.titleize %>
+          </h3>
+
+          <div class="space-y-4">
+            <% templates.each do |template| %>
+              <%
+                already_exists = @existing_rhythm_names.include?(template[:name])
+              %>
+              <label class="flex items-start gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors <%= already_exists ? 'border-gray-200 bg-gray-50 opacity-60' : 'border-gray-200 hover:border-gray-400' %>">
+                <input type="checkbox"
+                       name="templates[]"
+                       value="<%= template[:name] %>"
+                       class="mt-1 h-5 w-5 rounded border-gray-300"
+                       <%= 'disabled checked' if already_exists %>>
+                <div class="flex-grow">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-medium theme-text"><%= template[:name] %></span>
+                    <% if already_exists %>
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-700">Already added</span>
+                    <% end %>
+                  </div>
+                  <p class="text-sm text-gray-600 mt-1"><%= template[:description] %></p>
+                  <div class="flex gap-3 mt-2 text-xs text-gray-500">
+                    <span><%= Rhythm::FREQUENCY_LABELS[template[:frequency_type]] %></span>
+                    <span>|</span>
+                    <span><%= template[:agenda_items].size %> agenda items</span>
+                    <% total_min = template[:agenda_items].sum { |i| i[:duration_minutes] || 0 } %>
+                    <% if total_min > 0 %>
+                      <span>|</span>
+                      <span>~<%= total_min %> min</span>
+                    <% end %>
+                  </div>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-4">
+      <%= f.submit "Add Selected Rhythms", class: "theme-button-filled cursor-pointer" %>
+      <%= link_to "Skip for Now", family_rhythms_path(@family), class: "theme-button-outline" %>
+    </div>
+  <% end %>
+
+  <%= link_to "&larr; Back to Rhythms".html_safe, family_rhythms_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
+</div>

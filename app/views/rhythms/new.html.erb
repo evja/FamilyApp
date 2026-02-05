@@ -1,0 +1,40 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-4xl mx-auto">
+  <h2 class="text-2xl font-bold mb-6 theme-text">New Rhythm</h2>
+
+  <!-- Template Selection -->
+  <% if @templates.any? %>
+    <div class="bg-white p-6 rounded-lg shadow border theme-border mb-8">
+      <h3 class="text-lg font-semibold theme-text mb-4">Quick Start: Choose a Template</h3>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <% @templates.each do |template| %>
+          <%= button_to family_rhythms_path(@family), method: :post, params: { template_name: template[:name] }, class: "text-left p-4 rounded-lg border-2 border-gray-200 hover:border-gray-400 transition-colors" do %>
+            <div class="font-medium theme-text"><%= template[:name] %></div>
+            <p class="text-sm text-gray-600 mt-1"><%= template[:description] %></p>
+            <div class="flex gap-3 mt-2 text-xs text-gray-500">
+              <span><%= Rhythm::FREQUENCY_LABELS[template[:frequency_type]] %></span>
+              <span>|</span>
+              <span><%= template[:item_count] %> items</span>
+              <% if template[:total_duration] > 0 %>
+                <span>|</span>
+                <span><%= template[:total_duration] %> min</span>
+              <% end %>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Custom Creation Form -->
+  <div class="bg-white p-6 rounded-lg shadow border theme-border">
+    <h3 class="text-lg font-semibold theme-text mb-4">Or Create a Custom Rhythm</h3>
+    <%= render "form", rhythm: @rhythm, family: @family %>
+  </div>
+
+  <%= link_to "&larr; Back to Rhythms".html_safe, family_rhythms_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
+</div>

@@ -19,8 +19,11 @@ class FamiliesController < ApplicationController
     @vision_incomplete_count = calculate_vision_incomplete_count
     @pending_invites_count = @family.members.where.not(invited_at: nil).where(user_id: nil).count
 
+    # Rhythms
+    @overdue_rhythms_count = @family.rhythms.overdue.count
+    @has_any_rhythms = @family.rhythms.exists?
+
     # Future badges (prep for later)
-    @overdue_rhythms_count = 0
     @overdue_responsibilities_count = 0
     @relationships_needing_attention_count = 0
     @upcoming_rituals_count = 0

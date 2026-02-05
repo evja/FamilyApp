@@ -1,0 +1,109 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-6xl mx-auto">
+  <h2 class="text-2xl font-bold mb-6 theme-text">Rhythms</h2>
+
+  <% if !@has_any_rhythms %>
+    <!-- Empty state -->
+    <div class="max-w-xl mx-auto text-center py-12">
+      <div class="bg-white p-8 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
+        <div class="mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="color: <%= colors[:primary] %>;">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2" style="color: <%= colors[:primary] %>;">Create regular rhythms for your family</h3>
+        <p class="text-gray-600 mb-6">
+          Rhythms are recurring meetings that help your family stay connected and aligned.
+          Weekly check-ins, monthly planning, quarterly retreats - whatever works for you.
+        </p>
+        <div class="text-left mb-6 bg-gray-50 rounded-lg p-4">
+          <p class="text-sm font-medium text-gray-700 mb-2">Popular family rhythms:</p>
+          <ul class="text-sm text-gray-600 space-y-1">
+            <li>Weekly parent sync (coordinate schedules)</li>
+            <li>Weekly family huddle (connect as a family)</li>
+            <li>1-on-1 check-ins with each child</li>
+            <li>Quarterly parent retreat (bigger planning)</li>
+          </ul>
+        </div>
+        <%= link_to "Get Started", setup_family_rhythms_path(@family),
+            class: "inline-block px-6 py-3 rounded font-medium text-white transition-all duration-300 hover:shadow-md",
+            style: "background-color: #{colors[:primary]};" %>
+      </div>
+    </div>
+  <% else %>
+    <div class="flex flex-wrap gap-4 mb-6">
+      <%= link_to "+ New Rhythm", new_family_rhythm_path(@family),
+          class: "theme-button-filled" %>
+      <%= link_to "Setup Wizard", setup_family_rhythms_path(@family),
+          class: "theme-button-outline" %>
+    </div>
+
+    <!-- Overdue Rhythms -->
+    <% if @overdue_rhythms.any? %>
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span class="inline-block w-3 h-3 bg-red-500 rounded-full"></span>
+          <span class="text-red-700">Overdue (<%= @overdue_rhythms.count %>)</span>
+        </h3>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <% @overdue_rhythms.each do |rhythm| %>
+            <%= render "rhythm_card", rhythm: rhythm, family: @family %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Due Soon Rhythms -->
+    <% if @due_soon_rhythms.any? %>
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span class="inline-block w-3 h-3 bg-yellow-500 rounded-full"></span>
+          <span class="text-yellow-700">Due Soon (<%= @due_soon_rhythms.count %>)</span>
+        </h3>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <% @due_soon_rhythms.each do |rhythm| %>
+            <%= render "rhythm_card", rhythm: rhythm, family: @family %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- On Track Rhythms -->
+    <% if @on_track_rhythms.any? %>
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
+          <span class="text-green-700">On Track (<%= @on_track_rhythms.count %>)</span>
+        </h3>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <% @on_track_rhythms.each do |rhythm| %>
+            <%= render "rhythm_card", rhythm: rhythm, family: @family %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <!-- Inactive Rhythms -->
+    <% if @inactive_rhythms.any? %>
+      <div class="mt-8" x-data="{ open: false }">
+        <button @click="open = !open" class="flex items-center gap-2 text-sm font-medium mb-3 text-gray-500">
+          <svg :class="open && 'rotate-90'" class="w-4 h-4 transition-transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+          </svg>
+          Inactive (<%= @inactive_rhythms.count %>)
+        </button>
+        <div x-show="open" x-cloak class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <% @inactive_rhythms.each do |rhythm| %>
+            <%= render "rhythm_card", rhythm: rhythm, family: @family %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
+</div>

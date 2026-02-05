@@ -24,6 +24,21 @@ Rails.application.routes.draw do
     end
     resources :issue_assists, only: [:create]
 
+    resources :rhythms do
+      collection do
+        get :setup
+        post :update_setup
+      end
+      member do
+        post :start
+        get :run
+        post :check_item
+        post :uncheck_item
+        post :finish
+        post :skip
+      end
+    end
+
     resources :family_invitations, only: [:new, :create, :destroy]
     resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
       post :assist, on: :member
