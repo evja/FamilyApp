@@ -136,6 +136,27 @@ ThriveAssessment
   # Only for children/teens (validated)
   # Scopes: recent, for_member, in_date_range
 
+Relationship
+  belongs_to :family
+  belongs_to :member_low (Member)
+  belongs_to :member_high (Member)
+  has_many :assessments (RelationshipAssessment, dependent: destroy)
+  # Tracks relationships between pairs of family members
+  # member_low_id < member_high_id ensures uniqueness (no duplicate pairs)
+  # Methods: display_name, assessed?, current_health_score, current_health_band, health_label, health_color_hsl, last_assessed_at
+  # Scopes: healthy, needs_attention, unassessed
+  # Family method: ensure_all_relationships! creates missing pairs
+
+RelationshipAssessment
+  belongs_to :relationship
+  belongs_to :assessor (User, optional)
+  # Tracks health of a relationship over time
+  # Score fields (0-2): score_cooperation, score_affection, score_trust
+  # Notes fields: whats_working, whats_not_working, action_items
+  # Methods: total_score (0-6), band_label, assessed_on
+  # SCORE_LABELS constant for display
+  # Scopes: recent
+
 Join tables: IssueMember, IssueValue, IssueAssist
 ```
 
@@ -150,6 +171,7 @@ All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/vision/values` (nested under vision)
 - `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
 - `/families/:family_id/rhythms/:rhythm_id/agenda_items` (CRUD for agenda items)
+- `/families/:family_id/relationships` (+ collection route `graph_data`; member routes `assess`, `create_assessment`)
 
 Other routes:
 - `/` — landing page (redirects to family if logged in)
@@ -158,6 +180,8 @@ Other routes:
 - `/invitations/:token/accept` — invitation acceptance
 - `/billing` and `/billing/checkout` — Stripe integration
 - `/admin/dashboard` and `/admin/leads` — admin area
+- `/admin/toggle_view_as_user` — toggle "View as User" mode
+- `/admin/toggle_module_visibility` — toggle dashboard module visibility
 
 ## Authorization Pattern
 
@@ -192,15 +216,19 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Rhythms module**: Recurring family meetings with customizable agendas. Rhythms have frequency settings (daily to annually) and categories (parent_sync, family_huddle, retreat, check_in, custom). Each rhythm has agenda items with optional links to other sections (issues, vision, members, thrive). Meeting flow: start → check items → finish. Progress is tracked via `RhythmCompletion` and `CompletionItem` records. Turbo Streams used for real-time checkbox updates without page scroll.
 - **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
 - **Thrive Assessments**: Child/teen wellness check-ins with 4 dimensions (mind, body, spirit, responsibility) rated 1-5. Assessments are immutable after creation. Can be linked to a `RhythmCompletion` when done during a retreat. Only members with role `child` or `teen` can have assessments.
+- **Relationships module**: Tracks relationships between all pairs of family members. `Family#ensure_all_relationships!` auto-creates missing pairs. Each relationship can be assessed with cooperation/affection/trust scores (0-2 each, 6 total). Health bands: high (5-6), functioning (3-4), low (0-2). Relationship graph visualization uses SVG with D3-like positioning. Clicking a line or "Assess" link navigates to a standard assessment page (not a modal).
 
 ## MVP Simplification
 
 The app has been simplified for MVP launch. Fields and features are hidden from the UI but preserved in the database for future use.
 
 ### Dashboard Card Visibility
-- **MVP cards** (visible to all users): Members, Issues, Vision
-- **Non-MVP cards** (Rhythms, Responsibilities, Rituals, Relationships): only visible to admins when not in "View as User" mode, with an "Admin Preview - Hidden from users" badge
-- Controlled by the `show_admin_features?` helper in `ApplicationController`
+- **All modules**: Members, Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals (defined in `ApplicationController::DASHBOARD_MODULES`)
+- Admins can toggle which modules are visible to regular users via the admin dashboard
+- Hidden modules stored in `session[:hidden_modules]` (no database migration needed)
+- `visible_modules` helper returns array of currently visible module names
+- Non-visible modules only shown to admins when not in "View as User" mode, with an "Admin Preview - Hidden from users" badge
+- Controlled by `show_admin_features?` and `visible_modules` helpers in `ApplicationController`
 
 ### Simplified Forms
 - **Member form** (`members/_form.html.erb`): shows name, birthdate (optional), age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). When birthdate is provided, age is auto-calculated and child/teen role is auto-assigned (13+ = teen, under 13 = child). Parent roles are never auto-assigned. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
@@ -214,8 +242,15 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 ### Admin "View as User" Toggle
 - Admins can toggle a "View as User" mode via `session[:view_as_user]`
 - Route: `POST /admin/toggle_view_as_user`
-- When active, `show_admin_features?` returns false, hiding non-MVP dashboard cards and showing a yellow banner
-- Helper methods: `viewing_as_user?`, `show_admin_features?` (both exposed as `helper_method` in `ApplicationController`)
+- When active, `show_admin_features?` returns false, hiding non-visible dashboard cards and showing an indigo banner
+- Helper methods: `viewing_as_user?`, `show_admin_features?`, `visible_modules` (all exposed as `helper_method` in `ApplicationController`)
+
+### Admin Module Visibility Toggle
+- Admins can toggle individual dashboard modules on/off from the admin dashboard
+- Route: `POST /admin/toggle_module_visibility` with `module_name` param
+- Stores hidden modules in `session[:hidden_modules]` array
+- `visible_modules` helper returns `DASHBOARD_MODULES - hidden_modules`
+- Modules: Members, Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals
 
 ## Things to Watch Out For
 
@@ -226,3 +261,5 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **No test coverage for authorization**. The auth fixes (authenticate_user!, authorize_family!) don't have corresponding controller tests yet.
 - **Alpine.js loaded via CDN** — no pinned version, could break on major update.
 - **`FamiliesController#new`** doesn't `return` after the redirect when user already has a family, so `@family = Family.new` always runs.
+- **JavaScript must use `javascript_importmap_tags`** in `application.html.erb`, not `javascript_include_tag`. The importmap helper is required for ES module `import` statements to work.
+- **Stimulus reserved properties**: Don't use `this.data` in Stimulus controllers — it's a read-only property (DataMap for `data-*` attributes). Use a different name like `this.graphData` or `this._data`.

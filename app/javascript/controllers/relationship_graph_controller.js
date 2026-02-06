@@ -17,16 +17,19 @@ export default class extends Controller {
   }
 
   handleResize() {
-    if (this.data) {
-      this.renderGraph(this.data)
+    if (this.graphData) {
+      this.renderGraph(this.graphData)
     }
   }
 
   async loadGraphData() {
     try {
       const response = await fetch(this.urlValue)
-      this.data = await response.json()
-      this.renderGraph(this.data)
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`)
+      }
+      this.graphData = await response.json()
+      this.renderGraph(this.graphData)
     } catch (error) {
       console.error('Failed to load relationship graph data:', error)
       this.element.innerHTML = '<div class="text-center text-red-500">Failed to load relationship map</div>'
