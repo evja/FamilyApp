@@ -64,9 +64,12 @@ Issue
   has_many :symptom_issues (self-referential via root_issue_id)
   has_many :members, through: :issue_members
   has_many :family_values, through: :issue_values
-  # Types: "root" or "symptom". Urgency: Low/Medium/High. List: Family/Marriage/Personal.
+  # Types: "root" or "symptom". Urgency: Low/Medium/High.
+  # List types: family, parent, individual (LIST_TYPES constant, lowercase)
   # Status flow: new → acknowledged → working_on_it → resolved
-  # Scopes: active (not resolved), resolved, resolved_this_week
+  # Scopes: active, resolved, resolved_this_week, visible_to(user), for_list_type(type)
+  # Visibility: family=all users, parent=parents only, individual=tagged members+parents
+  # Methods: tagged_members, list_type_label, next_status, advance_status!
 
 IssueAssist
   belongs_to :family
@@ -221,6 +224,11 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
 - **Thrive Assessments**: Child/teen wellness check-ins with 4 dimensions (mind, body, spirit, responsibility) rated 1-5. Assessments are immutable after creation. Can be linked to a `RhythmCompletion` when done during a retreat. Only members with role `child` or `teen` can have assessments.
 - **Relationships module**: Tracks relationships between all pairs of family members. `Family#ensure_all_relationships!` auto-creates missing pairs. Each relationship can be assessed with cooperation/affection/trust scores (0-2 each, 6 total). Health bands: high (5-6), functioning (3-4), low (0-2). Relationship graph visualization uses SVG with D3-like positioning. Clicking a line or "Assess" link navigates to a standard assessment page (not a modal).
+- **Issue creation points**: Issues can be created from multiple contexts with prefill and return-to-context:
+  - Issues index: standard creation
+  - Member show page: "+ Issue" button pre-tags the member, sets list_type to individual
+  - Rhythm run page: "Log Issue" button prefills description with rhythm name, returns to running meeting
+  - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 
 ## MVP Simplification
 
@@ -240,7 +248,8 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **Member card** (`members/_member_card.html.erb`): shows "Parent" or "Child" role label for all members.
 - **Member card with status** (`members/_member_card_with_status.html.erb`): shows member with status badge (You, Admin, Joined, Pending, Not Invited) and Invite/Resend buttons for eligible members.
 - **Members index** (`members/index.html.erb`): groups members by role (Parents, Teens, Children) with status badges and invite actions. The admin parent appears in the Parents section with an "Admin" badge.
-- **Issue form** (`issues/_form.html.erb`): shows only description and urgency. Hidden fields (list_type, member_ids, family_value_ids, issue_type, root_issue_id) remain in DB. `IssuesController` defaults `list_type` to "Family" and `issue_type` to "root" when not provided.
+- **Issue form** (`issues/_form.html.erb`): shows description, urgency, visibility selector (family/parent/individual), and member tagging checkboxes. Supports prefill via query params (`prefill_description`, `list_type`, `member_ids[]`) and return-to-context via `return_to` param. `IssuesController` defaults `list_type` to "family" and `issue_type` to "root" when not provided.
+- **Issues index** (`issues/index.html.erb`): filter tabs (All/Family/Parents/Individual) with counts, list type badges, and tagged member avatars on cards. Parent tab hidden from non-parent users.
 - **Vision show page** (`family_visions/show.html.erb`): empty state with "Start Building Your Vision" CTA when no vision data exists; populated state shows values tags, mission statement card, 10-year dream card, and last updated date.
 
 ### Admin "View as User" Toggle

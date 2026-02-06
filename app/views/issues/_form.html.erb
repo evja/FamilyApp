@@ -137,6 +137,58 @@
             style: "border-color: #{colors[:secondary]}; color: #{colors[:primary]};" %>
       </div>
 
+      <!-- List Type Selector -->
+      <div class="mt-6">
+        <label class="block text-sm font-medium mb-2" style="color: <%= colors[:primary] %>;">Visibility</label>
+        <div class="grid grid-cols-3 gap-2" x-data="{ selected: '<%= @issue.list_type || 'family' %>' }">
+          <% [
+            ['family', 'Family', 'Everyone sees'],
+            ['parent', 'Parents', 'Parents only'],
+            ['individual', 'Individual', 'Tagged members']
+          ].each do |value, label, hint| %>
+            <label class="cursor-pointer">
+              <input type="radio" name="issue[list_type]" value="<%= value %>"
+                     class="sr-only" x-model="selected"
+                     <%= 'checked' if (@issue.list_type || 'family') == value %>>
+              <div class="text-center py-2 px-2 rounded-lg border-2 transition-all text-sm"
+                   :class="selected === '<%= value %>' ? 'border-current shadow-md' : 'border-gray-200'"
+                   :style="selected === '<%= value %>' ? 'background-color: <%= colors[:primary] %>; color: white; border-color: <%= colors[:primary] %>;' : ''">
+                <div class="font-medium"><%= label %></div>
+                <div class="text-xs opacity-70"><%= hint %></div>
+              </div>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Member Tagging -->
+      <div class="mt-6">
+        <label class="block text-sm font-medium mb-2" style="color: <%= colors[:primary] %>;">Tag Members (optional)</label>
+        <p class="text-xs text-gray-500 mb-3">Who is this issue about?</p>
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1">
+          <% @members.each do |member| %>
+            <label class="flex items-center gap-2 p-2 rounded border border-gray-200 hover:bg-gray-50 cursor-pointer">
+              <%= check_box_tag "issue[member_ids][]", member.id,
+                  @issue.member_ids.include?(member.id),
+                  id: "member_#{member.id}",
+                  class: "rounded border-gray-300 text-current" %>
+              <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style="background-color: <%= member.display_color %>;">
+                <%= member.avatar_display %>
+              </span>
+              <span class="text-sm text-gray-700 truncate"><%= member.display_name %></span>
+            </label>
+          <% end %>
+        </div>
+      </div>
+
+      <% if @return_to.present? %>
+        <%= hidden_field_tag :return_to, @return_to %>
+      <% end %>
+      <% if @modal_mode %>
+        <%= hidden_field_tag :modal, 'true' %>
+      <% end %>
+
       <!-- Buttons -->
       <div class="flex flex-wrap items-center gap-4 mt-6">
         <%= form.submit "Save Issue",

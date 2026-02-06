@@ -29,7 +29,7 @@ class IssuesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "should destroy issue" do
-    issue = Issue.create!(family: @family, list_type: "Family", description: "Temporary test issue")
+    issue = Issue.create!(family: @family, list_type: "family", description: "Temporary test issue")
     assert_difference("Issue.count", -1) do
       delete family_issue_url(@family, issue)
     end

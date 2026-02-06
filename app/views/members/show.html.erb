@@ -216,7 +216,17 @@
     <div class="bg-white shadow rounded-lg border" style="border-color: <%= colors[:secondary] %>;">
       <div class="px-6 py-4 border-b flex items-center justify-between" style="border-color: <%= colors[:background] %>;">
         <h2 class="text-lg font-semibold" style="color: <%= colors[:primary] %>;">Recent Issues</h2>
-        <%= link_to "View All", family_issues_path(@family), class: "text-sm hover:underline", style: "color: #{member_color};" %>
+        <div class="flex items-center gap-3">
+          <%= link_to new_family_issue_path(@family,
+                member_ids: [@member.id],
+                list_type: 'individual',
+                return_to: request.fullpath),
+              class: "text-sm px-3 py-1 rounded font-medium",
+              style: "background-color: #{member_color}; color: white;" do %>
+            + Issue
+          <% end %>
+          <%= link_to "View All", family_issues_path(@family), class: "text-sm hover:underline", style: "color: #{member_color};" %>
+        </div>
       </div>
       <div class="divide-y" style="border-color: <%= colors[:background] %>;">
         <% if @member_issues.any? %>

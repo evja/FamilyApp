@@ -7,6 +7,26 @@
 
   <h2 class="text-2xl font-bold mb-6 mt-4 theme-text">Issues</h2>
 
+  <!-- Filter Tabs -->
+  <% if @has_any_issues %>
+    <div class="flex flex-wrap gap-1 bg-gray-100 p-1 rounded-lg mb-6">
+      <% [
+        [nil, 'All', @counts[:all]],
+        ['family', 'Family', @counts[:family]],
+        ['parent', 'Parents', @counts[:parent]],
+        ['individual', 'Individual', @counts[:individual]]
+      ].each do |filter, label, count| %>
+        <% active = (@list_filter == filter) || (filter.nil? && @list_filter.blank?) %>
+        <% next if filter == 'parent' && !current_user.family_parent? %>
+        <%= link_to family_issues_path(@family, list: filter),
+            class: "flex-1 text-center py-2 px-3 rounded-md text-sm font-medium transition-all #{active ? 'bg-white shadow' : 'text-gray-600 hover:text-gray-900'}" do %>
+          <%= label %>
+          <span class="ml-1 text-xs <%= active ? '' : 'text-gray-400' %>">(<%= count %>)</span>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+
   <% if !@has_any_issues %>
     <!-- Empty state -->
     <div class="max-w-xl mx-auto text-center py-12">
@@ -48,9 +68,16 @@
         <% @active_issues.each do |issue| %>
           <div class="bg-white p-4 rounded-lg shadow border theme-border">
             <div class="flex justify-between items-start mb-2">
-              <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %>">
-                <%= Issue::STATUS_LABELS[issue.status] %>
-              </span>
+              <div class="flex flex-wrap gap-1">
+                <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %>">
+                  <%= Issue::STATUS_LABELS[issue.status] %>
+                </span>
+                <% if issue.list_type != 'family' %>
+                  <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600">
+                    <%= issue.list_type_label %>
+                  </span>
+                <% end %>
+              </div>
               <% if issue.next_status %>
                 <%= button_to advance_status_family_issue_path(@family, issue),
                     method: :patch,
@@ -61,6 +88,21 @@
             </div>
 
             <p class="font-medium theme-text mt-2"><%= truncate(issue.description, length: 75) %></p>
+
+            <% if issue.tagged_members.any? %>
+              <div class="flex items-center gap-1 mt-2">
+                <% issue.tagged_members.limit(3).each do |member| %>
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        style="background-color: <%= member.display_color %>;"
+                        title="<%= member.display_name %>">
+                    <%= member.avatar_display %>
+                  </span>
+                <% end %>
+                <% if issue.tagged_members.count > 3 %>
+                  <span class="text-xs text-gray-500">+<%= issue.tagged_members.count - 3 %></span>
+                <% end %>
+              </div>
+            <% end %>
 
             <div class="text-sm mt-2">
               <span class="font-medium theme-text">Urgency:</span>
@@ -82,6 +124,7 @@
         <table class="w-full table-auto border theme-border text-sm"><thead><tr class="theme-bg">
           <th class="px-4 py-2 text-left font-medium theme-text">Status</th>
           <th class="px-4 py-2 text-left font-medium theme-text">Description</th>
+          <th class="px-4 py-2 text-left font-medium theme-text">Tagged</th>
           <th class="px-4 py-2 text-left font-medium theme-text">Urgency</th>
           <th class="px-4 py-2 text-left font-medium theme-text">Actions</th>
         </tr></thead>
@@ -89,11 +132,36 @@
           <% @active_issues.each do |issue| %>
             <tr class="border-t theme-border hover:bg-gray-50">
               <td class="px-4 py-2">
-                <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %>">
-                  <%= Issue::STATUS_LABELS[issue.status] %>
-                </span>
+                <div class="flex flex-col gap-1">
+                  <span class="text-xs font-medium px-2 py-1 rounded-full <%= Issue::STATUS_COLORS[issue.status] %> inline-block w-fit">
+                    <%= Issue::STATUS_LABELS[issue.status] %>
+                  </span>
+                  <% if issue.list_type != 'family' %>
+                    <span class="text-xs font-medium px-2 py-1 rounded-full bg-gray-100 text-gray-600 inline-block w-fit">
+                      <%= issue.list_type_label %>
+                    </span>
+                  <% end %>
+                </div>
               </td>
               <td class="px-4 py-2 text-gray-700"><%= truncate(issue.description, length: 80) %></td>
+              <td class="px-4 py-2">
+                <% if issue.tagged_members.any? %>
+                  <div class="flex items-center gap-1">
+                    <% issue.tagged_members.limit(3).each do |member| %>
+                      <span class="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                            style="background-color: <%= member.display_color %>;"
+                            title="<%= member.display_name %>">
+                        <%= member.avatar_display %>
+                      </span>
+                    <% end %>
+                    <% if issue.tagged_members.count > 3 %>
+                      <span class="text-xs text-gray-500">+<%= issue.tagged_members.count - 3 %></span>
+                    <% end %>
+                  </div>
+                <% else %>
+                  <span class="text-gray-400 text-xs">-</span>
+                <% end %>
+              </td>
               <td class="px-4 py-2"><%= issue.urgency %></td>
               <td class="px-4 py-2 whitespace-nowrap">
                 <div class="flex items-center gap-1">

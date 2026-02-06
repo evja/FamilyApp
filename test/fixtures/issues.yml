@@ -2,14 +2,14 @@
 
 one:
   family: one
-  list_type: Family
+  list_type: family
   description: Screen time boundaries feel inconsistent
   issue_type: root
   status: new
 
 two:
   family: two
-  list_type: Family
+  list_type: family
   description: Morning routines are stressful
   issue_type: root
   status: new
