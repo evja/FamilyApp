@@ -80,6 +80,7 @@ class ApplicationController < ActionController::Base
     @family = current_user.family
     unless @family && @family.id == params[:family_id].to_i
       redirect_to root_path, alert: "You do not have access to this family."
+      return
     end
   end
 end

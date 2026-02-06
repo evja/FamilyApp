@@ -55,27 +55,30 @@ class FamilyInvitationsController < ApplicationController
       return
     end
 
-    # Link user to family
-    current_user.update!(family: @invitation.family)
+    # Wrap all updates in a transaction to ensure data consistency
+    ActiveRecord::Base.transaction do
+      # Link user to family
+      current_user.update!(family: @invitation.family)
 
-    # Link user to member if invitation has a member reference
-    if @invitation.member.present?
-      @invitation.member.update!(
-        user_id: current_user.id,
-        joined_at: Time.current
-      )
-    else
-      # Try to find a member by email match for legacy invitations
-      existing_member = @invitation.family.members.find_by(email: current_user.email)
-      if existing_member && existing_member.user_id.nil?
-        existing_member.update!(
+      # Link user to member if invitation has a member reference
+      if @invitation.member.present?
+        @invitation.member.update!(
           user_id: current_user.id,
           joined_at: Time.current
         )
+      else
+        # Try to find a member by email match for legacy invitations
+        existing_member = @invitation.family.members.find_by(email: current_user.email)
+        if existing_member && existing_member.user_id.nil?
+          existing_member.update!(
+            user_id: current_user.id,
+            joined_at: Time.current
+          )
+        end
       end
-    end
 
-    @invitation.accept!
+      @invitation.accept!
+    end
     session.delete(:invitation_token)
     redirect_to family_path(@invitation.family), notice: 'Welcome to the family!'
   end
@@ -84,7 +87,10 @@ class FamilyInvitationsController < ApplicationController
 
   def set_family
     @family = current_user.family
-    head :forbidden unless @family && @family.id.to_s == params[:family_id]
+    unless @family && @family.id.to_s == params[:family_id]
+      head :forbidden
+      return
+    end
   end
 
   def set_invitation

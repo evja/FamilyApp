@@ -57,7 +57,7 @@ class Relationship < ApplicationRecord
     update!(
       current_health_score: updated_score.round,
       current_health_band: band,
-      last_assessed_at: assessment.assessed_on
+      last_assessed_at: Time.current
     )
   end
 

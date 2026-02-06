@@ -5,7 +5,7 @@ class MembersController < ApplicationController
 
   def index
     # Sort by role, then by age (youngest first), then by name
-    @members = @family.members.order(
+    @members = @family.members.includes(:user, :invitation).order(
       Arel.sql("CASE role WHEN 'admin_parent' THEN 0 WHEN 'parent' THEN 1 WHEN 'teen' THEN 2 WHEN 'child' THEN 3 END"),
       Arel.sql("COALESCE(birthdate, DATE('1900-01-01')) DESC"),  # Youngest first (most recent birthdate)
       Arel.sql("COALESCE(age, 999) ASC"),  # Fallback: youngest age first
@@ -18,6 +18,7 @@ class MembersController < ApplicationController
   end
 
   def show
+    @member_issues = @member.issues.active.order(created_at: :desc).limit(5)
   end
 
   def new
@@ -114,6 +115,12 @@ class MembersController < ApplicationController
   end
 
   def member_params
-    params.require(:member).permit(:name, :age, :birthdate, :personality, :interests, :health, :development, :needs, :is_parent, :role, :email)
+    params.require(:member).permit(
+      :name, :age, :birthdate, :role, :email,
+      :theme_color, :nickname, :bio, :avatar_emoji,
+      :interests, :strengths, :growth_areas,
+      # Legacy fields (hidden in MVP but preserved)
+      :personality, :health, :development, :needs, :is_parent
+    )
   end
 end

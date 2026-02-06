@@ -2,6 +2,22 @@ class Member < ApplicationRecord
   ROLES = %w[admin_parent parent teen child].freeze
   TEEN_AGE_THRESHOLD = 13
 
+  # Personal theme color presets (12 distinct colors)
+  THEME_COLORS = {
+    indigo: '#4F46E5',
+    emerald: '#10B981',
+    rose: '#F43F5E',
+    amber: '#F59E0B',
+    sky: '#0EA5E9',
+    violet: '#8B5CF6',
+    teal: '#14B8A6',
+    orange: '#F97316',
+    cyan: '#06B6D4',
+    fuchsia: '#D946EF',
+    lime: '#84CC16',
+    slate: '#64748B'
+  }.freeze
+
   belongs_to :family
   belongs_to :user, optional: true
   has_many :issue_members, dependent: :destroy
@@ -16,6 +32,8 @@ class Member < ApplicationRecord
   validates :role, presence: true, inclusion: { in: ROLES }
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
   validates :email, presence: true, if: :requires_email?
+  validates :theme_color, format: { with: /\A#[0-9A-Fa-f]{6}\z/ }, allow_blank: true
+  validates :avatar_emoji, length: { maximum: 4 }, allow_blank: true
   validate :only_one_admin_parent_per_family, on: :create
 
   before_validation :calculate_age_from_birthdate, if: :birthdate_changed?
@@ -84,7 +102,7 @@ class Member < ApplicationRecord
 
   # Determine role based on age
   def role_for_age(age)
-    return nil if age.nil?
+    return role if age.nil? # Keep existing role instead of nil
     return 'child' if age < TEEN_AGE_THRESHOLD
     'teen'
   end
@@ -97,6 +115,34 @@ class Member < ApplicationRecord
     return 40 if parent_or_above? || (age.present? && age >= 18)
     return 25 if age.nil?
     16 + (age / 18.0 * 22).round
+  end
+
+  # Personal theme color (defaults to indigo for parents, emerald for children)
+  def display_color
+    theme_color.presence || (parent_or_above? ? '#4F46E5' : '#10B981')
+  end
+
+  # Display name (nickname if set, otherwise name)
+  def display_name
+    nickname.presence || name
+  end
+
+  # Avatar display (emoji if set, otherwise first initial)
+  def avatar_display
+    avatar_emoji.presence || name[0].upcase
+  end
+
+  # Stats for member dashboard
+  def active_issue_count
+    issues.active.count
+  end
+
+  def relationship_count
+    relationships.count
+  end
+
+  def healthy_relationship_count
+    relationships.select { |r| r.current_health_band == 'high' }.count
   end
 
   private

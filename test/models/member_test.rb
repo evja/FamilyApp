@@ -184,9 +184,9 @@ class MemberTest < ActiveSupport::TestCase
     assert_equal "teen", member.role_for_age(99)
   end
 
-  test "role_for_age returns nil for nil age" do
-    member = Member.new
-    assert_nil member.role_for_age(nil)
+  test "role_for_age returns existing role for nil age" do
+    member = Member.new(role: "child")
+    assert_equal "child", member.role_for_age(nil)
   end
 
   test "calculated_age returns nil when birthdate is nil" do

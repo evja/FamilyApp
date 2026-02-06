@@ -1,10 +1,11 @@
 <%
   colors = @family.theme_colors
+  member_color = member.display_color
   status = member.display_status
   is_current_user = member.user_id == current_user.id
 %>
 
-<div class="flex flex-col items-center text-center bg-white shadow rounded-lg p-4 hover:shadow-lg transition border relative" style="border-color: <%= colors[:secondary] %>;">
+<div class="flex flex-col items-center text-center bg-white shadow rounded-lg p-4 hover:shadow-lg transition border relative" style="border-color: <%= member_color %>30;">
   <!-- Status Badge -->
   <div class="absolute top-2 right-2">
     <% if is_current_user %>
@@ -31,19 +32,19 @@
   </div>
 
   <%= link_to family_member_path(@family, member), class: "block hover:no-underline w-full" do %>
-    <!-- Profile Circle Placeholder -->
+    <!-- Profile Circle -->
     <div class="w-20 h-20 rounded-full flex items-center justify-center text-xl font-semibold mb-3 mx-auto"
-         style="background-color: <%= colors[:background] %>; color: <%= colors[:primary] %>;">
-      <%= member.name[0].upcase %>
+         style="background-color: <%= member_color %>; color: white;">
+      <%= member.avatar_display %>
     </div>
 
     <!-- Name & Role -->
     <div>
-      <h3 class="text-lg font-bold" style="color: <%= colors[:primary] %>"><%= member.name %></h3>
+      <h3 class="text-lg font-bold" style="color: <%= member_color %>"><%= member.display_name %></h3>
       <% if member.age.present? %>
         <p class="text-sm text-gray-600">Age: <%= member.age %></p>
       <% end %>
-      <p class="text-xs font-medium mt-1" style="color: <%= colors[:secondary] %>">
+      <p class="text-xs font-medium mt-1" style="color: <%= member_color %>;">
         <%= member.display_role %>
       </p>
     </div>
@@ -56,7 +57,7 @@
         <%= button_to resend_invite_family_member_path(@family, member),
             method: :post,
             class: "w-full text-sm px-3 py-1.5 rounded border transition-all duration-300",
-            style: "border-color: #{colors[:primary]}; color: #{colors[:primary]};",
+            style: "border-color: #{member_color}; color: #{member_color};",
             data: { confirm: "Resend invitation to #{member.email}?" } do %>
           Resend Invite
         <% end %>
@@ -64,13 +65,13 @@
         <%= button_to invite_family_member_path(@family, member),
             method: :post,
             class: "w-full text-sm px-3 py-1.5 rounded transition-all duration-300",
-            style: "background-color: #{colors[:primary]}; color: white;" do %>
+            style: "background-color: #{member_color}; color: white;" do %>
           Send Invite
         <% end %>
       <% else %>
         <%= link_to edit_family_member_path(@family, member),
             class: "block w-full text-sm px-3 py-1.5 rounded border text-center transition-all duration-300",
-            style: "border-color: #{colors[:secondary]}; color: #{colors[:secondary]};" do %>
+            style: "border-color: #{member_color}; color: #{member_color};" do %>
           Add Email to Invite
         <% end %>
       <% end %>

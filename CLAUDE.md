@@ -56,7 +56,7 @@ Member
   # Fields: role, email, birthdate, invited_at, joined_at
   # Scopes: admin_parents, invitable, pending_invitation, with_accounts
   # Birthdate: Optional. When set, age is auto-calculated and child/teen role is auto-assigned (TEEN_AGE_THRESHOLD = 13)
-  # Methods: calculated_age, role_for_age(age)
+  # Methods: calculated_age, role_for_age(age) — returns existing role if age is nil to prevent validation errors
 
 Issue
   belongs_to :family
@@ -199,19 +199,23 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - `require_parent_access!` — checks if user has parent or admin_parent role
 - `require_admin_access!` — checks if user is the family admin
 
+**Controllers using RoleAuthorization**:
+- `RhythmsController` — `require_parent_access!` on CRUD + setup actions
+- `IssuesController` — `require_parent_access!` on CRUD actions (children cannot create/edit issues)
+
 ## Key Patterns & Conventions
 
 - **Theme system**: CSS custom properties in `theme.css.erb`, switched via `data-theme` attribute on body. The `Themeable` concern on `Family` defines `THEME_PRESETS`.
 - **Nested resources**: Everything hangs off `/families/:family_id/`. Controllers receive `params[:family_id]`.
 - **Issue hierarchy**: Issues can be "root" or "symptom". Symptoms link to a root issue via `root_issue_id`.
-- **Invitations (Member-First)**: Members must be created first, then invited. Only members with role=admin_parent/parent/teen can receive invitations. Invitations are linked to members via `member_id`. Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link. When accepted, user is linked to the member via `user_id` and `joined_at` is set.
+- **Invitations (Member-First)**: Members must be created first, then invited. Only members with role=admin_parent/parent/teen can receive invitations. Invitations are linked to members via `member_id`. Token-based with 7-day expiry. `FamilyMailer.invitation_email` sends the link. When accepted, user/member/invitation updates are wrapped in a transaction for atomicity.
 - **Member Roles**: `admin_parent` (one per family, created automatically), `parent`, `teen`, `child`. Admin_parent/parent roles set `is_parent=true` for backward compatibility via `sync_is_parent_with_role` callback.
 - **Member Birthdate & Auto-Role**: Optional `birthdate` field on Member. When set, age is auto-calculated from birthdate, and child/teen role is auto-assigned based on age (13+ = teen, under 13 = child). Parent roles (`admin_parent`, `parent`) are never auto-assigned and must be set manually. If birthdate is not provided, age and role can be set manually as before.
 - **Admin**: Guarded by `require_admin` checking `current_user.admin?`. Located in `Admin::` namespace.
 - **No API**: This is a server-rendered app. JSON endpoints: `IssueAssistsController#create` (issue writing assistant) and `FamilyVisionsController#assist` (vision mission statement suggestions).
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
 - **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
-- **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
+- **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save, wrapped in a transaction that rolls back on validation failure. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
 - **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
 - **Rhythms module**: Recurring family meetings with customizable agendas. Rhythms have frequency settings (daily to annually) and categories (parent_sync, family_huddle, retreat, check_in, custom). Each rhythm has agenda items with optional links to other sections (issues, vision, members, thrive). Meeting flow: start → check items → finish. Progress is tracked via `RhythmCompletion` and `CompletionItem` records. Turbo Streams used for real-time checkbox updates without page scroll.
 - **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
@@ -255,7 +259,7 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 ## Things to Watch Out For
 
 - **`current_family` helper** in `ApplicationController` still does an unscoped `Family.find_by` as a fallback. It's used in views (helper_method) but should not be trusted for authorization — always use `@family` set by `authorize_family!`.
-- **Stripe price ID is hardcoded** in `BillingController#checkout`. Will need updating if the Stripe plan changes.
+- **Stripe price ID is hardcoded** in `BillingController#checkout`. Will need updating if the Stripe plan changes. Note: Stripe errors are now caught and show user-friendly messages.
 - **Devise email sender** in `config/initializers/devise.rb` likely needs updating for production.
 - **`IssueMember` model** has incorrect associations (`has_many :issue_members` and `has_many :issues, through: :issue_members` on a join model) — these are dead code but could cause confusion.
 - **No test coverage for authorization**. The auth fixes (authenticate_user!, authorize_family!) don't have corresponding controller tests yet.
@@ -263,3 +267,15 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **`FamiliesController#new`** doesn't `return` after the redirect when user already has a family, so `@family = Family.new` always runs.
 - **JavaScript must use `javascript_importmap_tags`** in `application.html.erb`, not `javascript_include_tag`. The importmap helper is required for ES module `import` statements to work.
 - **Stimulus reserved properties**: Don't use `this.data` in Stimulus controllers — it's a read-only property (DataMap for `data-*` attributes). Use a different name like `this.graphData` or `this._data`.
+
+## Code Quality Notes
+
+The following patterns are enforced throughout the codebase:
+
+- **Authorization callbacks always return**: All `redirect_to` and `head` calls in `before_action` methods are followed by `return` to prevent action execution from continuing.
+- **Transactions for multi-model updates**: `FamilyInvitationsController#accept` and `FamilyVisionsController#update` wrap related updates in `ActiveRecord::Base.transaction` to ensure atomicity.
+- **N+1 prevention**: Index actions use `.includes()` for associations displayed in views:
+  - `IssuesController#index`: `.includes(:members, :family_values)`
+  - `MembersController#index`: `.includes(:user, :invitation)`
+- **Stripe error handling**: `BillingController#checkout` rescues `Stripe::StripeError` and checks for family presence before creating checkout sessions.
+- **JS cleanup**: Stimulus controllers remove dynamically created DOM elements (like tooltips) in `disconnect()` to prevent accumulation during Turbo navigation.

@@ -1,72 +1,275 @@
 <%
   colors = @family.theme_colors
-  role_label = @member.role.in?(%w[admin_parent parent]) ? "Parent" : @member.role&.titleize
+  member_color = @member.display_color
+  role_label = @member.display_role
+  is_child_or_teen = @member.role.in?(%w[child teen])
 %>
 
-<div class="max-w-2xl mx-auto" x-data="{ confirmDelete: false }">
+<div class="max-w-4xl mx-auto" x-data="{ confirmDelete: false }">
   <%= render "shared/back_link", path: family_members_path(@family), text: "Back to Members" %>
 
-  <!-- Member Card -->
-  <div class="bg-white shadow-lg rounded-lg border overflow-hidden" style="border-color: <%= colors[:secondary] %>;">
-    <!-- Header with avatar -->
-    <div class="p-6 pb-4" style="background: linear-gradient(135deg, <%= colors[:background] %> 0%, white 100%);">
-      <div class="flex items-center gap-5">
-        <div class="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold shadow-md border-4 border-white"
-             style="background-color: <%= colors[:primary] %>; color: white;">
-          <%= @member.name[0].upcase %>
+  <!-- Header Card -->
+  <div class="bg-white shadow-lg rounded-lg border overflow-hidden mb-6" style="border-color: <%= member_color %>20;">
+    <div class="p-6" style="background: linear-gradient(135deg, <%= member_color %>15 0%, white 100%);">
+      <div class="flex items-start gap-6">
+        <!-- Large Avatar -->
+        <div class="w-24 h-24 rounded-full flex items-center justify-center text-4xl font-bold shadow-lg border-4 border-white flex-shrink-0"
+             style="background-color: <%= member_color %>; color: white;">
+          <%= @member.avatar_display %>
         </div>
-        <div class="flex-1">
-          <h1 class="text-2xl font-bold" style="color: <%= colors[:primary] %>"><%= @member.name %></h1>
-          <span class="inline-block mt-2 px-3 py-1 text-sm font-medium rounded-full"
-                style="background-color: <%= colors[:background] %>; color: <%= colors[:primary] %>;">
-            <%= role_label %>
-          </span>
+
+        <div class="flex-1 min-w-0">
+          <!-- Name and Nickname -->
+          <div class="flex items-center gap-3 flex-wrap">
+            <h1 class="text-2xl font-bold" style="color: <%= member_color %>;">
+              <%= @member.display_name %>
+            </h1>
+            <% if @member.nickname.present? && @member.nickname != @member.name %>
+              <span class="text-gray-500 text-lg">(<%= @member.name %>)</span>
+            <% end %>
+          </div>
+
+          <!-- Role Badge -->
+          <div class="flex items-center gap-2 mt-2">
+            <span class="inline-block px-3 py-1 text-sm font-medium rounded-full"
+                  style="background-color: <%= member_color %>20; color: <%= member_color %>;">
+              <%= role_label %>
+            </span>
+            <% if @member.age.present? %>
+              <span class="text-gray-600">Age <%= @member.age %></span>
+            <% end %>
+          </div>
+
+          <!-- Bio -->
+          <% if @member.bio.present? %>
+            <p class="mt-3 text-gray-600 leading-relaxed"><%= @member.bio %></p>
+          <% end %>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex flex-col gap-2 flex-shrink-0">
+          <%= link_to edit_family_member_path(@family, @member),
+              class: "inline-flex items-center gap-2 px-4 py-2 rounded font-medium text-white transition-all hover:opacity-90",
+              style: "background-color: #{member_color};" do %>
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+            Edit
+          <% end %>
+
+          <% unless @member.admin_parent? %>
+            <button @click="confirmDelete = true"
+                    class="inline-flex items-center gap-2 px-4 py-2 rounded font-medium border border-red-300 text-red-600 bg-white hover:bg-red-50 transition-all">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete
+            </button>
+          <% end %>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Details -->
-    <div class="px-6 py-4 border-t" style="border-color: <%= colors[:background] %>;">
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <p class="text-xs text-gray-500 uppercase tracking-wide">Age</p>
-          <p class="text-lg font-medium text-gray-800"><%= @member.age || "—" %></p>
-        </div>
-        <% if @member.birthdate.present? %>
-          <div>
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Birthday</p>
-            <p class="text-lg font-medium text-gray-800"><%= @member.birthdate.strftime("%B %d, %Y") %></p>
-          </div>
-        <% end %>
-        <% if @member.email.present? %>
-          <div class="col-span-2">
-            <p class="text-xs text-gray-500 uppercase tracking-wide">Email</p>
-            <p class="text-lg font-medium text-gray-800"><%= @member.email %></p>
-          </div>
-        <% end %>
-      </div>
-    </div>
-
-    <!-- Actions -->
-    <div class="px-6 py-4 bg-gray-50 border-t flex items-center gap-3" style="border-color: <%= colors[:background] %>;">
-      <%= link_to edit_family_member_path(@family, @member),
-          class: "inline-flex items-center gap-2 px-4 py-2 rounded font-medium text-white transition-all hover:opacity-90",
-          style: "background-color: #{colors[:primary]};" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-        Edit Member
-      <% end %>
-
-      <% unless @member.admin_parent? %>
-        <button @click="confirmDelete = true"
-                class="inline-flex items-center gap-2 px-4 py-2 rounded font-medium border border-red-300 text-red-600 bg-white hover:bg-red-50 transition-all">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    <!-- Active Issues -->
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
           </svg>
-          Delete
-        </button>
-      <% end %>
+        </div>
+        <div>
+          <p class="text-2xl font-bold" style="color: <%= member_color %>;"><%= @member.active_issue_count %></p>
+          <p class="text-xs text-gray-500">Active Issues</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Relationships -->
+    <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+        <div>
+          <p class="text-2xl font-bold" style="color: <%= member_color %>;"><%= @member.relationship_count %></p>
+          <p class="text-xs text-gray-500">Relationships</p>
+        </div>
+      </div>
+    </div>
+
+    <% if is_child_or_teen %>
+      <!-- Thrive Assessments (for children/teens) -->
+      <% thrive_count = @member.thrive_assessments.count %>
+      <% latest_thrive = @member.thrive_assessments.recent.first %>
+      <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold" style="color: <%= member_color %>;"><%= thrive_count %></p>
+            <p class="text-xs text-gray-500">Thrive Check-ins</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Latest Thrive Score -->
+      <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <% if latest_thrive %>
+              <% avg_score = ((latest_thrive.mind_rating + latest_thrive.body_rating + latest_thrive.spirit_rating + latest_thrive.responsibility_rating) / 4.0).round(1) %>
+              <p class="text-2xl font-bold" style="color: <%= member_color %>;"><%= avg_score %>/5</p>
+              <p class="text-xs text-gray-500">Latest Score</p>
+            <% else %>
+              <p class="text-lg text-gray-400">--</p>
+              <p class="text-xs text-gray-500">No assessments</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <!-- Healthy Relationships (for parents) -->
+      <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-2xl font-bold" style="color: <%= member_color %>;"><%= @member.healthy_relationship_count %></p>
+            <p class="text-xs text-gray-500">Healthy Relations</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Joined Date -->
+      <div class="bg-white rounded-lg shadow p-4 border" style="border-color: <%= colors[:secondary] %>;">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background-color: <%= member_color %>20;">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="<%= member_color %>">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div>
+            <% if @member.joined_at.present? %>
+              <p class="text-sm font-bold" style="color: <%= member_color %>;"><%= @member.joined_at.strftime("%b %Y") %></p>
+              <p class="text-xs text-gray-500">Joined</p>
+            <% else %>
+              <p class="text-lg text-gray-400">--</p>
+              <p class="text-xs text-gray-500">Not joined</p>
+            <% end %>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Profile Details Section -->
+  <% if @member.interests.present? || @member.strengths.present? || @member.growth_areas.present? %>
+    <div class="bg-white shadow rounded-lg border mb-6" style="border-color: <%= colors[:secondary] %>;">
+      <div class="px-6 py-4 border-b" style="border-color: <%= colors[:background] %>;">
+        <h2 class="text-lg font-semibold" style="color: <%= colors[:primary] %>;">Profile Details</h2>
+      </div>
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <% if @member.interests.present? %>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Interests</h3>
+              <p class="text-gray-700 whitespace-pre-line"><%= @member.interests %></p>
+            </div>
+          <% end %>
+          <% if @member.strengths.present? %>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Strengths</h3>
+              <p class="text-gray-700 whitespace-pre-line"><%= @member.strengths %></p>
+            </div>
+          <% end %>
+          <% if @member.growth_areas.present? %>
+            <div>
+              <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wide mb-2">Growth Areas</h3>
+              <p class="text-gray-700 whitespace-pre-line"><%= @member.growth_areas %></p>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Quick Links Section -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Recent Issues -->
+    <div class="bg-white shadow rounded-lg border" style="border-color: <%= colors[:secondary] %>;">
+      <div class="px-6 py-4 border-b flex items-center justify-between" style="border-color: <%= colors[:background] %>;">
+        <h2 class="text-lg font-semibold" style="color: <%= colors[:primary] %>;">Recent Issues</h2>
+        <%= link_to "View All", family_issues_path(@family), class: "text-sm hover:underline", style: "color: #{member_color};" %>
+      </div>
+      <div class="divide-y" style="border-color: <%= colors[:background] %>;">
+        <% if @member_issues.any? %>
+          <% @member_issues.each do |issue| %>
+            <%= link_to family_issue_path(@family, issue), class: "block px-6 py-3 hover:bg-gray-50 transition" do %>
+              <div class="flex items-center justify-between">
+                <p class="text-gray-800 font-medium truncate"><%= truncate(issue.description, length: 50) %></p>
+                <span class="text-xs px-2 py-1 rounded-full ml-2"
+                      style="background-color: <%= issue.urgency == 'High' ? '#FEE2E2' : (issue.urgency == 'Medium' ? '#FEF3C7' : '#DCFCE7') %>;
+                             color: <%= issue.urgency == 'High' ? '#991B1B' : (issue.urgency == 'Medium' ? '#92400E' : '#166534') %>;">
+                  <%= issue.urgency %>
+                </span>
+              </div>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="px-6 py-4 text-gray-500 text-sm">No active issues</div>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Relationships -->
+    <div class="bg-white shadow rounded-lg border" style="border-color: <%= colors[:secondary] %>;">
+      <div class="px-6 py-4 border-b flex items-center justify-between" style="border-color: <%= colors[:background] %>;">
+        <h2 class="text-lg font-semibold" style="color: <%= colors[:primary] %>;">Relationships</h2>
+        <%= link_to "View Map", family_relationships_path(@family), class: "text-sm hover:underline", style: "color: #{member_color};" %>
+      </div>
+      <div class="divide-y" style="border-color: <%= colors[:background] %>;">
+        <% relationships = @member.relationships.includes(:member_low, :member_high).limit(5) %>
+        <% if relationships.any? %>
+          <% relationships.each do |rel| %>
+            <% other_member = rel.member_low_id == @member.id ? rel.member_high : rel.member_low %>
+            <%= link_to assess_family_relationship_path(@family, rel), class: "block px-6 py-3 hover:bg-gray-50 transition" do %>
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                     style="background-color: <%= other_member.display_color %>; color: white;">
+                  <%= other_member.avatar_display %>
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-gray-800 font-medium"><%= other_member.display_name %></p>
+                </div>
+                <% if rel.assessed? %>
+                  <span class="w-3 h-3 rounded-full" style="background-color: <%= rel.health_color_hsl %>;"></span>
+                <% else %>
+                  <span class="text-xs text-gray-400">Not assessed</span>
+                <% end %>
+              </div>
+            <% end %>
+          <% end %>
+        <% else %>
+          <div class="px-6 py-4 text-gray-500 text-sm">No relationships yet</div>
+        <% end %>
+      </div>
     </div>
   </div>
 

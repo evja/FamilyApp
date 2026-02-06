@@ -1,6 +1,9 @@
 class IssuesController < ApplicationController
+  include RoleAuthorization
+
   before_action :authenticate_user!
   before_action :authorize_family!
+  before_action :require_parent_access!, only: [:new, :create, :edit, :update, :destroy]
 
   def new
     @issue = @family.issues.new
@@ -28,8 +31,8 @@ class IssuesController < ApplicationController
   end
 
   def index
-    @active_issues = @family.issues.active.order(created_at: :desc)
-    @resolved_issues = @family.issues.resolved.order(resolved_at: :desc)
+    @active_issues = @family.issues.active.includes(:members, :family_values).order(created_at: :desc)
+    @resolved_issues = @family.issues.resolved.includes(:members, :family_values).order(resolved_at: :desc)
     @has_any_issues = @family.issues.exists?
   end
 

@@ -24,7 +24,9 @@ class RelationshipsController < ApplicationController
     render json: {
       members: @family.members.map { |m|
         { id: m.id, name: m.name, age: m.age, role: m.role,
-          radius: m.bubble_radius, is_parent: m.parent_or_above? }
+          radius: m.bubble_radius, is_parent: m.parent_or_above?,
+          color: m.display_color, avatar_emoji: m.avatar_emoji,
+          display_name: m.display_name }
       },
       relationships: @family.relationships.map { |r|
         { id: r.id, source: r.member_low_id, target: r.member_high_id,

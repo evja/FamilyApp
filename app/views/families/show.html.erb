@@ -53,7 +53,7 @@
       <% next if !is_visible && !show_admin_features? %>
       <% is_available = current_user.admin? || current_user.is_subscribed? || ["Issues", "Members", "Vision"].include?(item[:label]) %>
       <%= link_to is_available ? item[:path] : "#",
-          class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
+          class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
 
         <%# Notification Badge %>

@@ -15,22 +15,27 @@
     </div>
   <% end %>
 
-  <div class="space-y-6">
+  <div class="space-y-6" x-data="{
+    cooperation: <%= assessment.score_cooperation.nil? ? 'null' : assessment.score_cooperation %>,
+    affection: <%= assessment.score_affection.nil? ? 'null' : assessment.score_affection %>,
+    trust: <%= assessment.score_trust.nil? ? 'null' : assessment.score_trust %>
+  }">
     <!-- Cooperation -->
     <div>
       <label class="block text-sm font-medium text-gray-700 mb-2">Cooperation</label>
       <p class="text-xs text-gray-500 mb-2">How well do they work together and help each other?</p>
       <div class="flex gap-2">
         <% (0..2).each do |score| %>
-          <label class="flex-1">
+          <label class="flex-1 cursor-pointer" @click="cooperation = <%= score %>">
             <input type="radio" name="relationship_assessment[score_cooperation]" value="<%= score %>"
-                   class="peer hidden"
+                   class="hidden"
+                   x-bind:checked="cooperation === <%= score %>"
                    <%= 'checked' if assessment.score_cooperation == score %>>
-            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
-                        peer-checked:border-2 transition-all text-sm"
-                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
-              <div class="font-medium"><%= score_labels[score] %></div>
-              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            <div class="text-center py-3 px-3 rounded-lg border-2 transition-all text-sm"
+                 :class="cooperation === <%= score %> ? 'border-transparent shadow-md ring-2 ring-offset-1' : 'border-gray-200 hover:border-gray-300'"
+                 :style="cooperation === <%= score %> ? 'background-color: <%= colors[:primary] %>; color: white; ring-color: <%= colors[:primary] %>' : ''">
+              <div class="font-semibold"><%= score_labels[score] %></div>
+              <div class="text-xs" :class="cooperation === <%= score %> ? 'text-white/70' : 'text-gray-400'">(<%= score %> pts)</div>
             </div>
           </label>
         <% end %>
@@ -43,15 +48,16 @@
       <p class="text-xs text-gray-500 mb-2">How openly do they show care and love for each other?</p>
       <div class="flex gap-2">
         <% (0..2).each do |score| %>
-          <label class="flex-1">
+          <label class="flex-1 cursor-pointer" @click="affection = <%= score %>">
             <input type="radio" name="relationship_assessment[score_affection]" value="<%= score %>"
-                   class="peer hidden"
+                   class="hidden"
+                   x-bind:checked="affection === <%= score %>"
                    <%= 'checked' if assessment.score_affection == score %>>
-            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
-                        peer-checked:border-2 transition-all text-sm"
-                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
-              <div class="font-medium"><%= score_labels[score] %></div>
-              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            <div class="text-center py-3 px-3 rounded-lg border-2 transition-all text-sm"
+                 :class="affection === <%= score %> ? 'border-transparent shadow-md ring-2 ring-offset-1' : 'border-gray-200 hover:border-gray-300'"
+                 :style="affection === <%= score %> ? 'background-color: <%= colors[:primary] %>; color: white; ring-color: <%= colors[:primary] %>' : ''">
+              <div class="font-semibold"><%= score_labels[score] %></div>
+              <div class="text-xs" :class="affection === <%= score %> ? 'text-white/70' : 'text-gray-400'">(<%= score %> pts)</div>
             </div>
           </label>
         <% end %>
@@ -64,15 +70,16 @@
       <p class="text-xs text-gray-500 mb-2">How comfortable are they being vulnerable and honest with each other?</p>
       <div class="flex gap-2">
         <% (0..2).each do |score| %>
-          <label class="flex-1">
+          <label class="flex-1 cursor-pointer" @click="trust = <%= score %>">
             <input type="radio" name="relationship_assessment[score_trust]" value="<%= score %>"
-                   class="peer hidden"
+                   class="hidden"
+                   x-bind:checked="trust === <%= score %>"
                    <%= 'checked' if assessment.score_trust == score %>>
-            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
-                        peer-checked:border-2 transition-all text-sm"
-                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
-              <div class="font-medium"><%= score_labels[score] %></div>
-              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            <div class="text-center py-3 px-3 rounded-lg border-2 transition-all text-sm"
+                 :class="trust === <%= score %> ? 'border-transparent shadow-md ring-2 ring-offset-1' : 'border-gray-200 hover:border-gray-300'"
+                 :style="trust === <%= score %> ? 'background-color: <%= colors[:primary] %>; color: white; ring-color: <%= colors[:primary] %>' : ''">
+              <div class="font-semibold"><%= score_labels[score] %></div>
+              <div class="text-xs" :class="trust === <%= score %> ? 'text-white/70' : 'text-gray-400'">(<%= score %> pts)</div>
             </div>
           </label>
         <% end %>

@@ -2,6 +2,7 @@
   colors = @family.theme_colors
   # Don't show admin_parent role for new members or non-admin_parent members
   available_roles = @member.admin_parent? ? Member::ROLES : Member::ROLES.reject { |r| r == 'admin_parent' }
+  theme_colors = Member::THEME_COLORS
 %>
 
 <%= form_with model: [@family, @member], local: true, data: { controller: "member-form" } do |form| %>
@@ -11,6 +12,9 @@
          hasBirthdate: <%= @member.birthdate.present? %>,
          birthdate: '<%= @member.birthdate %>',
          calculatedAge: <%= @member.calculated_age || 'null' %>,
+         selectedColor: '<%= @member.theme_color || '' %>',
+         avatarEmoji: '<%= @member.avatar_emoji || '' %>',
+         memberName: '<%= @member.name || '' %>',
          updateFromBirthdate() {
            if (!this.birthdate) {
              this.hasBirthdate = false;
@@ -33,6 +37,14 @@
          },
          isParentRole() {
            return this.role === 'admin_parent' || this.role === 'parent';
+         },
+         getDisplayColor() {
+           if (this.selectedColor) return this.selectedColor;
+           return this.isParentRole() ? '#4F46E5' : '#10B981';
+         },
+         getAvatarDisplay() {
+           if (this.avatarEmoji) return this.avatarEmoji;
+           return this.memberName ? this.memberName[0].toUpperCase() : '?';
          }
        }">
     <h2 class="text-xl font-semibold" style="color: <%= colors[:primary] %>">Member Info</h2>
@@ -42,7 +54,8 @@
       <%= form.label :name, "Name", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
       <%= form.text_field :name, placeholder: "e.g. Sarah",
           class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
-          style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};" %>
+          style: "border-color: #{colors[:secondary]}; focus:border-color: #{colors[:primary]};",
+          "x-model": "memberName" %>
     </div>
 
     <!-- Birthdate field -->
@@ -102,6 +115,116 @@
             Required to send an invitation to join the family.
           <% end %>
         </p>
+      </div>
+    </div>
+
+    <!-- Personal Color Section -->
+    <div class="border-t pt-6" style="border-color: <%= colors[:secondary] %>;">
+      <h3 class="text-lg font-semibold mb-4" style="color: <%= colors[:primary] %>">Personal Color</h3>
+
+      <!-- Live Avatar Preview -->
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold shadow-md border-2 border-white"
+             :style="'background-color: ' + getDisplayColor() + '; color: white;'">
+          <span x-text="getAvatarDisplay()"></span>
+        </div>
+        <div class="text-sm text-gray-600">
+          <p>Preview of how this member will appear</p>
+        </div>
+      </div>
+
+      <!-- Preset Colors Grid -->
+      <div class="grid grid-cols-6 gap-2 mb-4">
+        <% theme_colors.each do |name, hex| %>
+          <button type="button"
+                  @click="selectedColor = '<%= hex %>'"
+                  :class="selectedColor === '<%= hex %>' ? 'ring-2 ring-offset-2 ring-gray-800' : ''"
+                  class="w-10 h-10 rounded-full transition-all hover:scale-110"
+                  style="background-color: <%= hex %>;"
+                  title="<%= name.to_s.titleize %>">
+          </button>
+        <% end %>
+      </div>
+
+      <!-- Custom Color Input -->
+      <div class="flex items-center gap-3">
+        <label class="text-sm text-gray-600">Custom:</label>
+        <input type="color"
+               x-model="selectedColor"
+               class="w-10 h-10 rounded cursor-pointer border-0 p-0">
+        <input type="text"
+               x-model="selectedColor"
+               placeholder="#RRGGBB"
+               maxlength="7"
+               class="w-24 border rounded px-2 py-1 text-sm font-mono"
+               style="border-color: <%= colors[:secondary] %>;">
+        <button type="button"
+                @click="selectedColor = ''"
+                class="text-sm text-gray-500 hover:text-gray-700 underline">
+          Reset
+        </button>
+      </div>
+      <%= form.hidden_field :theme_color, "x-bind:value": "selectedColor" %>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="border-t pt-6" style="border-color: <%= colors[:secondary] %>;">
+      <h3 class="text-lg font-semibold mb-4" style="color: <%= colors[:primary] %>">Profile Details</h3>
+
+      <div class="grid grid-cols-2 gap-4">
+        <!-- Nickname -->
+        <div>
+          <%= form.label :nickname, "Nickname", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+          <%= form.text_field :nickname, placeholder: "e.g. Buddy",
+              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+              style: "border-color: #{colors[:secondary]};" %>
+        </div>
+
+        <!-- Avatar Emoji -->
+        <div>
+          <%= form.label :avatar_emoji, "Avatar Emoji", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+          <%= form.text_field :avatar_emoji, placeholder: "e.g. ⭐",
+              maxlength: 4,
+              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300 text-2xl",
+              style: "border-color: #{colors[:secondary]};",
+              "x-model": "avatarEmoji" %>
+        </div>
+      </div>
+
+      <!-- Bio -->
+      <div class="mt-4">
+        <%= form.label :bio, "Bio", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+        <%= form.text_area :bio, placeholder: "A short description...",
+            rows: 2,
+            class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+            style: "border-color: #{colors[:secondary]};" %>
+      </div>
+
+      <!-- Interests -->
+      <div class="mt-4">
+        <%= form.label :interests, "Interests", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+        <%= form.text_area :interests, placeholder: "What do they enjoy? (hobbies, activities, topics)",
+            rows: 2,
+            class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+            style: "border-color: #{colors[:secondary]};" %>
+      </div>
+
+      <!-- Strengths & Growth Areas -->
+      <div class="grid grid-cols-2 gap-4 mt-4">
+        <div>
+          <%= form.label :strengths, "Strengths", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+          <%= form.text_area :strengths, placeholder: "What are they good at?",
+              rows: 2,
+              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+              style: "border-color: #{colors[:secondary]};" %>
+        </div>
+        <div>
+          <%= form.label :growth_areas, "Growth Areas", class: "block text-sm font-medium", style: "color: #{colors[:primary]}" %>
+          <%= form.text_area :growth_areas, placeholder: "Areas for growth",
+              rows: 2,
+              class: "mt-1 block w-full border rounded px-3 py-2 transition-all duration-300",
+              style: "border-color: #{colors[:secondary]};" %>
+        </div>
       </div>
     </div>
 

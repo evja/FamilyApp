@@ -16,6 +16,7 @@ class FamilyVisionsController < ApplicationController
 
   def update
     @vision = @family.vision || @family.build_vision
+    update_successful = false
 
     ActiveRecord::Base.transaction do
       # Sync family values from submitted names
@@ -28,13 +29,18 @@ class FamilyVisionsController < ApplicationController
       end
 
       if @vision.update(vision_params)
-        redirect_to family_vision_path(@family), notice: "Family vision updated!"
+        update_successful = true
       else
-        @existing_values = @family.family_values.pluck(:name)
-        @assist_remaining = IssueAssist.remaining_today(@family)
-        render :edit
         raise ActiveRecord::Rollback
       end
+    end
+
+    if update_successful
+      redirect_to family_vision_path(@family), notice: "Family vision updated!"
+    else
+      @existing_values = @family.family_values.reload.pluck(:name)
+      @assist_remaining = IssueAssist.remaining_today(@family)
+      render :edit, status: :unprocessable_entity
     end
   end
 

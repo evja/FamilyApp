@@ -14,6 +14,11 @@ export default class extends Controller {
 
   disconnect() {
     window.removeEventListener('resize', this.handleResize)
+    // Clean up tooltip element to prevent accumulation with Turbo navigation
+    const tooltip = document.getElementById('graph-tooltip')
+    if (tooltip) {
+      tooltip.remove()
+    }
   }
 
   handleResize() {
@@ -106,22 +111,27 @@ export default class extends Controller {
       group.setAttribute('transform', `translate(${pos.x}, ${pos.y})`)
       group.style.cursor = 'pointer'
 
-      // Circle
+      // Circle - use member's personal color
       const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
       circle.setAttribute('r', member.radius)
-      circle.setAttribute('fill', member.is_parent ? '#4F46E5' : '#10B981')
+      circle.setAttribute('fill', member.color)
       circle.setAttribute('stroke', '#fff')
       circle.setAttribute('stroke-width', '3')
       group.appendChild(circle)
 
-      // Name text
+      // Name/emoji text - show emoji if set, otherwise truncated name
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text')
       text.setAttribute('text-anchor', 'middle')
       text.setAttribute('dy', '0.35em')
       text.setAttribute('fill', 'white')
-      text.setAttribute('font-size', member.radius > 30 ? '12' : '10')
-      text.setAttribute('font-weight', 'bold')
-      text.textContent = this.truncateName(member.name, member.radius)
+      if (member.avatar_emoji) {
+        text.setAttribute('font-size', member.radius > 30 ? '24' : '18')
+        text.textContent = member.avatar_emoji
+      } else {
+        text.setAttribute('font-size', member.radius > 30 ? '12' : '10')
+        text.setAttribute('font-weight', 'bold')
+        text.textContent = this.truncateName(member.name, member.radius)
+      }
       group.appendChild(text)
 
       // Tooltip on hover
@@ -153,7 +163,11 @@ export default class extends Controller {
 
     const ageText = member.age ? `, Age ${member.age}` : ''
     const roleText = member.role.replace('_', ' ')
-    tooltip.innerHTML = `<strong>${member.name}</strong><br>${roleText}${ageText}`
+    const displayName = member.display_name || member.name
+    const nameLabel = member.display_name && member.display_name !== member.name
+      ? `${displayName} (${member.name})`
+      : displayName
+    tooltip.innerHTML = `<strong>${nameLabel}</strong><br>${roleText}${ageText}`
     tooltip.style.display = 'block'
     tooltip.style.left = `${event.pageX + 10}px`
     tooltip.style.top = `${event.pageY + 10}px`

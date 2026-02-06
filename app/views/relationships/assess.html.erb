@@ -1,12 +1,46 @@
 <%
   colors = @family.theme_colors
+  member1 = @relationship.member_low
+  member2 = @relationship.member_high
 %>
 
 <div class="max-w-2xl mx-auto mt-10">
   <%= render "shared/back_link", path: family_relationships_path(@family), text: "Back to Relationships" %>
 
-  <h2 class="text-2xl font-bold mb-2 mt-4" style="color: <%= colors[:primary] %>">Assess Relationship</h2>
-  <p class="text-gray-600 mb-6"><%= @relationship.display_name %></p>
+  <h2 class="text-2xl font-bold mb-4 mt-4" style="color: <%= colors[:primary] %>">Relationship Assessment</h2>
+
+  <!-- Prominent relationship header -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="flex items-center justify-center gap-4">
+      <!-- Member 1 -->
+      <div class="text-center">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto"
+             style="background-color: <%= member1.parent_or_above? ? '#4F46E5' : '#10B981' %>">
+          <%= member1.name.first.upcase %>
+        </div>
+        <p class="mt-2 font-semibold text-gray-800"><%= member1.name %></p>
+        <p class="text-xs text-gray-500"><%= member1.display_role %></p>
+      </div>
+
+      <!-- Connection indicator -->
+      <div class="flex flex-col items-center px-4">
+        <div class="w-12 h-1 rounded" style="background-color: <%= colors[:primary] %>"></div>
+        <span class="text-2xl my-1" style="color: <%= colors[:primary] %>">&#10084;</span>
+        <div class="w-12 h-1 rounded" style="background-color: <%= colors[:primary] %>"></div>
+      </div>
+
+      <!-- Member 2 -->
+      <div class="text-center">
+        <div class="w-16 h-16 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto"
+             style="background-color: <%= member2.parent_or_above? ? '#4F46E5' : '#10B981' %>">
+          <%= member2.name.first.upcase %>
+        </div>
+        <p class="mt-2 font-semibold text-gray-800"><%= member2.name %></p>
+        <p class="text-xs text-gray-500"><%= member2.display_role %></p>
+      </div>
+    </div>
+    <p class="text-center text-sm text-gray-500 mt-4">How is the relationship between these two family members?</p>
+  </div>
 
   <div class="bg-white rounded-lg shadow p-6">
     <%= render "assessment_form", assessment: @assessment, relationship: @relationship %>
