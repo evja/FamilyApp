@@ -2,9 +2,7 @@
   colors = @family.theme_colors
 %>
 
-<%= link_to "← Back to Issues", family_issues_path(@family), 
-    class: "text-sm hover:underline mb-4 inline-block",
-    style: "color: #{colors[:secondary]};" %>
+<%= render "shared/back_link", path: family_issues_path(@family), text: "Back to Issues" %>
 
 <div class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow border" style="border-color: <%= colors[:secondary] %>;">
   <div class="flex flex-wrap items-center justify-between mb-6">

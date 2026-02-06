@@ -3,11 +3,9 @@
 %>
 
 <div class="max-w-3xl mx-auto">
-  <%= link_to "← Back to Issues", family_issues_path(@family), 
-      class: "text-sm hover:underline mb-4 inline-block",
-      style: "color: #{colors[:secondary]};" %>
-      
-  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Edit Issue</h2>
+  <%= render "shared/back_link", path: family_issues_path(@family), text: "Back to Issues" %>
+
+  <h2 class="text-2xl font-bold mb-6 mt-4" style="color: <%= colors[:primary] %>">Edit Issue</h2>
 
   <%= render "form" %>
 </div>

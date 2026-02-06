@@ -1,0 +1,14 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-2xl mx-auto">
+  <%= render "shared/back_link", path: edit_family_rhythm_path(@family, @rhythm), text: "Back to #{@rhythm.name}" %>
+
+  <h2 class="text-2xl font-bold mb-2 mt-4 theme-text">Add Agenda Item</h2>
+  <p class="text-gray-600 mb-6">Add a new item to the "<%= @rhythm.name %>" agenda.</p>
+
+  <div class="bg-white p-6 rounded-lg shadow border theme-border">
+    <%= render "form", agenda_item: @agenda_item, family: @family, rhythm: @rhythm %>
+  </div>
+</div>

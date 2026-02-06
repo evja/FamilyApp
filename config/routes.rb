@@ -37,6 +37,7 @@ Rails.application.routes.draw do
         post :finish
         post :skip
       end
+      resources :agenda_items, only: [:new, :create, :edit, :update, :destroy]
     end
 
     resources :family_invitations, only: [:new, :create, :destroy]

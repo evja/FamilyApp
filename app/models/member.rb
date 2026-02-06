@@ -7,6 +7,7 @@ class Member < ApplicationRecord
   has_many :issue_members, dependent: :destroy
   has_many :issues, through: :issue_members
   has_one :invitation, class_name: 'FamilyInvitation', dependent: :nullify
+  has_many :thrive_assessments, dependent: :destroy
 
   validates :role, presence: true, inclusion: { in: ROLES }
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true

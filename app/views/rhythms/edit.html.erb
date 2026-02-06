@@ -3,12 +3,15 @@
 %>
 
 <div class="max-w-4xl mx-auto">
-  <h2 class="text-2xl font-bold mb-6 theme-text">Edit <%= @rhythm.name %></h2>
+  <%= render "shared/back_link", path: family_rhythm_path(@family, @rhythm), text: "Back to #{@rhythm.name}" %>
+
+  <h2 class="text-2xl font-bold mb-6 mt-4 theme-text">Edit <%= @rhythm.name %></h2>
 
   <div class="bg-white p-6 rounded-lg shadow border theme-border">
     <%= render "form", rhythm: @rhythm, family: @family %>
   </div>
 
-  <%= link_to "&larr; Back to Rhythm".html_safe, family_rhythm_path(@family, @rhythm),
-      class: "theme-button-outline text-sm mt-6 inline-block" %>
+  <div class="mt-6">
+    <%= render "shared/back_link", path: family_rhythm_path(@family, @rhythm), text: "Back to #{@rhythm.name}" %>
+  </div>
 </div>

@@ -1,0 +1,55 @@
+<%
+  family ||= @family
+  rhythm ||= @rhythm
+  colors = family.theme_colors
+%>
+
+<%= form_with model: [family, rhythm, agenda_item], local: true do |f| %>
+  <% if agenda_item.errors.any? %>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4">
+      <ul class="list-disc list-inside">
+        <% agenda_item.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-4">
+    <div>
+      <%= f.label :title, class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_field :title, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2", placeholder: "e.g., Review weekly highs and lows" %>
+    </div>
+
+    <div>
+      <%= f.label :instructions, "Instructions (optional)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.text_area :instructions, rows: 3, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2", placeholder: "Add any notes or prompts for this agenda item..." %>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <%= f.label :duration_minutes, "Duration (minutes)", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.number_field :duration_minutes, min: 1, max: 480, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2", placeholder: "e.g., 10" %>
+      </div>
+
+      <div>
+        <%= f.label :link_type, "Quick Link", class: "block text-sm font-medium text-gray-700 mb-1" %>
+        <%= f.select :link_type, AgendaItem::LINK_LABELS.map { |k, v| [v, k] }, {}, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2" %>
+        <p class="text-xs text-gray-500 mt-1">Opens a link to this section during the meeting</p>
+      </div>
+    </div>
+
+    <div>
+      <%= f.label :position, "Order", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= f.number_field :position, min: 1, class: "w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2" %>
+      <p class="text-xs text-gray-500 mt-1">Lower numbers appear first in the agenda</p>
+    </div>
+
+    <%= f.hidden_field :position if agenda_item.new_record? %>
+
+    <div class="flex gap-3 pt-4">
+      <%= f.submit agenda_item.persisted? ? "Update Item" : "Add Item", class: "theme-button-filled cursor-pointer" %>
+      <%= link_to "Cancel", edit_family_rhythm_path(family, rhythm), class: "theme-button-outline" %>
+    </div>
+  </div>
+<% end %>

@@ -54,7 +54,8 @@ class RhythmsControllerTest < ActionDispatch::IntegrationTest
         }
       }
     end
-    assert_redirected_to family_rhythm_url(@family, Rhythm.last)
+    # Redirects to edit page so user can add agenda items
+    assert_redirected_to edit_family_rhythm_url(@family, Rhythm.last)
   end
 
   test "should update rhythm" do

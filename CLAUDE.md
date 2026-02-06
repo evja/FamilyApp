@@ -40,6 +40,7 @@ Family
   has_many :family_values (dependent: destroy)
   has_many :issues (dependent: destroy)
   has_many :invitations (FamilyInvitation, dependent: destroy)
+  has_many :rhythms (dependent: destroy)
   has_one  :vision (FamilyVision, dependent: destroy)
   includes Themeable concern (7 theme presets: forest, ocean, sunset, earth, olive, slate, rosegold)
 
@@ -48,6 +49,7 @@ Member
   belongs_to :user (optional)
   has_many :issues, through: :issue_members
   has_one :invitation (FamilyInvitation)
+  has_many :thrive_assessments (dependent: destroy)
   # Represents a person in the family (name, age, birthdate, personality, interests, health, etc.)
   # Roles: admin_parent, parent, teen, child (ROLES constant)
   # Only admin_parent/parent/teen can have accounts (can_have_account?)
@@ -88,6 +90,52 @@ FamilyInvitation
 Lead
   # Email capture from landing page, no associations.
 
+Rhythm
+  belongs_to :family
+  has_many :agenda_items (ordered by position, dependent: destroy)
+  has_many :completions (RhythmCompletion, dependent: destroy)
+  # Recurring family meetings (daily, weekly, biweekly, monthly, quarterly, annually)
+  # Categories: parent_sync, family_huddle, retreat, check_in, custom
+  # Status: overdue, due_soon, on_track, inactive
+  # Methods: start_meeting!, complete!, skip!, current_meeting
+
+AgendaItem
+  belongs_to :rhythm
+  has_many :completion_items (dependent: destroy)
+  # Individual items in a rhythm's agenda
+  # Fields: title, instructions, duration_minutes, position, link_type
+  # LINK_TYPES: none, issues, vision, members, thrive
+  # Scopes: ordered (by position)
+  # Methods: has_link?, link_path(family), link_available?, duration_display
+
+RhythmCompletion
+  belongs_to :rhythm
+  belongs_to :completed_by (User, optional)
+  has_many :completion_items (dependent: destroy)
+  has_many :thrive_assessments (dependent: nullify)
+  # Tracks a single run of a rhythm meeting
+  # Statuses: in_progress, completed, abandoned
+  # Methods: progress_percentage, all_items_checked?, duration_display
+
+CompletionItem
+  belongs_to :rhythm_completion
+  belongs_to :agenda_item
+  # Tracks checked/unchecked state of each agenda item during a meeting
+  # Scopes: checked, unchecked, ordered
+  # Methods: check!, uncheck!, toggle!
+
+ThriveAssessment
+  belongs_to :member
+  belongs_to :completed_by (User, optional)
+  belongs_to :rhythm_completion (optional)
+  # Child/teen wellness check-in assessments
+  # Rating fields (1-5): mind_rating, body_rating, spirit_rating, responsibility_rating
+  # Notes fields: mind_notes, body_notes, spirit_notes, responsibility_notes
+  # Summary fields: whats_working, whats_not_working, action_items
+  # Immutable after creation (readonly? returns true when persisted)
+  # Only for children/teens (validated)
+  # Scopes: recent, for_member, in_date_range
+
 Join tables: IssueMember, IssueValue, IssueAssist
 ```
 
@@ -100,6 +148,8 @@ All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/family_invitations`
 - `/families/:family_id/vision` (singular resource)
 - `/families/:family_id/vision/values` (nested under vision)
+- `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
+- `/families/:family_id/rhythms/:rhythm_id/agenda_items` (CRUD for agenda items)
 
 Other routes:
 - `/` — landing page (redirects to family if logged in)
@@ -139,6 +189,9 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
 - **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
 - **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
+- **Rhythms module**: Recurring family meetings with customizable agendas. Rhythms have frequency settings (daily to annually) and categories (parent_sync, family_huddle, retreat, check_in, custom). Each rhythm has agenda items with optional links to other sections (issues, vision, members, thrive). Meeting flow: start → check items → finish. Progress is tracked via `RhythmCompletion` and `CompletionItem` records. Turbo Streams used for real-time checkbox updates without page scroll.
+- **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
+- **Thrive Assessments**: Child/teen wellness check-ins with 4 dimensions (mind, body, spirit, responsibility) rated 1-5. Assessments are immutable after creation. Can be linked to a `RhythmCompletion` when done during a retreat. Only members with role `child` or `teen` can have assessments.
 
 ## MVP Simplification
 

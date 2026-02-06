@@ -4,7 +4,9 @@
 %>
 
 <div class="max-w-4xl mx-auto">
-  <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+  <%= render "shared/back_link", path: family_rhythms_path(@family), text: "Back to Rhythms" %>
+
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-6 mt-4">
     <div>
       <h2 class="text-2xl font-bold theme-text"><%= @rhythm.name %></h2>
       <p class="text-gray-600 mt-1"><%= @rhythm.description %></p>
@@ -131,6 +133,7 @@
         form: { data: { turbo_confirm: "Are you sure you want to delete this rhythm? This cannot be undone." } } %>
   </div>
 
-  <%= link_to "&larr; Back to Rhythms".html_safe, family_rhythms_path(@family),
-      class: "theme-button-outline text-sm mt-6 inline-block" %>
+  <div class="mt-6">
+    <%= render "shared/back_link", path: family_rhythms_path(@family), text: "Back to Rhythms" %>
+  </div>
 </div>

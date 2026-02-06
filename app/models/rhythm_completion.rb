@@ -2,6 +2,7 @@ class RhythmCompletion < ApplicationRecord
   belongs_to :rhythm
   belongs_to :completed_by, class_name: "User", optional: true
   has_many :completion_items, dependent: :destroy
+  has_many :thrive_assessments, dependent: :nullify
 
   STATUSES = %w[in_progress completed abandoned].freeze
 

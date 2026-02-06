@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_04_170004) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_06_070854) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -188,6 +188,30 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_04_170004) do
     t.index ["next_due_at"], name: "index_rhythms_on_next_due_at"
   end
 
+  create_table "thrive_assessments", force: :cascade do |t|
+    t.bigint "member_id", null: false
+    t.bigint "completed_by_id"
+    t.bigint "rhythm_completion_id"
+    t.integer "mind_rating"
+    t.integer "body_rating"
+    t.integer "spirit_rating"
+    t.integer "responsibility_rating"
+    t.text "mind_notes"
+    t.text "body_notes"
+    t.text "spirit_notes"
+    t.text "responsibility_notes"
+    t.text "whats_working"
+    t.text "whats_not_working"
+    t.text "action_items"
+    t.datetime "assessed_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["completed_by_id"], name: "index_thrive_assessments_on_completed_by_id"
+    t.index ["member_id", "assessed_at"], name: "index_thrive_assessments_on_member_id_and_assessed_at"
+    t.index ["member_id"], name: "index_thrive_assessments_on_member_id"
+    t.index ["rhythm_completion_id"], name: "index_thrive_assessments_on_rhythm_completion_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.string "email", default: "", null: false
     t.string "encrypted_password", default: "", null: false
@@ -223,5 +247,8 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_04_170004) do
   add_foreign_key "rhythm_completions", "rhythms"
   add_foreign_key "rhythm_completions", "users", column: "completed_by_id"
   add_foreign_key "rhythms", "families"
+  add_foreign_key "thrive_assessments", "members"
+  add_foreign_key "thrive_assessments", "rhythm_completions"
+  add_foreign_key "thrive_assessments", "users", column: "completed_by_id"
   add_foreign_key "users", "families"
 end

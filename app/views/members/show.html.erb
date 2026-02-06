@@ -4,13 +4,7 @@
 %>
 
 <div class="max-w-2xl mx-auto" x-data="{ confirmDelete: false }">
-  <!-- Back link -->
-  <%= link_to family_members_path(@family), class: "inline-flex items-center gap-1 text-sm mb-4 hover:underline", style: "color: #{colors[:secondary]};" do %>
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-    </svg>
-    Back to Members
-  <% end %>
+  <%= render "shared/back_link", path: family_members_path(@family), text: "Back to Members" %>
 
   <!-- Member Card -->
   <div class="bg-white shadow-lg rounded-lg border overflow-hidden" style="border-color: <%= colors[:secondary] %>;">

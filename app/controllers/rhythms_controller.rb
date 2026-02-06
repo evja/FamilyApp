@@ -38,7 +38,8 @@ class RhythmsController < ApplicationController
       @rhythm.next_due_at = Time.current + @rhythm.frequency_days.days if @rhythm.next_due_at.nil?
 
       if @rhythm.save
-        redirect_to family_rhythm_path(@family, @rhythm), notice: "Rhythm created successfully."
+        # Redirect to edit so they can add agenda items
+        redirect_to edit_family_rhythm_path(@family, @rhythm), notice: "Rhythm created! Now add your agenda items below."
       else
         @templates = RhythmTemplates.template_list
         render :new, status: :unprocessable_entity

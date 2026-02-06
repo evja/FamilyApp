@@ -1,4 +1,9 @@
-<div class="max-w-3xl mx-auto mt-10"
+<div class="max-w-3xl mx-auto mt-10">
+  <%= link_to "&larr; Cancel".html_safe, family_vision_path(@family),
+      class: "theme-button-outline text-sm mb-6 inline-block" %>
+</div>
+
+<div class="max-w-3xl mx-auto"
   x-data='{
     step: 1,
     values: <%= @existing_values.to_json %>,

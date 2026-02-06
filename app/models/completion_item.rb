@@ -6,6 +6,7 @@ class CompletionItem < ApplicationRecord
 
   scope :checked, -> { where(checked: true) }
   scope :unchecked, -> { where(checked: false) }
+  scope :ordered, -> { joins(:agenda_item).order("agenda_items.position ASC") }
 
   def check!
     update!(checked: true, checked_at: Time.current)

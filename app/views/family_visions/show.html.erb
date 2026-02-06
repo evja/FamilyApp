@@ -1,4 +1,6 @@
 <div class="max-w-3xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
   <% has_content = @vision.mission_statement.present? || @values.any? %>
 
   <% if has_content %>
@@ -61,4 +63,8 @@
           style: "background-color: #{@colors[:primary]};" %>
     </div>
   <% end %>
+
+  <div class="mt-6">
+    <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+  </div>
 </div>

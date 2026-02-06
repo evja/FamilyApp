@@ -3,7 +3,9 @@
 %>
 
 <div class="max-w-6xl mx-auto mt-10">
-  <h2 class="text-2xl font-bold mb-6" style="color: <%= colors[:primary] %>">Family Members</h2>
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <h2 class="text-2xl font-bold mb-6 mt-4" style="color: <%= colors[:primary] %>">Family Members</h2>
 
   <div class="flex gap-4 mb-6">
     <%= link_to "+ Add Member", new_family_member_path(@family),
@@ -82,4 +84,7 @@
       </div>
     </div>
   <% end %>
+
+  <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>

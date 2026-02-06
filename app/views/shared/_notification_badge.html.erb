@@ -1,7 +1,8 @@
 <% if local_assigns[:count].present? && count > 0 %>
-  <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold
-               rounded-full min-w-[1.5rem] h-6 px-1 flex items-center justify-center
-               shadow-md border-2 border-white z-20">
+  <span class="absolute -top-3 -right-3 bg-red-500 text-white text-xs font-bold
+               rounded-full min-w-[1.75rem] h-7 px-2 flex items-center justify-center
+               shadow-lg border-2 border-white ring-2 ring-red-500 ring-opacity-30
+               animate-pulse z-20">
     <%= count > 99 ? '99+' : count %>
   </span>
 <% end %>

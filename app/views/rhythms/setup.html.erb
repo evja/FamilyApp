@@ -3,7 +3,9 @@
 %>
 
 <div class="max-w-4xl mx-auto">
-  <h2 class="text-2xl font-bold mb-2 theme-text">Set Up Your Family Rhythms</h2>
+  <%= render "shared/back_link", path: family_rhythms_path(@family), text: "Back to Rhythms" %>
+
+  <h2 class="text-2xl font-bold mb-2 mt-4 theme-text">Set Up Your Family Rhythms</h2>
   <p class="text-gray-600 mb-8">
     Choose the recurring meetings that will help your family stay connected.
     You can customize these later or add your own.
@@ -60,6 +62,7 @@
     </div>
   <% end %>
 
-  <%= link_to "&larr; Back to Rhythms".html_safe, family_rhythms_path(@family),
-      class: "theme-button-outline text-sm mt-6 inline-block" %>
+  <div class="mt-6">
+    <%= render "shared/back_link", path: family_rhythms_path(@family), text: "Back to Rhythms" %>
+  </div>
 </div>

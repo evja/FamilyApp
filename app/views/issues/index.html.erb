@@ -3,7 +3,9 @@
 %>
 
 <div class="max-w-6xl mx-auto">
-  <h2 class="text-2xl font-bold mb-6 theme-text">Issues</h2>
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <h2 class="text-2xl font-bold mb-6 mt-4 theme-text">Issues</h2>
 
   <% if !@has_any_issues %>
     <!-- Empty state -->

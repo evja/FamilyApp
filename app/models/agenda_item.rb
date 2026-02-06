@@ -2,13 +2,14 @@ class AgendaItem < ApplicationRecord
   belongs_to :rhythm
   has_many :completion_items, dependent: :destroy
 
-  LINK_TYPES = %w[none issues vision members].freeze
+  LINK_TYPES = %w[none issues vision members thrive].freeze
 
   LINK_LABELS = {
     "none" => "No Link",
     "issues" => "Open Issues",
     "vision" => "Family Vision",
-    "members" => "Family Members"
+    "members" => "Family Members",
+    "thrive" => "Thrive Check-in"
   }.freeze
 
   validates :title, presence: true, length: { maximum: 200 }
@@ -17,6 +18,11 @@ class AgendaItem < ApplicationRecord
   validates :duration_minutes, numericality: { greater_than: 0 }, allow_nil: true
 
   default_scope { order(position: :asc) }
+  scope :ordered, -> { order(position: :asc) }
+
+  def has_link?
+    link_type.present? && link_type != "none"
+  end
 
   def link_path(family)
     case link_type

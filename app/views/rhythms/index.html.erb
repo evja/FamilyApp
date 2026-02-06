@@ -3,7 +3,9 @@
 %>
 
 <div class="max-w-6xl mx-auto">
-  <h2 class="text-2xl font-bold mb-6 theme-text">Rhythms</h2>
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <h2 class="text-2xl font-bold mb-6 mt-4 theme-text">Rhythms</h2>
 
   <% if !@has_any_rhythms %>
     <!-- Empty state -->
@@ -104,6 +106,7 @@
     <% end %>
   <% end %>
 
-  <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
-      class: "theme-button-outline text-sm mt-6 inline-block" %>
+  <div class="mt-6">
+    <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+  </div>
 </div>

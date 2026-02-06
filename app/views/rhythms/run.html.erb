@@ -20,11 +20,9 @@
   </div>
 
   <!-- Checklist -->
-  <div class="bg-white rounded-lg shadow border theme-border overflow-hidden">
-    <% @completion_items.each_with_index do |item, index| %>
-      <div id="completion_item_<%= item.id %>" class="<%= 'border-t theme-border' if index > 0 %>">
-        <%= render "completion_item", item: item, family: @family %>
-      </div>
+  <div class="bg-white rounded-lg shadow border theme-border overflow-hidden divide-y theme-border">
+    <% @completion_items.each do |item| %>
+      <%= render "completion_item", item: item, family: @family %>
     <% end %>
   </div>
 

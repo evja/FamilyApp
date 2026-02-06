@@ -2,5 +2,9 @@
   colors = @family.theme_colors
 %>
 
-<h2 class="text-2xl font-bold mb-4" style="color: <%= colors[:primary] %>">Edit Member</h2>
-<%= render "form" %>
+<div class="max-w-2xl mx-auto">
+  <%= render "shared/back_link", path: family_members_path(@family), text: "Back to Members" %>
+
+  <h2 class="text-2xl font-bold mb-4 mt-4" style="color: <%= colors[:primary] %>">Edit Member</h2>
+  <%= render "form" %>
+</div>
