@@ -1,0 +1,129 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-4xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_relationships_path(@family), text: "Back to Relationships" %>
+
+  <div class="mt-4 flex items-center justify-between">
+    <h2 class="text-2xl font-bold" style="color: <%= colors[:primary] %>">
+      <%= @relationship.display_name %>
+    </h2>
+    <%= link_to "New Assessment", assess_family_relationship_path(@family, @relationship),
+        class: "px-4 py-2 rounded text-sm font-medium",
+        style: "background-color: #{colors[:primary]}; color: white;",
+        data: { turbo_frame: "assessment_modal" } %>
+  </div>
+
+  <!-- Current Health -->
+  <div class="bg-white rounded-lg shadow p-6 mt-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-medium text-gray-700">Current Health</h3>
+        <p class="text-sm text-gray-500">Based on EWMA of all assessments</p>
+      </div>
+      <div class="text-right">
+        <% if @relationship.assessed? %>
+          <div class="text-3xl font-bold
+            <%= case @relationship.current_health_band
+                when 'high' then 'text-green-600'
+                when 'functioning' then 'text-yellow-600'
+                when 'low' then 'text-red-600'
+                end %>">
+            <%= @relationship.current_health_score %>%
+          </div>
+          <div class="text-sm font-medium
+            <%= case @relationship.current_health_band
+                when 'high' then 'text-green-600'
+                when 'functioning' then 'text-yellow-600'
+                when 'low' then 'text-red-600'
+                end %>">
+            <%= @relationship.health_label %>
+          </div>
+        <% else %>
+          <div class="text-gray-400">Not Assessed</div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Assessment History -->
+  <div class="bg-white rounded-lg shadow mt-6">
+    <div class="p-6 border-b border-gray-100">
+      <h3 class="text-lg font-medium text-gray-700">Assessment History</h3>
+    </div>
+
+    <% if @recent_assessments.any? %>
+      <div class="divide-y divide-gray-100">
+        <% @recent_assessments.each do |assessment| %>
+          <div class="p-6">
+            <div class="flex justify-between items-start mb-4">
+              <div>
+                <span class="font-medium"><%= assessment.assessed_on.strftime("%B %d, %Y") %></span>
+                <span class="text-sm text-gray-500 ml-2">(<%= assessment.quarter_key %>)</span>
+              </div>
+              <span class="inline-block px-2 py-1 rounded text-sm font-medium
+                <%= case assessment.total_score
+                    when 5..6 then 'bg-green-100 text-green-800'
+                    when 3..4 then 'bg-yellow-100 text-yellow-800'
+                    else 'bg-red-100 text-red-800'
+                    end %>">
+                <%= assessment.total_score %>/6 - <%= assessment.band_label %>
+              </span>
+            </div>
+
+            <div class="grid grid-cols-3 gap-4 mb-4">
+              <div class="text-center p-3 bg-gray-50 rounded">
+                <div class="text-xs text-gray-500 uppercase">Cooperation</div>
+                <div class="text-lg font-medium"><%= assessment.score_cooperation %>/2</div>
+              </div>
+              <div class="text-center p-3 bg-gray-50 rounded">
+                <div class="text-xs text-gray-500 uppercase">Affection</div>
+                <div class="text-lg font-medium"><%= assessment.score_affection %>/2</div>
+              </div>
+              <div class="text-center p-3 bg-gray-50 rounded">
+                <div class="text-xs text-gray-500 uppercase">Trust</div>
+                <div class="text-lg font-medium"><%= assessment.score_trust %>/2</div>
+              </div>
+            </div>
+
+            <% if assessment.whats_working.present? || assessment.whats_not_working.present? || assessment.action_items.present? %>
+              <div class="space-y-2 text-sm">
+                <% if assessment.whats_working.present? %>
+                  <div>
+                    <span class="font-medium text-green-700">What's Working:</span>
+                    <span class="text-gray-600"><%= assessment.whats_working %></span>
+                  </div>
+                <% end %>
+                <% if assessment.whats_not_working.present? %>
+                  <div>
+                    <span class="font-medium text-red-700">What's Not Working:</span>
+                    <span class="text-gray-600"><%= assessment.whats_not_working %></span>
+                  </div>
+                <% end %>
+                <% if assessment.action_items.present? %>
+                  <div>
+                    <span class="font-medium text-blue-700">Action Items:</span>
+                    <span class="text-gray-600"><%= assessment.action_items %></span>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="p-6 text-center text-gray-500">
+        No assessments yet. <%= link_to "Create the first assessment", assess_family_relationship_path(@family, @relationship),
+            class: "text-sm font-medium hover:underline",
+            style: "color: #{colors[:primary]};",
+            data: { turbo_frame: "assessment_modal" } %>.
+      </div>
+    <% end %>
+  </div>
+
+  <%= link_to "&larr; Back to Relationships".html_safe, family_relationships_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
+</div>
+
+<%= turbo_frame_tag "assessment_modal" %>

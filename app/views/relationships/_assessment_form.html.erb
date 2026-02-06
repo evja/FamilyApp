@@ -1,0 +1,120 @@
+<%
+  colors = @family.theme_colors
+  score_labels = RelationshipAssessment::SCORE_LABELS
+%>
+
+<%= form_with model: assessment,
+              url: create_assessment_family_relationship_path(@family, relationship),
+              method: :post do |f| %>
+
+  <% if assessment.errors.any? %>
+    <div class="bg-red-50 text-red-700 p-3 rounded mb-4 text-sm">
+      <% assessment.errors.full_messages.each do |msg| %>
+        <p><%= msg %></p>
+      <% end %>
+    </div>
+  <% end %>
+
+  <div class="space-y-6">
+    <!-- Cooperation -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Cooperation</label>
+      <p class="text-xs text-gray-500 mb-2">How well do they work together and help each other?</p>
+      <div class="flex gap-2">
+        <% (0..2).each do |score| %>
+          <label class="flex-1">
+            <input type="radio" name="relationship_assessment[score_cooperation]" value="<%= score %>"
+                   class="peer hidden"
+                   <%= 'checked' if assessment.score_cooperation == score %>>
+            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
+                        peer-checked:border-2 transition-all text-sm"
+                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
+              <div class="font-medium"><%= score_labels[score] %></div>
+              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Affection -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Affection</label>
+      <p class="text-xs text-gray-500 mb-2">How openly do they show care and love for each other?</p>
+      <div class="flex gap-2">
+        <% (0..2).each do |score| %>
+          <label class="flex-1">
+            <input type="radio" name="relationship_assessment[score_affection]" value="<%= score %>"
+                   class="peer hidden"
+                   <%= 'checked' if assessment.score_affection == score %>>
+            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
+                        peer-checked:border-2 transition-all text-sm"
+                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
+              <div class="font-medium"><%= score_labels[score] %></div>
+              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Trust -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-2">Trust</label>
+      <p class="text-xs text-gray-500 mb-2">How comfortable are they being vulnerable and honest with each other?</p>
+      <div class="flex gap-2">
+        <% (0..2).each do |score| %>
+          <label class="flex-1">
+            <input type="radio" name="relationship_assessment[score_trust]" value="<%= score %>"
+                   class="peer hidden"
+                   <%= 'checked' if assessment.score_trust == score %>>
+            <div class="text-center py-2 px-3 rounded border border-gray-200 cursor-pointer
+                        peer-checked:border-2 transition-all text-sm"
+                 style="peer-checked:border-color: <%= colors[:primary] %>; peer-checked:background-color: <%= colors[:secondary] %>20;">
+              <div class="font-medium"><%= score_labels[score] %></div>
+              <div class="text-xs text-gray-400">(<%= score %>)</div>
+            </div>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Notes section (collapsible) -->
+    <details class="group">
+      <summary class="cursor-pointer text-sm font-medium text-gray-600 hover:text-gray-800">
+        Add Notes (Optional)
+        <span class="text-xs text-gray-400 ml-1">click to expand</span>
+      </summary>
+      <div class="mt-4 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">What's Working</label>
+          <%= f.text_area :whats_working, rows: 2,
+              class: "w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 text-sm",
+              placeholder: "What's going well in this relationship?" %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">What's Not Working</label>
+          <%= f.text_area :whats_not_working, rows: 2,
+              class: "w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 text-sm",
+              placeholder: "Areas that need improvement..." %>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Action Items</label>
+          <%= f.text_area :action_items, rows: 2,
+              class: "w-full px-3 py-2 border border-gray-300 rounded focus:outline-none focus:ring-1 text-sm",
+              placeholder: "What can be done to strengthen this relationship?" %>
+        </div>
+      </div>
+    </details>
+  </div>
+
+  <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-100">
+    <%= link_to "Cancel", family_relationships_path(@family),
+        class: "px-4 py-2 text-sm text-gray-600 hover:text-gray-800" %>
+    <%= f.submit "Save Assessment",
+        class: "px-4 py-2 rounded text-sm font-medium cursor-pointer transition-all",
+        style: "background-color: #{colors[:primary]}; color: white;" %>
+  </div>
+<% end %>

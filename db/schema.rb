@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_06_070854) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_06_080002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -157,6 +157,45 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_06_070854) do
     t.index ["user_id"], name: "index_members_on_user_id"
   end
 
+  create_table "relationship_assessments", force: :cascade do |t|
+    t.bigint "relationship_id", null: false
+    t.bigint "assessor_id"
+    t.bigint "rhythm_completion_id"
+    t.date "assessed_on", null: false
+    t.string "quarter_key"
+    t.integer "score_cooperation", null: false
+    t.integer "score_affection", null: false
+    t.integer "score_trust", null: false
+    t.integer "total_score"
+    t.text "whats_working"
+    t.text "whats_not_working"
+    t.text "action_items"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["assessor_id"], name: "index_relationship_assessments_on_assessor_id"
+    t.index ["relationship_id", "assessed_on"], name: "idx_on_relationship_id_assessed_on_df40e7afe4"
+    t.index ["relationship_id", "quarter_key"], name: "idx_on_relationship_id_quarter_key_74dd2bb0f6"
+    t.index ["relationship_id"], name: "index_relationship_assessments_on_relationship_id"
+    t.index ["rhythm_completion_id"], name: "index_relationship_assessments_on_rhythm_completion_id"
+  end
+
+  create_table "relationships", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.bigint "member_low_id", null: false
+    t.bigint "member_high_id", null: false
+    t.string "relationship_type"
+    t.integer "current_health_score"
+    t.string "current_health_band"
+    t.datetime "last_assessed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["current_health_band"], name: "index_relationships_on_current_health_band"
+    t.index ["family_id", "member_low_id", "member_high_id"], name: "idx_relationships_unique_pair", unique: true
+    t.index ["family_id"], name: "index_relationships_on_family_id"
+    t.index ["member_high_id"], name: "index_relationships_on_member_high_id"
+    t.index ["member_low_id"], name: "index_relationships_on_member_low_id"
+  end
+
   create_table "rhythm_completions", force: :cascade do |t|
     t.bigint "rhythm_id", null: false
     t.bigint "completed_by_id"
@@ -244,6 +283,12 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_06_070854) do
   add_foreign_key "issues", "families"
   add_foreign_key "members", "families"
   add_foreign_key "members", "users"
+  add_foreign_key "relationship_assessments", "relationships"
+  add_foreign_key "relationship_assessments", "rhythm_completions"
+  add_foreign_key "relationship_assessments", "users", column: "assessor_id"
+  add_foreign_key "relationships", "families"
+  add_foreign_key "relationships", "members", column: "member_high_id"
+  add_foreign_key "relationships", "members", column: "member_low_id"
   add_foreign_key "rhythm_completions", "rhythms"
   add_foreign_key "rhythm_completions", "users", column: "completed_by_id"
   add_foreign_key "rhythms", "families"

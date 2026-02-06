@@ -78,6 +78,18 @@ class RhythmTemplates
         { position: 3, title: "How can I help?", duration_minutes: 5, instructions: "Ask if there's anything they need from you.", link_type: "none" },
         { position: 4, title: "Closing affirmation", duration_minutes: 5, instructions: "End with words of encouragement and love.", link_type: "none" }
       ]
+    },
+    {
+      name: "Relationship Health Check",
+      description: "Quarterly assessment of family relationship bonds using cooperation, affection, and trust scores.",
+      frequency_type: "quarterly",
+      frequency_days: 90,
+      rhythm_category: "retreat",
+      agenda_items: [
+        { position: 0, title: "Gratitude Round", duration_minutes: 5, instructions: "Each person shares something they appreciate about family relationships.", link_type: "none" },
+        { position: 1, title: "Assess Relationships", duration_minutes: 30, instructions: "Go through each relationship and score cooperation, affection, and trust.", link_type: "relationships" },
+        { position: 2, title: "Identify Focus Areas", duration_minutes: 15, instructions: "Which relationships need the most attention? Create action items.", link_type: "issues" }
+      ]
     }
   ].freeze
 

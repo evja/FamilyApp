@@ -1,0 +1,34 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-2xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_relationships_path(@family), text: "Back to Relationships" %>
+
+  <h2 class="text-2xl font-bold mb-2 mt-4" style="color: <%= colors[:primary] %>">Assess Relationship</h2>
+  <p class="text-gray-600 mb-6"><%= @relationship.display_name %></p>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= render "assessment_form", assessment: @assessment, relationship: @relationship %>
+  </div>
+
+  <% if @recent_assessments.any? %>
+    <div class="mt-6 bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-600 mb-3">Recent Assessments</h3>
+      <div class="space-y-2">
+        <% @recent_assessments.each do |past| %>
+          <div class="text-sm flex justify-between items-center bg-gray-50 p-2 rounded">
+            <span><%= past.assessed_on.strftime("%b %d, %Y") %></span>
+            <span class="font-medium <%= case past.total_score
+                when 5..6 then 'text-green-600'
+                when 3..4 then 'text-yellow-600'
+                else 'text-red-600'
+                end %>">
+              <%= past.total_score %>/6 - <%= past.band_label %>
+            </span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+</div>

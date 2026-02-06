@@ -37,7 +37,7 @@
   </div>
   
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-    <% mvp_cards = ["Issues", "Members", "Vision", "Rhythms"] %>
+    <% visible_to_users = visible_modules %>
     <% dashboard_items = [
       { label: "Members", icon: "users", path: family_members_path(@family), status: :active, badge_count: @pending_invites_count },
       { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active, badge_count: @issues_needing_attention },
@@ -45,12 +45,12 @@
       { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), status: :active, badge_count: @overdue_rhythms_count },
       { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon, badge_count: @overdue_responsibilities_count },
       { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active, badge_count: @upcoming_rituals_count },
-      { label: "Relationships", icon: "heart", path: family_issues_path(@family), status: :soon, badge_count: @relationships_needing_attention_count }
+      { label: "Relationships", icon: "heart", path: family_relationships_path(@family), status: :active, badge_count: @relationships_needing_attention_count }
     ] %>
 
     <% dashboard_items.each do |item| %>
-      <% is_mvp = mvp_cards.include?(item[:label]) %>
-      <% next if !is_mvp && !show_admin_features? %>
+      <% is_visible = visible_to_users.include?(item[:label]) %>
+      <% next if !is_visible && !show_admin_features? %>
       <% is_available = current_user.admin? || current_user.is_subscribed? || ["Issues", "Members", "Vision"].include?(item[:label]) %>
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
@@ -100,12 +100,18 @@
               <% else %>
                 No rhythms set up yet
               <% end %>
+            <% when "Relationships" %>
+              <% if @relationships_needing_attention_count.to_i > 0 %>
+                <%= pluralize(@relationships_needing_attention_count, 'relationship') %> to assess
+              <% else %>
+                All relationships healthy
+              <% end %>
             <% else %>
               Manage your family's <%= item[:label].downcase %>
             <% end %>
           </p>
 
-          <% if !is_mvp && show_admin_features? %>
+          <% if !is_visible && show_admin_features? %>
             <span class="mt-2 text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
               Admin Preview - Hidden from users
             </span>

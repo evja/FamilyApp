@@ -2,14 +2,15 @@ class AgendaItem < ApplicationRecord
   belongs_to :rhythm
   has_many :completion_items, dependent: :destroy
 
-  LINK_TYPES = %w[none issues vision members thrive].freeze
+  LINK_TYPES = %w[none issues vision members thrive relationships].freeze
 
   LINK_LABELS = {
     "none" => "No Link",
     "issues" => "Open Issues",
     "vision" => "Family Vision",
     "members" => "Family Members",
-    "thrive" => "Thrive Check-in"
+    "thrive" => "Thrive Check-in",
+    "relationships" => "Relationships"
   }.freeze
 
   validates :title, presence: true, length: { maximum: 200 }
@@ -32,6 +33,8 @@ class AgendaItem < ApplicationRecord
       Rails.application.routes.url_helpers.family_vision_path(family)
     when "members"
       Rails.application.routes.url_helpers.family_members_path(family)
+    when "relationships"
+      Rails.application.routes.url_helpers.family_relationships_path(family)
     else
       nil
     end

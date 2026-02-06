@@ -1,6 +1,6 @@
 <h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
 <%= button_to toggle_view_as_user_path, method: :post, class: "inline" do %>
-  <span class="hover:underline text-yellow-300 font-semibold text-sm">
+  <span class="hover:underline text-indigo-400 font-semibold text-sm">
     <%= viewing_as_user? ? "Exit User View" : "View as User" %>
   </span>
 <% end %>
@@ -50,6 +50,20 @@
   </div>
 
 
+</div>
+
+<div class="bg-white shadow rounded-lg p-4 mt-6">
+  <h3 class="font-semibold mb-3">Module Visibility</h3>
+  <p class="text-sm text-gray-500 mb-4">Toggle which modules regular users can see</p>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+    <% ApplicationController::DASHBOARD_MODULES.each do |mod| %>
+      <%= button_to toggle_module_visibility_path(module_name: mod), method: :post, class: "text-left" do %>
+        <span class="<%= visible_modules.include?(mod) ? 'text-green-600' : 'text-gray-400' %>">
+          <%= visible_modules.include?(mod) ? '✓' : '○' %> <%= mod %>
+        </span>
+      <% end %>
+    <% end %>
+  </div>
 </div>
 
 <div class="mt-8">

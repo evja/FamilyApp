@@ -40,6 +40,16 @@ Rails.application.routes.draw do
       resources :agenda_items, only: [:new, :create, :edit, :update, :destroy]
     end
 
+    resources :relationships, only: [:index, :show] do
+      collection do
+        get :graph_data
+      end
+      member do
+        get :assess
+        post :create_assessment
+      end
+    end
+
     resources :family_invitations, only: [:new, :create, :destroy]
     resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
       post :assist, on: :member
@@ -53,6 +63,7 @@ Rails.application.routes.draw do
   post "billing/checkout", to: "billing#checkout", as: :checkout
 
   post 'admin/toggle_view_as_user', to: 'application#toggle_view_as_user', as: :toggle_view_as_user
+  post 'admin/toggle_module_visibility', to: 'application#toggle_module_visibility', as: :toggle_module_visibility
 
   namespace :admin do
     get 'leads/index'

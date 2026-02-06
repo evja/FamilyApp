@@ -1,6 +1,8 @@
 class ApplicationController < ActionController::Base
   before_action :set_no_cache
-  helper_method :current_family, :viewing_as_user?, :show_admin_features?
+  helper_method :current_family, :viewing_as_user?, :show_admin_features?, :visible_modules
+
+  DASHBOARD_MODULES = %w[Members Issues Vision Rhythms Relationships Responsibilities Rituals].freeze
 
   def after_sign_in_path_for(resource)
     if session[:invitation_token].present?
@@ -44,6 +46,28 @@ class ApplicationController < ActionController::Base
 
   def show_admin_features?
     current_user&.admin? && !viewing_as_user?
+  end
+
+  def toggle_module_visibility
+    return head :forbidden unless current_user&.admin?
+
+    mod = params[:module_name]
+    return head :bad_request unless DASHBOARD_MODULES.include?(mod)
+
+    hidden = session[:hidden_modules] ||= []
+    if hidden.include?(mod)
+      hidden.delete(mod)
+    else
+      hidden << mod
+    end
+
+    redirect_back fallback_location: admin_dashboard_path
+  end
+
+  def visible_modules
+    all = DASHBOARD_MODULES.dup
+    hidden = session[:hidden_modules] || []
+    all - hidden
   end
 
   private

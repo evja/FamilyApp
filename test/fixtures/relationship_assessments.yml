@@ -1,0 +1,27 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+high_score:
+  relationship: parent_to_parent
+  assessor: one
+  assessed_on: <%= 7.days.ago.to_date.to_fs(:db) %>
+  quarter_key: "<%= 7.days.ago.year %>-Q<%= ((7.days.ago.month - 1) / 3) + 1 %>"
+  score_cooperation: 2
+  score_affection: 2
+  score_trust: 2
+  total_score: 6
+  whats_working: "Great communication"
+  whats_not_working: ""
+  action_items: "Keep it up!"
+
+medium_score:
+  relationship: parent_to_teen
+  assessor: one
+  assessed_on: <%= 14.days.ago.to_date.to_fs(:db) %>
+  quarter_key: "<%= 14.days.ago.year %>-Q<%= ((14.days.ago.month - 1) / 3) + 1 %>"
+  score_cooperation: 1
+  score_affection: 2
+  score_trust: 1
+  total_score: 4
+  whats_working: "Bonding over activities"
+  whats_not_working: "Screen time conflicts"
+  action_items: "Schedule weekly one-on-one time"

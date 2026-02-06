@@ -8,6 +8,10 @@ class Member < ApplicationRecord
   has_many :issues, through: :issue_members
   has_one :invitation, class_name: 'FamilyInvitation', dependent: :nullify
   has_many :thrive_assessments, dependent: :destroy
+  has_many :relationships_as_low, class_name: 'Relationship',
+           foreign_key: 'member_low_id', dependent: :destroy
+  has_many :relationships_as_high, class_name: 'Relationship',
+           foreign_key: 'member_high_id', dependent: :destroy
 
   validates :role, presence: true, inclusion: { in: ROLES }
   validates :email, format: { with: URI::MailTo::EMAIL_REGEXP }, allow_blank: true
@@ -17,6 +21,7 @@ class Member < ApplicationRecord
   before_validation :calculate_age_from_birthdate, if: :birthdate_changed?
   before_validation :assign_role_from_age, if: :should_auto_assign_role?
   before_save :sync_is_parent_with_role
+  after_create :ensure_family_relationships
 
   scope :parents, -> { where(is_parent: true) }
   scope :children, -> { where(is_parent: false) }
@@ -84,6 +89,16 @@ class Member < ApplicationRecord
     'teen'
   end
 
+  def relationships
+    Relationship.for_member(self)
+  end
+
+  def bubble_radius
+    return 40 if parent_or_above? || (age.present? && age >= 18)
+    return 25 if age.nil?
+    16 + (age / 18.0 * 22).round
+  end
+
   private
 
   def calculate_age_from_birthdate
@@ -110,5 +125,9 @@ class Member < ApplicationRecord
     if role == 'admin_parent' && family&.members&.admin_parents&.where&.not(id: id)&.exists?
       errors.add(:role, "there can only be one admin parent per family")
     end
+  end
+
+  def ensure_family_relationships
+    family.ensure_all_relationships! if family.present?
   end
 end

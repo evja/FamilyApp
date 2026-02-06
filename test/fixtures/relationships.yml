@@ -1,0 +1,29 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+parent_to_parent:
+  family: one
+  member_low: admin_parent_one
+  member_high: parent_one
+  current_health_score: 85
+  current_health_band: high
+  last_assessed_at: <%= 7.days.ago.to_fs(:db) %>
+
+parent_to_teen:
+  family: one
+  member_low: admin_parent_one
+  member_high: teen_one
+  current_health_score: 67
+  current_health_band: functioning
+  last_assessed_at: <%= 14.days.ago.to_fs(:db) %>
+
+parent_to_child:
+  family: one
+  member_low: admin_parent_one
+  member_high: child_one
+  # Not assessed yet
+
+unassessed:
+  family: one
+  member_low: parent_one
+  member_high: teen_one
+  # Not assessed - testing unassessed state

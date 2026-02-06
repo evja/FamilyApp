@@ -6,6 +6,7 @@ class Family < ApplicationRecord
   has_many :family_values, dependent: :destroy
   has_many :issues, dependent: :destroy
   has_many :rhythms, dependent: :destroy
+  has_many :relationships, dependent: :destroy
   has_many :invitations, class_name: 'FamilyInvitation', dependent: :destroy
   has_one :vision, class_name: "FamilyVision", dependent: :destroy
 
@@ -68,6 +69,10 @@ class Family < ApplicationRecord
 
   def admin_parent_member
     members.admin_parents.first
+  end
+
+  def ensure_all_relationships!
+    Relationship.ensure_all_for_family(self)
   end
 
   private

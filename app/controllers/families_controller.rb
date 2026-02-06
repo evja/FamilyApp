@@ -23,9 +23,12 @@ class FamiliesController < ApplicationController
     @overdue_rhythms_count = @family.rhythms.overdue.count
     @has_any_rhythms = @family.rhythms.exists?
 
+    # Relationships
+    @relationships_needing_attention_count = @family.relationships.needs_attention.count +
+                                             @family.relationships.unassessed.count
+
     # Future badges (prep for later)
     @overdue_responsibilities_count = 0
-    @relationships_needing_attention_count = 0
     @upcoming_rituals_count = 0
   end
 
