@@ -1,0 +1,18 @@
+<%# Extracted actions section - can be updated via Turbo Stream %>
+<div id="rhythm_actions">
+  <div class="mt-8 flex flex-wrap items-center gap-4">
+    <% if completion.all_items_checked? %>
+      <%= button_to "Complete Meeting", finish_family_rhythm_path(family, rhythm),
+          method: :post,
+          class: "theme-button-filled text-lg px-6 py-3" %>
+    <% else %>
+      <button disabled class="px-6 py-3 rounded font-medium text-white opacity-50 cursor-not-allowed" style="background-color: <%= family.theme_colors[:primary] %>;">
+        Complete Meeting
+      </button>
+      <span class="text-sm text-gray-500">Check all items to complete</span>
+    <% end %>
+
+    <%= link_to "Save & Exit", family_rhythm_path(family, rhythm),
+        class: "theme-button-outline" %>
+  </div>
+</div>

@@ -95,7 +95,12 @@ class RhythmsController < ApplicationController
     if item
       item.check!
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("completion_item_#{item.id}", partial: "rhythms/completion_item", locals: { item: item, family: @family }) }
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.replace("completion_item_#{item.id}", partial: "rhythms/completion_item", locals: { item: item, family: @family }),
+            turbo_stream.replace("rhythm_actions", partial: "rhythms/rhythm_actions", locals: { completion: @completion, family: @family, rhythm: @rhythm })
+          ]
+        end
         format.html { redirect_to run_family_rhythm_path(@family, @rhythm) }
       end
     else
@@ -114,7 +119,12 @@ class RhythmsController < ApplicationController
     if item
       item.uncheck!
       respond_to do |format|
-        format.turbo_stream { render turbo_stream: turbo_stream.replace("completion_item_#{item.id}", partial: "rhythms/completion_item", locals: { item: item, family: @family }) }
+        format.turbo_stream do
+          render turbo_stream: [
+            turbo_stream.replace("completion_item_#{item.id}", partial: "rhythms/completion_item", locals: { item: item, family: @family }),
+            turbo_stream.replace("rhythm_actions", partial: "rhythms/rhythm_actions", locals: { completion: @completion, family: @family, rhythm: @rhythm })
+          ]
+        end
         format.html { redirect_to run_family_rhythm_path(@family, @rhythm) }
       end
     else

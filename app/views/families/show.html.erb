@@ -102,13 +102,13 @@
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
     <% dashboard_items = [
-      { label: "Members", icon: "users", path: family_members_path(@family), status: :active, badge_count: @pending_invites_count },
-      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active, badge_count: @issues_needing_attention },
-      { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active, badge_count: @vision_incomplete_count },
-      { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), status: :active, badge_count: @overdue_rhythms_count },
-      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :active, badge_count: @overdue_responsibilities_count },
-      { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active, badge_count: @upcoming_rituals_count },
-      { label: "Relationships", icon: "heart", path: family_relationships_path(@family), status: :active, badge_count: @relationships_needing_attention_count }
+      { label: "Members", icon: "users", path: family_members_path(@family), badge_count: @pending_invites_count },
+      { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), badge_count: @issues_needing_attention },
+      { label: "Vision", icon: "eye", path: family_vision_path(@family), badge_count: @vision_incomplete_count },
+      { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), badge_count: @overdue_rhythms_count },
+      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), badge_count: @overdue_responsibilities_count },
+      { label: "Rituals", icon: "mountain", path: family_issues_path(@family), badge_count: @upcoming_rituals_count },
+      { label: "Relationships", icon: "heart", path: family_relationships_path(@family), badge_count: @relationships_needing_attention_count }
     ] %>
 
     <% dashboard_items.each do |item| %>
@@ -182,10 +182,6 @@
           <% elsif !is_available %>
             <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">
               Subscribe to unlock
-            </span>
-          <% elsif item[:status] == :soon %>
-            <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">
-              Coming soon
             </span>
           <% end %>
         </div>

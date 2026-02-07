@@ -257,7 +257,7 @@
         <%= link_to "View Map", family_relationships_path(@family), class: "text-sm hover:underline", style: "color: #{member_color};" %>
       </div>
       <div class="divide-y" style="border-color: <%= colors[:background] %>;">
-        <% relationships = @member.relationships.includes(:member_low, :member_high).limit(5) %>
+        <% relationships = @member.relationships.includes(:member_low, :member_high) %>
         <% if relationships.any? %>
           <% relationships.each do |rel| %>
             <% other_member = rel.member_low_id == @member.id ? rel.member_high : rel.member_low %>
