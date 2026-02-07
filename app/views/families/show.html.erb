@@ -36,21 +36,85 @@
     </div>
   </div>
   
+  <%# Progressive Unlock - Next Step Banner %>
+  <% unless show_admin_features? %>
+    <% if next_module = next_unlockable_module %>
+      <!-- Next Step Banner -->
+      <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 rounded-lg shadow-sm overflow-hidden" style="border-left-color: <%= colors[:primary] %>;">
+        <div class="p-6">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center shadow-lg" style="background-color: <%= colors[:primary] %>;">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                Next Step: <%= next_module.to_s.titleize %>
+              </h3>
+              <p class="text-gray-700 mb-2"><%= module_unlock_message(next_module) %></p>
+              <p class="text-sm text-gray-600 mb-3"><%= module_unlock_condition(next_module) %></p>
+
+              <% if progress = module_unlock_progress(next_module) %>
+                <% if progress[:type] == :blocked %>
+                  <div class="text-sm text-amber-700 bg-amber-50 rounded px-3 py-2 inline-block">
+                    <%= progress[:prerequisite] %>
+                  </div>
+                <% elsif progress[:type] == :boolean %>
+                  <% if progress[:complete] %>
+                    <div class="text-sm font-medium text-green-700 bg-green-50 rounded px-3 py-2 inline-flex items-center gap-2">
+                      Ready to unlock!
+                    </div>
+                  <% end %>
+                <% elsif progress[:type] == :numeric %>
+                  <div class="mt-2">
+                    <div class="flex justify-between text-sm mb-1">
+                      <span class="text-gray-600">Progress</span>
+                      <span class="font-medium"><%= progress[:current] %>/<%= progress[:required] %> <%= progress[:label] %></span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                      <div class="h-2.5 rounded-full transition-all duration-500" style="width: <%= [[progress[:current].to_f / progress[:required] * 100, 100].min, 0].max %>%; background-color: <%= colors[:primary] %>;"></div>
+                    </div>
+                  </div>
+                <% end %>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      </div>
+    <% else %>
+      <!-- All unlocked celebration -->
+      <div class="mb-8 bg-gradient-to-r from-green-50 to-emerald-50 border-l-4 border-green-500 rounded-lg shadow-sm p-6">
+        <div class="flex items-center gap-4">
+          <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900">All Modules Unlocked!</h3>
+            <p class="text-gray-700">You have full access to FamilyHub.</p>
+          </div>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
-    <% visible_to_users = visible_modules %>
     <% dashboard_items = [
       { label: "Members", icon: "users", path: family_members_path(@family), status: :active, badge_count: @pending_invites_count },
       { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), status: :active, badge_count: @issues_needing_attention },
       { label: "Vision", icon: "eye", path: family_vision_path(@family), status: :active, badge_count: @vision_incomplete_count },
       { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), status: :active, badge_count: @overdue_rhythms_count },
-      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :soon, badge_count: @overdue_responsibilities_count },
+      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), status: :active, badge_count: @overdue_responsibilities_count },
       { label: "Rituals", icon: "mountain", path: family_issues_path(@family), status: :active, badge_count: @upcoming_rituals_count },
       { label: "Relationships", icon: "heart", path: family_relationships_path(@family), status: :active, badge_count: @relationships_needing_attention_count }
     ] %>
 
     <% dashboard_items.each do |item| %>
-      <% is_visible = visible_to_users.include?(item[:label]) %>
-      <% next if !is_visible && !show_admin_features? %>
+      <% module_key = item[:label].downcase.to_sym %>
+      <% is_visible = module_visible_to_user?(module_key) %>
+      <% next unless is_visible || show_admin_features? %>
       <% is_available = current_user.admin? || current_user.is_subscribed? || ["Issues", "Members", "Vision"].include?(item[:label]) %>
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
@@ -113,7 +177,7 @@
 
           <% if !is_visible && show_admin_features? %>
             <span class="mt-2 text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
-              Admin Preview - Hidden from users
+              Admin Preview - <%= module_unlocked?(module_key) ? "Hidden by admin" : "Locked for users" %>
             </span>
           <% elsif !is_available %>
             <span class="mt-2 text-sm font-medium transition-all duration-300 group-hover:translate-x-1" style="color: <%= colors[:secondary] %>">

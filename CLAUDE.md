@@ -229,6 +229,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Member show page: "+ Issue" button pre-tags the member, sets list_type to individual
   - Rhythm run page: "Log Issue" button prefills description with rhythm name, returns to running meeting
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
+- **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
 
 ## MVP Simplification
 
@@ -264,6 +265,48 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - Stores hidden modules in `session[:hidden_modules]` array
 - `visible_modules` helper returns `DASHBOARD_MODULES - hidden_modules`
 - Modules: Members, Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals
+
+### Progressive Module Unlock System
+
+New families are guided through FamilyHub with a linear unlock path to prevent overwhelm. Modules unlock progressively as families complete foundational steps.
+
+**Design Intent**: Rather than showing all 7 modules at once (which can overwhelm new users), the system reveals features as families build their foundation. This creates a natural onboarding flow: add members → define vision → capture issues → establish rhythms.
+
+**Unlock Order & Conditions**:
+
+| Module | Unlock Condition | Rationale |
+|--------|------------------|-----------|
+| Members | Always unlocked | Entry point - every family starts here |
+| Vision | 1+ family members exist | Need people before defining shared direction |
+| Issues | Vision complete (mission_statement 10+ chars) | Vision frames how issues are approached |
+| Relationships | Same as Issues | Unlocks alongside Issues |
+| Rhythms | Issues unlocked AND 1+ issue exists | Need issues to discuss in meetings |
+| Responsibilities | Rhythms unlocked | Placeholder module - future feature |
+| Rituals | Rhythms unlocked | Placeholder module - future feature |
+
+**Helper Methods** (`app/helpers/application_helper.rb`):
+- `module_unlocked?(module_name)` — checks if a module is accessible based on family state
+- `vision_complete?` — returns true if mission_statement exists and is 10+ characters
+- `next_unlockable_module` — returns the next module in the unlock sequence (or nil if all unlocked)
+- `module_unlock_message(module_name)` — motivational message for the module
+- `module_unlock_condition(module_name)` — human-readable unlock requirement
+- `module_unlock_progress(module_name)` — returns progress data (numeric, boolean, or blocked)
+- `module_visible_to_user?(module_key)` — combines unlock state with admin visibility settings
+
+**Dashboard Behavior**:
+- **Next Step Banner**: Shows above module cards for non-admins, displays the next module to unlock with progress indicator
+- **All Unlocked Celebration**: Green banner when all modules are unlocked
+- **Admin Bypass**: Admins always see all modules with contextual badges ("Locked for users" or "Hidden by admin")
+- **Layered Visibility**: A module must be both unlocked AND not admin-hidden to appear for regular users
+
+**Cross-Module Link Protection**: Issue creation buttons are conditionally hidden until Issues module is unlocked:
+- `members/show.html.erb`: "+ Issue" button wrapped in `module_unlocked?(:issues)` check
+- `rhythms/run.html.erb`: "Log Issue" button wrapped in `module_unlocked?(:issues)` check
+- `relationships/assess.html.erb`: "Create Issue" link wrapped in `module_unlocked?(:issues)` check
+
+**No Database Changes**: Unlock state is purely derived from existing family data (members count, vision presence, issues count, rhythms count). Existing families automatically have their correct unlock state calculated.
+
+**Tests**: `test/helpers/application_helper_test.rb` covers all unlock logic (31 tests).
 
 ## Things to Watch Out For
 

@@ -1,0 +1,32 @@
+<% case module_key %>
+<% when :members %>
+  <%= pluralize(@family.members.count, 'member') %> in your family
+<% when :vision %>
+  <% if @family.vision&.mission_statement.present? %>
+    Vision defined and active
+  <% else %>
+    Define your family's vision
+  <% end %>
+<% when :issues %>
+  <% if @family.issues.any? %>
+    <%= pluralize(@family.issues.active.count, 'open issue') %>
+  <% else %>
+    No issues logged yet
+  <% end %>
+<% when :rhythms %>
+  <% if @family.rhythms.any? %>
+    <%= pluralize(@family.rhythms.count, 'rhythm') %> established
+  <% else %>
+    Create your first rhythm
+  <% end %>
+<% when :relationships %>
+  <% if @family.relationships.any? %>
+    <%= pluralize(@family.relationships.count, 'relationship') %> to nurture
+  <% else %>
+    Map your family relationships
+  <% end %>
+<% when :responsibilities %>
+  Coming soon
+<% when :rituals %>
+  Coming soon
+<% end %>
