@@ -1,5 +1,8 @@
-<div class="max-w-md mx-auto mt-12 p-8 bg-white shadow rounded">
-  <h2 class="text-2xl font-bold mb-6 text-center" style="color: <%= @family.theme_colors[:primary] %>">Edit Family Settings</h2>
+<div class="max-w-md mx-auto mt-12">
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <div class="p-8 bg-white shadow rounded">
+    <h2 class="text-2xl font-bold mb-6 text-center" style="color: <%= @family.theme_colors[:primary] %>">Edit Family Settings</h2>
 
   <%= form_with model: @family, local: true, data: { turbo: false } do |form| %>
     <% if @family.errors.any? %>
@@ -49,12 +52,43 @@
       </div>
 
       <div class="flex items-center justify-between gap-4">
-        <%= form.submit "Update Family", 
+        <%= form.submit "Update Family",
             class: "px-5 py-2 rounded transition-all duration-300",
             style: "background-color: #{@family.theme_colors[:primary]}; color: white; hover:background-color: #{@family.theme_colors[:secondary]};" %>
-        <%= link_to "Cancel", family_path(@family), 
-            class: "text-sm hover:underline", 
+        <%= link_to "Cancel", family_path(@family),
+            class: "text-sm hover:underline",
             style: "color: #{@family.theme_colors[:secondary]}" %>
+      </div>
+    </div>
+  <% end %>
+  </div>
+
+  <% if current_user.family_admin? %>
+    <!-- Danger Zone -->
+    <div class="mt-12 pt-8 border-t border-gray-200">
+      <div data-controller="confirm-delete"
+           data-confirm-delete-phrase-value="Delete <%= @family.name %>"
+           class="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-red-700 mb-2">Danger Zone</h3>
+        <p class="text-sm text-red-600 mb-4">
+          Deleting this family is permanent and cannot be undone. All members, issues, vision, rhythms, and relationships will be permanently removed.
+        </p>
+        <button data-action="click->confirm-delete#open"
+                type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded font-medium bg-red-600 text-white hover:bg-red-700 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete Family
+        </button>
+
+        <%= render 'shared/confirm_delete_modal',
+            title: "Delete #{@family.name}?",
+            phrase: "Delete #{@family.name}",
+            cascade_items: ['All family members', 'All issues and history', 'Vision and values', 'Rhythms and completions', 'Relationships and assessments'],
+            form_path: family_path(@family),
+            button_text: 'Delete Family',
+            item_name: @family.name %>
       </div>
     </div>
   <% end %>

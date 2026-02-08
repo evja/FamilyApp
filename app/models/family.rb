@@ -3,7 +3,8 @@ class Family < ApplicationRecord
 
   SUBSCRIPTION_STATUSES = %w[free trial active past_due canceled].freeze
 
-  has_many :users, dependent: :nullify
+  has_many :users, dependent: :nullify  # legacy family_id
+  has_many :current_family_users, class_name: 'User', foreign_key: 'current_family_id', dependent: :nullify
   has_many :members, dependent: :destroy
   has_many :family_values, dependent: :destroy
   has_many :issues, dependent: :destroy

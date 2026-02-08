@@ -241,7 +241,18 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 - **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
-- **Safe Delete Confirmation**: Destructive actions (delete member, delete family) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope.
+- **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope.
+- **Shared UI Partials**: Reusable view components in `app/views/shared/`:
+  - `_back_link.html.erb` — Standard back navigation link. Params: `path` (required), `text` (default: "Back to Dashboard").
+  - `_page_header.html.erb` — Page header with title, back link, and optional actions. Params: `title`, `back_path` (required), `back_text`, `subtitle`. Use `content_for :page_actions` for action buttons.
+  - `_empty_state.html.erb` — Empty state with icon, headline, description, and CTA. Params: `title`, `description`, `action_path`, `action_text` (required), `icon`, `examples`, `examples_label`.
+  - `_confirm_delete_modal.html.erb` — Typed confirmation modal for destructive actions. See Safe Delete Confirmation above.
+- **Button Classes**: Standardized button classes in `theme_plugin.js`:
+  - `btn-primary` — Main action buttons (uses `--primary-color` CSS variable)
+  - `btn-secondary` — Outline style with theme color border
+  - `btn-danger` — Red destructive action buttons (for modals)
+  - `btn-danger-text` — Red text links for destructive actions
+  - Legacy classes (`theme-button-filled`, `theme-button-outline`) still work but prefer new `btn-*` classes for new code.
 
 ## MVP Simplification
 

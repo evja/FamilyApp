@@ -30,7 +30,9 @@
     <hr class="my-8">
   <% end %>
 
-    <div x-data="{ confirmingDeleteAccount: false }" class="bg-red-50 border border-red-200 rounded p-4 mt-6">
+    <div data-controller="confirm-delete"
+         data-confirm-delete-phrase-value="Delete my account"
+         class="bg-red-50 border border-red-200 rounded p-4 mt-6">
       <h3 class="text-red-700 font-semibold mb-2">Danger Zone</h3>
       <p class="text-sm text-red-600 mb-4">
         Deleting your account will remove all your data permanently. This action cannot be undone.
@@ -38,43 +40,20 @@
 
       <!-- Trigger Button -->
       <button
-        @click="confirmingDeleteAccount = true"
+        data-action="click->confirm-delete#open"
+        type="button"
         class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
       >
         Delete My Account
       </button>
 
-      <!-- Modal -->
-      <div
-        x-show="confirmingDeleteAccount"
-        x-cloak
-        x-transition
-        class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center"
-      >
-        <div
-          x-show="confirmingDeleteAccount"
-          x-transition:enter="transition ease-out duration-300"
-          x-transition:enter-start="opacity-0 scale-90"
-          x-transition:enter-end="opacity-100 scale-100"
-          x-transition:leave="transition ease-in duration-200"
-          x-transition:leave-start="opacity-100 scale-100"
-          x-transition:leave-end="opacity-0 scale-90"
-          class="bg-white rounded shadow-lg p-6 w-full max-w-md"
-        >
-          <h2 class="text-xl font-semibold text-red-700 mb-4">Are you absolutely sure?</h2>
-          <p class="text-gray-700 mb-6">
-            This action will delete your account and associated data permanently.
-          </p>
-          <div class="flex justify-end gap-4">
-            <button @click="confirmingDeleteAccount = false" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">
-              Cancel
-            </button>
-            <%= button_to "Yes, Delete My Account",
-                  registration_path(resource_name),
-                  method: :delete,
-                  class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" %>
-          </div>
-        </div>
-      </div>
+      <!-- Typed Confirmation Modal -->
+      <%= render 'shared/confirm_delete_modal',
+          title: "Delete Your Account?",
+          phrase: "Delete my account",
+          cascade_items: ['Your user profile', 'Family memberships', 'All associated data'],
+          form_path: registration_path(resource_name),
+          button_text: 'Delete My Account',
+          item_name: 'Your account' %>
     </div>
 </div>

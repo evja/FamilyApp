@@ -3,8 +3,38 @@
 %>
 
 <div class="max-w-2xl mx-auto">
-  <%= render "shared/back_link", path: family_members_path(@family), text: "Back to Members" %>
+  <%= render "shared/back_link", path: family_member_path(@family, @member), text: "Back to #{@member.display_name}" %>
 
   <h2 class="text-2xl font-bold mb-4 mt-4" style="color: <%= colors[:primary] %>">Edit Member</h2>
   <%= render "form" %>
+
+  <% unless @member.admin_parent? %>
+    <!-- Danger Zone -->
+    <div class="mt-12 pt-8 border-t border-gray-200">
+      <div data-controller="confirm-delete"
+           data-confirm-delete-phrase-value="Delete <%= @member.name %>"
+           class="bg-red-50 border border-red-200 rounded-lg p-6">
+        <h3 class="text-lg font-semibold text-red-700 mb-2">Danger Zone</h3>
+        <p class="text-sm text-red-600 mb-4">
+          Deleting this member is permanent and cannot be undone. All associated data will be removed.
+        </p>
+        <button data-action="click->confirm-delete#open"
+                type="button"
+                class="inline-flex items-center gap-2 px-4 py-2 rounded font-medium bg-red-600 text-white hover:bg-red-700 transition-all">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          Delete Member
+        </button>
+
+        <%= render 'shared/confirm_delete_modal',
+            title: 'Delete Member?',
+            phrase: "Delete #{@member.name}",
+            cascade_items: ['Tagged issues will be untagged', 'Relationship history', 'Thrive assessments'],
+            form_path: family_member_path(@family, @member),
+            button_text: 'Delete Member',
+            item_name: @member.name %>
+      </div>
+    </div>
+  <% end %>
 </div>

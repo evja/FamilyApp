@@ -51,23 +51,6 @@
               <%= link_to "Account Settings", edit_user_registration_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
               <%= link_to "Edit Family", edit_family_path(active_family), class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
               <%= link_to "Create New Family", new_family_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
-
-              <% if current_user.family_admin? %>
-                <div data-controller="confirm-delete"
-                     data-confirm-delete-phrase-value="Delete <%= active_family.name %>">
-                  <button @click="open = false" data-action="click->confirm-delete#open" class="block px-4 py-2 text-left text-red-700 hover:bg-red-100 w-full">
-                    Delete Family
-                  </button>
-                  <!-- Family Delete Confirmation Modal (inside same Stimulus controller scope) -->
-                  <%= render 'shared/confirm_delete_modal',
-                      title: "Delete #{active_family.name}?",
-                      phrase: "Delete #{active_family.name}",
-                      cascade_items: ['All family members', 'All issues and history', 'Vision and values', 'Rhythms and completions', 'Relationships and assessments'],
-                      form_path: family_path(active_family),
-                      button_text: 'Delete Family',
-                      item_name: active_family.name %>
-                </div>
-              <% end %>
               <hr class="my-1">
               <%= button_to "Log Out", destroy_user_session_path,
                     method: :delete,
@@ -100,8 +83,8 @@
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold" %>
           <% end %>
           <% if user_signed_in? && active_family %>
-            <%= link_to "Members", family_members_path(active_family), class: "hover:underline" %>
             <%= link_to "Dashboard", family_path(active_family), class: "hover:underline" %>
+            <%= link_to "Members", family_members_path(active_family), class: "hover:underline" %>
             <%= link_to "Help", about_path, class: "hover:underline" %>
           <% else %>
             <%= link_to "Home", root_path, class: "hover:underline" %>
