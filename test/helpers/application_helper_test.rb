@@ -158,10 +158,20 @@ class ApplicationHelperTest < ActionView::TestCase
     @family.destroy
   end
 
-  test "next_unlockable_module returns issues after members added but no vision" do
-    @family = Family.new(name: "Has Members")
+  test "next_unlockable_module returns vision after one member added (need 2+)" do
+    @family = Family.new(name: "Has One Member")
     @family.save!
     @family.members.create!(name: "Test", role: "parent")
+    # Vision requires > 1 members, so vision is still next to unlock
+    assert_equal :vision, next_unlockable_module
+    @family.destroy
+  end
+
+  test "next_unlockable_module returns issues after 2+ members added but no vision" do
+    @family = Family.new(name: "Has Members")
+    @family.save!
+    @family.members.create!(name: "Parent", role: "parent")
+    @family.members.create!(name: "Child", role: "child")
     assert_equal :issues, next_unlockable_module
     @family.destroy
   end
@@ -169,7 +179,8 @@ class ApplicationHelperTest < ActionView::TestCase
   test "next_unlockable_module returns rhythms after vision complete but no issues" do
     @family = Family.new(name: "Has Vision")
     @family.save!
-    @family.members.create!(name: "Test", role: "parent")
+    @family.members.create!(name: "Parent", role: "parent")
+    @family.members.create!(name: "Child", role: "child")
     @family.create_vision!(mission_statement: "Our family mission statement is complete.")
     assert_equal :rhythms, next_unlockable_module
     @family.destroy
@@ -233,7 +244,7 @@ class ApplicationHelperTest < ActionView::TestCase
   # ============================================================================
 
   test "module_unlock_condition returns condition for known modules" do
-    assert_equal "Add at least one family member to get started", module_unlock_condition(:vision)
+    assert_equal "Add your family members to unlock", module_unlock_condition(:vision)
     assert_equal "Complete your family vision to start capturing issues", module_unlock_condition(:issues)
     assert_equal "Create your first issue to unlock Rhythms", module_unlock_condition(:rhythms)
   end

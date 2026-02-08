@@ -1,5 +1,5 @@
 class Member < ApplicationRecord
-  ROLES = %w[admin_parent parent teen child].freeze
+  ROLES = %w[admin_parent parent teen child advisor].freeze
   TEEN_AGE_THRESHOLD = 13
 
   # Personal theme color presets (12 distinct colors)
@@ -54,7 +54,15 @@ class Member < ApplicationRecord
   end
 
   def can_have_account?
-    role.in?(%w[admin_parent parent teen])
+    role.in?(%w[admin_parent parent teen advisor])
+  end
+
+  def can_edit?
+    role.in?(%w[admin_parent parent])
+  end
+
+  def advisor?
+    role == 'advisor'
   end
 
   def invited?
@@ -87,6 +95,7 @@ class Member < ApplicationRecord
     when 'parent' then 'Parent'
     when 'teen' then 'Teen'
     when 'child' then 'Child'
+    when 'advisor' then 'Advisor'
     else role.titleize
     end
   end

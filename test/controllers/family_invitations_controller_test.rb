@@ -51,16 +51,24 @@ class FamilyInvitationsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "This invitation was sent to a different email address.", flash[:alert]
   end
 
-  # --- Accept: user already in different family ---
+  # --- Accept: user already in different family (multi-family support) ---
 
-  test "accept blocks user already in a different family" do
+  test "accept allows user already in different family to join new family" do
     user = users(:two)  # belongs to family :two
+    original_family = user.family
     sign_in user
 
     invitation = family_invitations(:valid_for_user_two)
     get accept_family_invitation_url(token: invitation.token)
-    assert_redirected_to family_path(user.family)
-    assert_equal "You are already a member of another family.", flash[:alert]
+
+    user.reload
+    invitation.reload
+
+    # User should now be a member of the new family and have it as current
+    assert_equal invitation.family, user.current_family
+    assert_equal "accepted", invitation.status
+    assert_redirected_to family_path(invitation.family)
+    assert_equal "Welcome to the family!", flash[:notice]
   end
 
   # --- Accept: happy path ---

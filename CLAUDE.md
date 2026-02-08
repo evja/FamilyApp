@@ -29,10 +29,13 @@ Database names: `family_app_development`, `family_app_test`. Production uses `DA
 
 ```
 User
-  belongs_to :family (optional)
-  has_one :member (dependent: nullify)
+  belongs_to :family (optional, legacy)
+  belongs_to :current_family (optional, for multi-family)
+  has_many :members (dependent: nullify)
+  has_many :families, through: :members
   # Devise handles auth. Has admin flag. Last user destroys family on delete.
-  # Methods: family_admin?, family_parent?, family_role
+  # Methods: active_family, switch_family!(family), member_of?(family), member_in(family)
+  # Methods: family_admin?, family_parent?, family_role (use active_family context)
 
 Family
   has_many :users (dependent: nullify)
@@ -43,6 +46,8 @@ Family
   has_many :rhythms (dependent: destroy)
   has_one  :vision (FamilyVision, dependent: destroy)
   includes Themeable concern (7 theme presets: forest, ocean, sunset, earth, olive, slate, rosegold)
+  # Subscription: subscription_status (free, trial, active, past_due, canceled), stripe_subscription_id
+  # Methods: owner_member, owner_user, subscribed?, can_be_accessed_by?(user)
 
 Member
   belongs_to :family
@@ -51,12 +56,13 @@ Member
   has_one :invitation (FamilyInvitation)
   has_many :thrive_assessments (dependent: destroy)
   # Represents a person in the family (name, age, birthdate, personality, interests, health, etc.)
-  # Roles: admin_parent, parent, teen, child (ROLES constant)
-  # Only admin_parent/parent/teen can have accounts (can_have_account?)
+  # Roles: admin_parent, parent, teen, child, advisor (ROLES constant)
+  # Only admin_parent/parent/teen/advisor can have accounts (can_have_account?)
+  # Advisor role: view-only access, cannot edit (can_edit? returns false)
   # Fields: role, email, birthdate, invited_at, joined_at
   # Scopes: admin_parents, invitable, pending_invitation, with_accounts
   # Birthdate: Optional. When set, age is auto-calculated and child/teen role is auto-assigned (TEEN_AGE_THRESHOLD = 13)
-  # Methods: calculated_age, role_for_age(age) — returns existing role if age is nil to prevent validation errors
+  # Methods: calculated_age, role_for_age(age), can_edit?, advisor?
 
 Issue
   belongs_to :family
@@ -175,6 +181,7 @@ All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
 - `/families/:family_id/rhythms/:rhythm_id/agenda_items` (CRUD for agenda items)
 - `/families/:family_id/relationships` (+ collection route `graph_data`; member routes `assess`, `create_assessment`)
+- `/families/:id/switch` (POST — switch user's current family for multi-family support)
 
 Other routes:
 - `/` — landing page (redirects to family if logged in)
@@ -191,16 +198,19 @@ Other routes:
 All family-scoped controllers use this pattern (defined in `ApplicationController`):
 
 1. `before_action :authenticate_user!` — Devise login gate
-2. `before_action :authorize_family!` — sets `@family = current_user.family` and rejects if the URL's `family_id` doesn't match
+2. `before_action :authorize_family!` — finds family by `params[:family_id]`, checks `current_user.member_of?(@family)`, rejects if not a member
 
 `FamiliesController` has its own `set_family` that does the same thing but checks `params[:id]` instead of `params[:family_id]`.
 
 `FamilyInvitationsController` uses its own `ensure_family_member` check that calls `family.can_be_accessed_by?(user)`.
 
+**Multi-Family Authorization**: With multi-family support, authorization checks use `member_of?` instead of comparing family IDs. A user can be a member of multiple families through their Member records.
+
 **RoleAuthorization Concern** (`app/controllers/concerns/role_authorization.rb`):
-- `current_member` helper — returns the Member record for the current user
+- `current_member` helper — returns the Member record for current user in the current family (`member_in(@family)`)
 - `require_parent_access!` — checks if user has parent or admin_parent role
 - `require_admin_access!` — checks if user is the family admin
+- `require_edit_access!` — checks `current_member.can_edit?` (advisors are view-only)
 
 **Controllers using RoleAuthorization**:
 - `RhythmsController` — `require_parent_access!` on CRUD + setup actions
@@ -230,6 +240,8 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Rhythm run page: "Log Issue" button prefills description with rhythm name, returns to running meeting
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 - **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
+- **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
+- **Safe Delete Confirmation**: Destructive actions (delete member, delete family) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope.
 
 ## MVP Simplification
 
@@ -310,15 +322,16 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 
 ## Things to Watch Out For
 
-- **`current_family` helper** in `ApplicationController` still does an unscoped `Family.find_by` as a fallback. It's used in views (helper_method) but should not be trusted for authorization — always use `@family` set by `authorize_family!`.
+- **`current_family` helper** in `ApplicationController` does an unscoped `Family.find_by` then falls back to `current_user.active_family`. It's used in views (helper_method) but should not be trusted for authorization — always use `@family` set by `authorize_family!`.
 - **Stripe price ID is hardcoded** in `BillingController#checkout`. Will need updating if the Stripe plan changes. Note: Stripe errors are now caught and show user-friendly messages.
 - **Devise email sender** in `config/initializers/devise.rb` likely needs updating for production.
 - **`IssueMember` model** has incorrect associations (`has_many :issue_members` and `has_many :issues, through: :issue_members` on a join model) — these are dead code but could cause confusion.
 - **No test coverage for authorization**. The auth fixes (authenticate_user!, authorize_family!) don't have corresponding controller tests yet.
 - **Alpine.js loaded via CDN** — no pinned version, could break on major update.
-- **`FamiliesController#new`** doesn't `return` after the redirect when user already has a family, so `@family = Family.new` always runs.
+- **`FamiliesController#new`** now allows creating additional families (multi-family support). No longer redirects if user has a family.
 - **JavaScript must use `javascript_importmap_tags`** in `application.html.erb`, not `javascript_include_tag`. The importmap helper is required for ES module `import` statements to work.
 - **Stimulus reserved properties**: Don't use `this.data` in Stimulus controllers — it's a read-only property (DataMap for `data-*` attributes). Use a different name like `this.graphData` or `this._data`.
+- **Stimulus controller scope**: When using `data-action` to call a Stimulus controller method, the element with `data-action` must be a descendant of the element with `data-controller`. For the confirm-delete pattern, the button and modal must both be inside the same `data-controller="confirm-delete"` wrapper.
 
 ## Code Quality Notes
 

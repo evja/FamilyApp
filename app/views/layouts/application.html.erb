@@ -12,50 +12,70 @@
     <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js" defer></script>
   </head>
 
-  <body class="font-sans" data-theme="<%= (defined?(@family) && @family&.theme.presence) || current_user&.family&.theme || 'default' %>">
+  <body class="font-sans" data-theme="<%= (defined?(@family) && @family&.theme.presence) || current_user&.active_family&.theme || 'default' %>">
     <header class="p-4 md:p-6 theme-header text-white" x-data="{ mobileMenu: false }">
 
       <div class="container mx-auto flex justify-between items-center">
-        <% if user_signed_in? && current_user.family %>
+        <% active_family = current_user&.active_family %>
+        <% if user_signed_in? && active_family %>
           <!-- Left: Family Name + App Dropdown -->
-          <div x-data="{ open: false, confirmingDelete: false }" class="relative text-white flex items-center gap-2">
+          <div x-data="{ open: false }" class="relative text-white flex items-center gap-2">
             <button @click="open = !open" class="font-semibold text-white hover:underline text-sm md:text-base">
-              <%= current_user.family.name %> - FamilyHub ▼
+              <%= active_family.name %> - FamilyHub ▼
             </button>
 
-            <div x-show="open" x-transition @click.away="open = false" class="absolute left-0 top-full mt-2 w-48 bg-white rounded shadow-md z-50">
-              <%= link_to "Account Settings", edit_user_registration_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
-              <%= link_to "Edit Family", edit_family_path(current_user.family), class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
+            <div x-show="open" x-transition @click.away="open = false" class="absolute left-0 top-full mt-2 w-56 bg-white rounded shadow-md z-50">
+              <% if current_user.families.count > 1 %>
+                <!-- Family Switcher Section -->
+                <div class="px-4 py-2 bg-gray-50 border-b">
+                  <span class="text-xs font-semibold text-gray-500 uppercase">Switch Family</span>
+                </div>
+                <% current_user.families.each do |fam| %>
+                  <% member = current_user.member_in(fam) %>
+                  <% is_current = fam.id == active_family.id %>
+                  <% if is_current %>
+                    <div class="block px-4 py-2 bg-gray-100 theme-text flex items-center justify-between">
+                      <span class="font-medium"><%= fam.name %></span>
+                      <span class="text-xs px-2 py-0.5 rounded-full bg-green-100 text-green-800">Current</span>
+                    </div>
+                  <% else %>
+                    <%= button_to switch_family_path(fam), method: :post, class: "block w-full text-left px-4 py-2 hover:bg-gray-100 theme-text flex items-center justify-between" do %>
+                      <span><%= fam.name %></span>
+                      <span class="text-xs text-gray-500"><%= member&.display_role %></span>
+                    <% end %>
+                  <% end %>
+                <% end %>
+                <hr class="my-1">
+              <% end %>
 
-              <button @click="open = false; confirmingDelete = true" class="block px-4 py-2 text-left text-red-700 hover:bg-red-100 w-full">
-                Delete Family
-              </button>
+              <%= link_to "Account Settings", edit_user_registration_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
+              <%= link_to "Edit Family", edit_family_path(active_family), class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
+              <%= link_to "Create New Family", new_family_path, class: "block px-4 py-2 hover:bg-gray-100 theme-text" %>
+
+              <% if current_user.family_admin? %>
+                <div data-controller="confirm-delete"
+                     data-confirm-delete-phrase-value="Delete <%= active_family.name %>">
+                  <button @click="open = false" data-action="click->confirm-delete#open" class="block px-4 py-2 text-left text-red-700 hover:bg-red-100 w-full">
+                    Delete Family
+                  </button>
+                  <!-- Family Delete Confirmation Modal (inside same Stimulus controller scope) -->
+                  <%= render 'shared/confirm_delete_modal',
+                      title: "Delete #{active_family.name}?",
+                      phrase: "Delete #{active_family.name}",
+                      cascade_items: ['All family members', 'All issues and history', 'Vision and values', 'Rhythms and completions', 'Relationships and assessments'],
+                      form_path: family_path(active_family),
+                      button_text: 'Delete Family',
+                      item_name: active_family.name %>
+                </div>
+              <% end %>
               <hr class="my-1">
               <%= button_to "Log Out", destroy_user_session_path,
                     method: :delete,
                     form: { class: "w-full" },
                     class: "block px-4 py-2 text-left hover:bg-gray-100 w-full theme-text" %>
             </div>
-
-            <!-- Delete confirmation modal -->
-            <div x-show="confirmingDelete" x-cloak x-transition
-                class="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
-              <div class="bg-white rounded shadow-lg p-6 w-full max-w-md">
-                <h2 class="text-xl font-semibold text-red-700 mb-4">Are you absolutely sure?</h2>
-                <p class="text-gray-700 mb-6">
-                  Deleting your family will remove all members, relationships, and associated data.
-                  This action cannot be undone.
-                </p>
-                <div class="flex justify-end gap-4">
-                  <button @click="confirmingDelete = false" class="bg-gray-200 px-4 py-2 rounded hover:bg-gray-300">Cancel</button>
-                  <%= button_to "Yes, Delete Family", family_path(current_user.family),
-                      method: :delete,
-                      class: "bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700" %>
-                </div>
-              </div>
-            </div>
           </div>
-        <% elsif user_signed_in? && !current_user.family %>
+        <% elsif user_signed_in? && !active_family %>
           <%= link_to "Create Family", new_family_path, class: "text-sm hover:underline" %>
           <%= button_to "Log Out", destroy_user_session_path, method: :delete, class: "text-sm hover:underline" %>
         <% else %>
@@ -79,9 +99,9 @@
           <% if user_signed_in? && current_user.admin? %>
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold" %>
           <% end %>
-          <% if user_signed_in? && current_user.family %>
-            <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline" %>
-            <%= link_to "Dashboard", family_path(current_user.family), class: "hover:underline" %>
+          <% if user_signed_in? && active_family %>
+            <%= link_to "Members", family_members_path(active_family), class: "hover:underline" %>
+            <%= link_to "Dashboard", family_path(active_family), class: "hover:underline" %>
             <%= link_to "Help", about_path, class: "hover:underline" %>
           <% else %>
             <%= link_to "Home", root_path, class: "hover:underline" %>
@@ -101,9 +121,9 @@
           <% if user_signed_in? && current_user.admin? %>
             <%= link_to "Admin Dashboard", admin_dashboard_path, class: "hover:underline text-yellow-300 font-semibold py-1" %>
           <% end %>
-          <% if user_signed_in? && current_user.family %>
-            <%= link_to "Dashboard", family_path(current_user.family), class: "hover:underline py-1" %>
-            <%= link_to "Members", family_members_path(current_user.family), class: "hover:underline py-1" %>
+          <% if user_signed_in? && active_family %>
+            <%= link_to "Dashboard", family_path(active_family), class: "hover:underline py-1" %>
+            <%= link_to "Members", family_members_path(active_family), class: "hover:underline py-1" %>
             <%= link_to "Help", about_path, class: "hover:underline py-1" %>
           <% else %>
             <%= link_to "Home", root_path, class: "hover:underline py-1" %>

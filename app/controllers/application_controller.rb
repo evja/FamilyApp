@@ -1,14 +1,14 @@
 class ApplicationController < ActionController::Base
   before_action :set_no_cache
-  helper_method :current_family, :viewing_as_user?, :show_admin_features?, :visible_modules
+  helper_method :current_family, :current_member, :viewing_as_user?, :show_admin_features?, :visible_modules
 
   DASHBOARD_MODULES = %w[Members Issues Vision Rhythms Relationships Responsibilities Rituals].freeze
 
   def after_sign_in_path_for(resource)
     if session[:invitation_token].present?
       accept_family_invitation_path(token: session[:invitation_token])
-    elsif resource.family
-      family_path(resource.family)
+    elsif resource.active_family
+      family_path(resource.active_family)
     else
       new_family_path
     end
@@ -17,8 +17,8 @@ class ApplicationController < ActionController::Base
   def after_sign_up_path_for(resource)
     if session[:invitation_token].present?
       accept_family_invitation_path(token: session[:invitation_token])
-    elsif resource.family
-      family_path(resource.family)
+    elsif resource.active_family
+      family_path(resource.active_family)
     else
       new_family_path
     end
@@ -26,7 +26,11 @@ class ApplicationController < ActionController::Base
 
   def current_family
     return @family if defined?(@family) && @family.present?
-    Family.find_by(id: params[:family_id] || params[:id]) || current_user&.family
+    Family.find_by(id: params[:family_id] || params[:id]) || current_user&.active_family
+  end
+
+  def current_member
+    @current_member ||= current_user&.member_in(current_family)
   end
 
   def toggle_view_as_user
@@ -77,8 +81,8 @@ class ApplicationController < ActionController::Base
   end
 
   def authorize_family!
-    @family = current_user.family
-    unless @family && @family.id == params[:family_id].to_i
+    @family = Family.find_by(id: params[:family_id].to_i)
+    unless @family && current_user.member_of?(@family)
       redirect_to root_path, alert: "You do not have access to this family."
       return
     end

@@ -50,15 +50,21 @@ class FamilyInvitationsController < ApplicationController
       return
     end
 
-    if current_user.family.present? && current_user.family != @invitation.family
-      redirect_to family_path(current_user.family), alert: 'You are already a member of another family.'
+    # Check if user is already a member of this family
+    if current_user.member_of?(@invitation.family)
+      redirect_to family_path(@invitation.family), notice: 'You are already a member of this family.'
       return
     end
 
     # Wrap all updates in a transaction to ensure data consistency
     ActiveRecord::Base.transaction do
-      # Link user to family
-      current_user.update!(family: @invitation.family)
+      # Set current_family to the new family (multi-family support)
+      # Keep legacy family_id for backward compatibility on first family
+      if current_user.family.nil?
+        current_user.update!(family: @invitation.family, current_family: @invitation.family)
+      else
+        current_user.update!(current_family: @invitation.family)
+      end
 
       # Link user to member if invitation has a member reference
       if @invitation.member.present?
@@ -86,8 +92,8 @@ class FamilyInvitationsController < ApplicationController
   private
 
   def set_family
-    @family = current_user.family
-    unless @family && @family.id.to_s == params[:family_id]
+    @family = Family.find_by(id: params[:family_id])
+    unless @family && current_user.member_of?(@family)
       head :forbidden
       return
     end

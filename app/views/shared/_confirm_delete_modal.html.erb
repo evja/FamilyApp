@@ -1,0 +1,83 @@
+<%#
+  Confirm Delete Modal - Requires typed confirmation for destructive actions
+
+  IMPORTANT: This partial must be rendered INSIDE a parent element with:
+    data-controller="confirm-delete"
+    data-confirm-delete-phrase-value="<phrase>"
+  The trigger button should also be inside the same controller scope.
+
+  Local variables:
+    title: String - Modal title (e.g., 'Delete Member?')
+    phrase: String - The exact phrase user must type to confirm (e.g., 'Delete John')
+    cascade_items: Array - List of items that will be deleted (e.g., ['Tagged issues', 'Relationships'])
+    form_path: Path - The URL to submit the delete form to
+    button_text: String - Text for the delete button (e.g., 'Delete Member')
+    item_name: String (optional) - Name of the item being deleted for the warning message
+%>
+
+<div data-confirm-delete-target="modal"
+     class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4"
+     data-action="click->confirm-delete#closeOnBackdrop">
+  <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md" onclick="event.stopPropagation()">
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-gray-900"><%= title %></h2>
+      </div>
+
+      <!-- Warning message -->
+      <p class="text-gray-600 mb-4">
+        This action is <strong class="text-red-600">permanent</strong> and cannot be undone.
+        <% if local_assigns[:item_name] %>
+          <strong class="text-gray-900"><%= item_name %></strong> will be permanently deleted.
+        <% end %>
+      </p>
+
+      <!-- Cascade items -->
+      <% if cascade_items.present? %>
+        <div class="bg-red-50 border border-red-200 rounded p-3 mb-4">
+          <p class="text-sm text-red-800 font-medium mb-2">The following will also be deleted:</p>
+          <ul class="text-sm text-red-700 list-disc list-inside space-y-1">
+            <% cascade_items.each do |item| %>
+              <li><%= item %></li>
+            <% end %>
+          </ul>
+        </div>
+      <% end %>
+
+      <!-- Confirmation input -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">
+          Type <strong class="text-red-600 font-mono bg-red-50 px-1 rounded"><%= phrase %></strong> to confirm:
+        </label>
+        <input type="text"
+               data-confirm-delete-target="input"
+               data-action="input->confirm-delete#checkPhrase"
+               class="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-red-500 focus:border-red-500"
+               placeholder="Type confirmation phrase..."
+               autocomplete="off">
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-3">
+        <button data-action="confirm-delete#close"
+                type="button"
+                class="px-4 py-2 rounded font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 transition-all">
+          Cancel
+        </button>
+        <%= form_with url: form_path, method: :delete, data: { turbo: false }, class: "inline" do %>
+          <button type="submit"
+                  data-confirm-delete-target="button"
+                  disabled
+                  class="px-4 py-2 rounded font-medium bg-red-600 text-white hover:bg-red-700 transition-all opacity-50 cursor-not-allowed">
+            <%= button_text %>
+          </button>
+        <% end %>
+      </div>
+    </div>
+  </div>
+

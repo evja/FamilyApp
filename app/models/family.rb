@@ -1,6 +1,8 @@
 class Family < ApplicationRecord
   include Themeable
 
+  SUBSCRIPTION_STATUSES = %w[free trial active past_due canceled].freeze
+
   has_many :users, dependent: :nullify
   has_many :members, dependent: :destroy
   has_many :family_values, dependent: :destroy
@@ -11,6 +13,7 @@ class Family < ApplicationRecord
   has_one :vision, class_name: "FamilyVision", dependent: :destroy
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
+  validates :subscription_status, inclusion: { in: SUBSCRIPTION_STATUSES }, allow_nil: true
 
   before_destroy :check_last_family
 
@@ -64,11 +67,26 @@ class Family < ApplicationRecord
 
   def can_be_accessed_by?(user)
     return false unless user
-    users.include?(user) || invitations.valid.exists?(email: user.email)
+    members.exists?(user_id: user.id) || invitations.valid.exists?(email: user.email)
   end
 
   def admin_parent_member
     members.admin_parents.first
+  end
+
+  # Alias for admin_parent_member (owner of the family)
+  def owner_member
+    admin_parent_member
+  end
+
+  # User who owns the family
+  def owner_user
+    owner_member&.user
+  end
+
+  # Check if family has an active subscription
+  def subscribed?
+    subscription_status == 'active'
   end
 
   def ensure_all_relationships!

@@ -1,9 +1,9 @@
 class FamiliesController < ApplicationController
   before_action :authenticate_user!
-  before_action :set_family, only: [:show, :edit, :update, :destroy]
+  before_action :set_family, only: [:show, :edit, :update, :destroy, :switch]
 
   def index
-    redirect_to family_path(current_user.family) if current_user.family
+    redirect_to family_path(current_user.active_family) if current_user.active_family
   end
 
   def show
@@ -33,7 +33,7 @@ class FamiliesController < ApplicationController
   end
 
   def new
-    return redirect_to family_path(current_user.family) if current_user.family
+    # Allow creating a new family even if user already has families (multi-family support)
     @family = Family.new
   end
 
@@ -44,7 +44,8 @@ class FamiliesController < ApplicationController
     @family = Family.new(family_params)
 
     if @family.save
-      current_user.update(family: @family)
+      # Set both legacy family_id and current_family for compatibility
+      current_user.update(family: @family, current_family: @family)
       @family.ensure_admin_parent_member(current_user)
       redirect_to @family, notice: 'Family was successfully created.'
     else
@@ -61,20 +62,35 @@ class FamiliesController < ApplicationController
   end
 
   def destroy
-    if @family.users.count > 1
+    if @family.members.with_accounts.count > 1
       redirect_to @family, alert: 'Cannot delete family while other users are still members.'
     else
       @family.destroy
-      redirect_to root_path, notice: 'Family was successfully deleted.'
+      # Switch to next available family or redirect to create new
+      if current_user.families.any?
+        next_family = current_user.families.first
+        current_user.update(current_family: next_family)
+        redirect_to family_path(next_family), notice: 'Family was successfully deleted.'
+      else
+        redirect_to new_family_path, notice: 'Family was successfully deleted.'
+      end
     end
+  end
+
+  def switch
+    current_user.switch_family!(@family)
+    redirect_to family_path(@family), notice: "Switched to #{@family.name}"
+  rescue ArgumentError => e
+    redirect_to root_path, alert: e.message
   end
 
   private
 
   def set_family
-    @family = current_user.family
-    unless @family && @family.id == params[:id].to_i
+    @family = Family.find_by(id: params[:id].to_i)
+    unless @family && current_user.member_of?(@family)
       redirect_to root_path, alert: 'You do not have access to this family.'
+      return
     end
   end
 

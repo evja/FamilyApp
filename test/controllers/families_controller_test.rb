@@ -13,9 +13,9 @@ class FamiliesControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
-  test "should redirect new when user already has a family" do
+  test "should allow new family creation when user already has a family (multi-family support)" do
     get new_family_url
-    assert_redirected_to family_url(@family)
+    assert_response :success
   end
 
   test "should create family" do
