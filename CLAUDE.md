@@ -39,6 +39,7 @@ User
 
 Family
   has_many :users (dependent: nullify)
+  has_many :current_family_users (User, foreign_key: :current_family_id, dependent: nullify)
   has_many :members (dependent: destroy)
   has_many :family_values (dependent: destroy)
   has_many :issues (dependent: destroy)
@@ -48,6 +49,7 @@ Family
   includes Themeable concern (7 theme presets: forest, ocean, sunset, earth, olive, slate, rosegold)
   # Subscription: subscription_status (free, trial, active, past_due, canceled), stripe_subscription_id
   # Methods: owner_member, owner_user, subscribed?, can_be_accessed_by?(user)
+  # Note: current_family_users association needed to nullify User.current_family_id before family deletion (FK constraint)
 
 Member
   belongs_to :family
@@ -241,7 +243,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 - **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
-- **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope.
+- **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope. Delete buttons are located on edit pages: member delete in `members/edit.html.erb`, family delete in `families/edit.html.erb`.
 - **Shared UI Partials**: Reusable view components in `app/views/shared/`:
   - `_back_link.html.erb` — Standard back navigation link. Params: `path` (required), `text` (default: "Back to Dashboard").
   - `_page_header.html.erb` — Page header with title, back link, and optional actions. Params: `title`, `back_path` (required), `back_text`, `subtitle`. Use `content_for :page_actions` for action buttons.
@@ -268,7 +270,7 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 
 ### Simplified Forms
 - **Member form** (`members/_form.html.erb`): shows name, birthdate (optional), age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). When birthdate is provided, age is auto-calculated and child/teen role is auto-assigned (13+ = teen, under 13 = child). Parent roles are never auto-assigned. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
-- **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, birthdate (if present), role (Parent/Child), edit/delete actions. Health, Interests, Needs, and Quarterly Assessments cards removed.
+- **Member show page** (`members/show.html.erb`): MVP fields only — avatar, name, age, birthdate (if present), role (Parent/Child), edit action. Health, Interests, Needs, and Quarterly Assessments cards removed. Delete action is on the edit page.
 - **Member card** (`members/_member_card.html.erb`): shows "Parent" or "Child" role label for all members.
 - **Member card with status** (`members/_member_card_with_status.html.erb`): shows member with status badge (You, Admin, Joined, Pending, Not Invited) and Invite/Resend buttons for eligible members.
 - **Members index** (`members/index.html.erb`): groups members by role (Parents, Teens, Children) with status badges and invite actions. The admin parent appears in the Parents section with an "Admin" badge.
