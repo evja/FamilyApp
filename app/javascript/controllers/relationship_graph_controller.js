@@ -61,13 +61,33 @@ export default class extends Controller {
   }
 
   processData(data) {
-    // Create node objects with initial positions
-    this.nodes = data.members.map(member => ({
-      ...member,
-      x: this.width / 2,
-      y: this.height / 2,
-      radius: Math.max(member.radius, 22) // Minimum 44px diameter for touch
-    }))
+    // Scale factor based on container size (reference: 400px height)
+    // Use smaller dimension to ensure bubbles fit, with reasonable bounds
+    const minDimension = Math.min(this.width, this.height)
+    this.scaleFactor = Math.max(1, Math.min(2.5, minDimension / 350))
+
+    // Sort members for ring layout: parents at top, children by age clockwise
+    const sortedMembers = this.sortMembersForRing(data.members)
+
+    // Calculate ring positions
+    const centerX = this.width / 2
+    const centerY = this.height / 2
+    const ringRadius = Math.min(this.width, this.height) * 0.35
+
+    // Create node objects with scaled radii and ring positions
+    this.nodes = sortedMembers.map((member, index) => {
+      // Distribute evenly around circle, starting from top (-90 degrees)
+      // Going clockwise (positive angle direction in screen coords)
+      const angle = (-Math.PI / 2) + (2 * Math.PI * index / sortedMembers.length)
+
+      return {
+        ...member,
+        x: centerX + ringRadius * Math.cos(angle),
+        y: centerY + ringRadius * Math.sin(angle),
+        baseRadius: member.radius,
+        radius: Math.max(member.radius * this.scaleFactor, 28)
+      }
+    })
 
     // Create link objects with source/target references
     this.links = data.relationships.map(rel => ({
@@ -77,12 +97,48 @@ export default class extends Controller {
     }))
   }
 
+  // Sort members: parents together at top, then children by age (youngest first clockwise)
+  sortMembersForRing(members) {
+    const parents = members.filter(m => m.is_parent)
+    const children = members.filter(m => !m.is_parent)
+
+    // Sort parents by name for consistency
+    parents.sort((a, b) => a.name.localeCompare(b.name))
+
+    // Sort children by age ascending (youngest first, they go clockwise after first parent)
+    // Children without age go at the end
+    children.sort((a, b) => {
+      if (a.age === null && b.age === null) return a.name.localeCompare(b.name)
+      if (a.age === null) return 1
+      if (b.age === null) return -1
+      return a.age - b.age
+    })
+
+    // Layout: Parent1 at top-left, children clockwise by age, Parent2 at top-right
+    // This puts youngest near Parent1 and oldest near Parent2
+    if (parents.length >= 2) {
+      return [parents[0], ...children, parents[1]]
+    } else if (parents.length === 1) {
+      return [parents[0], ...children]
+    } else {
+      return children
+    }
+  }
+
   get width() {
     return this.element.offsetWidth || 600
   }
 
   get height() {
-    return this.element.offsetHeight || 400
+    return this.element.offsetHeight || 600
+  }
+
+  get scaleFactor() {
+    return this._scaleFactor || 1
+  }
+
+  set scaleFactor(value) {
+    this._scaleFactor = value
   }
 
   initGraph() {
@@ -120,13 +176,18 @@ export default class extends Controller {
       this.simulation.stop()
     }
 
+    // Scale forces proportionally to bubble size
+    const linkDistance = 100 * this.scaleFactor
+    const chargeStrength = -150 * this.scaleFactor
+    const collisionPadding = 15 * this.scaleFactor
+
     this.simulation = d3.forceSimulation(this.nodes)
       .force('link', d3.forceLink(this.links)
         .id(d => d.id)
-        .distance(100))
-      .force('charge', d3.forceManyBody().strength(-150))
+        .distance(linkDistance))
+      .force('charge', d3.forceManyBody().strength(chargeStrength))
       .force('center', d3.forceCenter(this.width / 2, this.height / 2))
-      .force('collide', d3.forceCollide().radius(d => d.radius + 10))
+      .force('collide', d3.forceCollide().radius(d => d.radius + collisionPadding))
       .on('tick', () => this.tick())
 
     // Let simulation settle initially
@@ -159,22 +220,24 @@ export default class extends Controller {
 
   renderLinks() {
     const self = this
+    const baseStroke = Math.max(4, 4 * this.scaleFactor)
+    const hoverStroke = Math.max(6, 6 * this.scaleFactor)
 
     this.linkContainer
       .selectAll('line')
       .data(this.links, d => d.id)
       .join('line')
       .attr('stroke', d => d.health_color)
-      .attr('stroke-width', 4)
+      .attr('stroke-width', baseStroke)
       .attr('stroke-linecap', 'round')
       .attr('stroke-opacity', d => this.getLinkOpacity(d))
       .style('cursor', 'pointer')
       .style('transition', 'stroke-width 0.2s')
       .on('mouseenter', function() {
-        d3.select(this).attr('stroke-width', 6)
+        d3.select(this).attr('stroke-width', hoverStroke)
       })
       .on('mouseleave', function() {
-        d3.select(this).attr('stroke-width', 4)
+        d3.select(this).attr('stroke-width', baseStroke)
       })
       .on('click', (event, d) => {
         event.stopPropagation()
@@ -203,16 +266,17 @@ export default class extends Controller {
       .on('mouseenter', (event, d) => this.showTooltip(d, event.pageX, event.pageY))
       .on('mouseleave', () => this.hideTooltip())
 
-    // Circle
+    // Circle (stroke scales with container)
+    const strokeWidth = Math.max(3, 3 * this.scaleFactor)
     nodeGroups.selectAll('circle')
       .data(d => [d])
       .join('circle')
       .attr('r', d => d.radius)
       .attr('fill', d => d.color)
       .attr('stroke', '#fff')
-      .attr('stroke-width', 3)
+      .attr('stroke-width', strokeWidth)
 
-    // Text (name or emoji)
+    // Text (name or emoji) - font scales with radius
     nodeGroups.selectAll('text')
       .data(d => [d])
       .join('text')
@@ -220,10 +284,11 @@ export default class extends Controller {
       .attr('dy', '0.35em')
       .attr('fill', 'white')
       .attr('font-size', d => {
+        // Scale font based on radius (roughly 30% of radius for text, 60% for emoji)
         if (d.avatar_emoji) {
-          return d.radius > 30 ? '24' : '18'
+          return Math.round(d.radius * 0.6)
         }
-        return d.radius > 30 ? '12' : '10'
+        return Math.round(d.radius * 0.32)
       })
       .attr('font-weight', d => d.avatar_emoji ? 'normal' : 'bold')
       .text(d => {
@@ -273,10 +338,10 @@ export default class extends Controller {
       n.fy = null
     })
 
-    // Reset forces
+    // Reset forces (scaled)
     this.simulation
       .force('radial', null)
-      .force('charge', d3.forceManyBody().strength(-150))
+      .force('charge', d3.forceManyBody().strength(-150 * this.scaleFactor))
       .force('center', d3.forceCenter(this.width / 2, this.height / 2))
 
     // Reheat simulation
@@ -314,12 +379,13 @@ export default class extends Controller {
       }
     })
 
-    // Remove center force, add radial force for ring layout
+    // Remove center force, add radial force for ring layout (scaled)
+    const radialDistance = 150 * this.scaleFactor
     this.simulation
       .force('center', null)
-      .force('radial', d3.forceRadial(150, this.width / 2, this.height / 2)
+      .force('radial', d3.forceRadial(radialDistance, this.width / 2, this.height / 2)
         .strength(d => d.id === memberId ? 0 : 0.8))
-      .force('charge', d3.forceManyBody().strength(-50))
+      .force('charge', d3.forceManyBody().strength(-50 * this.scaleFactor))
 
     // Reheat simulation
     this.simulation.alpha(0.5).restart()
