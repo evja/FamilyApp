@@ -1,8 +1,432 @@
-<div class="w-screen relative left-1/2 right-1/2 -ml-[50vw] -mr-[50vw] -mt-6">
-  <iframe
-    src="/Family_Operating_System.pdf"
-    class="w-full border-0"
-    style="height: calc(100vh - 80px);"
-    loading="lazy">
-  </iframe>
+<%# About Page - Family Operating System Methodology %>
+<% content_for :body_class, "bg-white" %>
+
+<div class="min-h-screen">
+  <%# ===== HERO SECTION ===== %>
+  <section class="bg-gradient-to-br from-blue-50 via-white to-indigo-50 py-16 md:py-24">
+    <div class="max-w-4xl mx-auto px-4 text-center">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+        The Family Operating System
+      </h1>
+      <p class="text-xl md:text-2xl text-gray-600 mb-4">
+        A framework for running your family with intention
+      </p>
+      <p class="text-lg text-blue-600 font-medium">
+        Stop reacting. Start leading.
+      </p>
+    </div>
+  </section>
+
+  <%# ===== THE PROBLEM SECTION ===== %>
+  <section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <h2 class="text-3xl font-bold text-gray-900 mb-8 text-center">The Problem</h2>
+      <p class="text-lg text-gray-600 mb-10 text-center max-w-2xl mx-auto">
+        Most families operate in survival mode. Here's what we see over and over:
+      </p>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <%# Problem 1 %>
+        <div class="bg-red-50 p-6 rounded-xl border border-red-100">
+          <div class="text-3xl mb-4">&#x1F525;</div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Reactive Living</h3>
+          <p class="text-gray-600 text-sm">
+            Constantly putting out fires instead of preventing them. No time for what matters because you're always managing crises.
+          </p>
+        </div>
+
+        <%# Problem 2 %>
+        <div class="bg-orange-50 p-6 rounded-xl border border-orange-100">
+          <div class="text-3xl mb-4">&#x1F4A8;</div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Family Drift</h3>
+          <p class="text-gray-600 text-sm">
+            Everyone's busy but no one's aligned. You look up one day and realize you've drifted apart without noticing.
+          </p>
+        </div>
+
+        <%# Problem 3 %>
+        <div class="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
+          <div class="text-3xl mb-4">&#x1F4B8;</div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Outsourcing Culture</h3>
+          <p class="text-gray-600 text-sm">
+            Schools, sports, screens—everyone else is shaping your kids. Your family values get crowded out by default.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== THE 6-ELEMENT SYSTEM ===== %>
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-5xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">The 6-Element Family OS</h2>
+        <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+          Six interconnected elements that transform reactive families into intentional ones.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <%# Element 1: Vision %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Vision</h3>
+          <p class="text-gray-600 text-sm">
+            Define your family values and 10-year dream. Create a north star that guides daily decisions.
+          </p>
+        </div>
+
+        <%# Element 2: Rhythms %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Rhythms</h3>
+          <p class="text-gray-600 text-sm">
+            Predictable family meetings—weekly syncs, monthly check-ins, quarterly retreats. Consistency builds trust.
+          </p>
+        </div>
+
+        <%# Element 3: Issues %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Issues</h3>
+          <p class="text-gray-600 text-sm">
+            A single place to capture and process family challenges. Nothing falls through the cracks.
+          </p>
+        </div>
+
+        <%# Element 4: Relationships %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Relationships</h3>
+          <p class="text-gray-600 text-sm">
+            Track connection health between every family pair. Catch drift before it becomes distance.
+          </p>
+        </div>
+
+        <%# Element 5: Responsibilities %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Responsibilities</h3>
+          <p class="text-gray-600 text-sm">
+            Age-appropriate ownership. Kids learn accountability by contributing to the family system.
+          </p>
+        </div>
+
+        <%# Element 6: Rituals %>
+        <div class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-bold text-gray-900 mb-2">Rituals</h3>
+          <p class="text-gray-600 text-sm">
+            The traditions that make your family yours. Weekly pizza night. Birthday interviews. Annual trips.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== MINDSET SHIFT SECTION ===== %>
+  <section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">The Mindset Shift</h2>
+        <p class="text-lg text-gray-600">
+          Carpenter vs. Gardener parenting
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-8">
+        <%# Carpenter %>
+        <div class="bg-gray-50 p-8 rounded-xl">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">The Carpenter</h3>
+          <p class="text-gray-600 mb-4">
+            Tries to build children to spec. Focuses on outcomes and achievements. Measures success by external markers.
+          </p>
+          <ul class="space-y-2 text-gray-600 text-sm">
+            <li class="flex items-center gap-2">
+              <span class="text-red-500">&#10006;</span>
+              Control-focused
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="text-red-500">&#10006;</span>
+              Outcome-obsessed
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="text-red-500">&#10006;</span>
+              Rigid expectations
+            </li>
+          </ul>
+        </div>
+
+        <%# Gardener %>
+        <div class="bg-blue-50 p-8 rounded-xl border-2 border-blue-200">
+          <h3 class="text-xl font-bold text-gray-900 mb-4">The Gardener</h3>
+          <p class="text-gray-600 mb-4">
+            Creates conditions for growth. Focuses on environment and culture. Measures success by connection and character.
+          </p>
+          <ul class="space-y-2 text-gray-600 text-sm">
+            <li class="flex items-center gap-2">
+              <span class="text-green-500">&#10004;</span>
+              Environment-focused
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="text-green-500">&#10004;</span>
+              Process-oriented
+            </li>
+            <li class="flex items-center gap-2">
+              <span class="text-green-500">&#10004;</span>
+              Flexible adaptation
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <p class="text-center mt-8 text-lg text-gray-600">
+        <strong class="text-gray-900">FamilyHub helps you be a better gardener.</strong>
+        We give you tools to cultivate the environment, not control the outcomes.
+      </p>
+    </div>
+  </section>
+
+  <%# ===== RHYTHMS BREAKDOWN SECTION ===== %>
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">The Three Core Rhythms</h2>
+        <p class="text-lg text-gray-600">
+          Start with these three meetings. Everything else builds on top.
+        </p>
+      </div>
+
+      <div class="space-y-6">
+        <%# Rhythm 1: Retreat %>
+        <details class="bg-white rounded-xl shadow-sm overflow-hidden group">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <span class="text-xl">&#x1F3D5;</span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Quarterly Retreat</h3>
+                <p class="text-sm text-gray-600">2-4 hours every 3 months</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 border-t border-gray-100 pt-4">
+            <p class="text-gray-600 mb-4">The big picture meeting. Step back, assess, and realign as a family.</p>
+            <h4 class="font-medium text-gray-900 mb-2">Sample Agenda:</h4>
+            <ol class="list-decimal list-inside space-y-1 text-gray-600 text-sm">
+              <li>Review family values and vision</li>
+              <li>Assess each relationship (health check)</li>
+              <li>Review last quarter's wins and challenges</li>
+              <li>Set goals for next quarter</li>
+              <li>Plan one family adventure</li>
+            </ol>
+          </div>
+        </details>
+
+        <%# Rhythm 2: Parent Sync %>
+        <details class="bg-white rounded-xl shadow-sm overflow-hidden group">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <span class="text-xl">&#x1F46B;</span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Weekly Parent Sync</h3>
+                <p class="text-sm text-gray-600">30-60 minutes weekly</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 border-t border-gray-100 pt-4">
+            <p class="text-gray-600 mb-4">Parents-only planning session. Stay aligned so the kids see a united front.</p>
+            <h4 class="font-medium text-gray-900 mb-2">Sample Agenda:</h4>
+            <ol class="list-decimal list-inside space-y-1 text-gray-600 text-sm">
+              <li>Calendar review (upcoming week)</li>
+              <li>Child check-ins (how's each kid doing?)</li>
+              <li>Issues triage (what needs attention?)</li>
+              <li>Parenting alignment (any disagreements to resolve?)</li>
+              <li>Marriage check-in (how are we doing?)</li>
+            </ol>
+          </div>
+        </details>
+
+        <%# Rhythm 3: Family Huddle %>
+        <details class="bg-white rounded-xl shadow-sm overflow-hidden group">
+          <summary class="flex items-center justify-between p-6 cursor-pointer hover:bg-gray-50">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <span class="text-xl">&#x1F46A;</span>
+              </div>
+              <div>
+                <h3 class="text-lg font-bold text-gray-900">Weekly Family Huddle</h3>
+                <p class="text-sm text-gray-600">15-30 minutes weekly</p>
+              </div>
+            </div>
+            <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </summary>
+          <div class="px-6 pb-6 border-t border-gray-100 pt-4">
+            <p class="text-gray-600 mb-4">Whole-family meeting. Quick, fun, and builds the team mentality.</p>
+            <h4 class="font-medium text-gray-900 mb-2">Sample Agenda:</h4>
+            <ol class="list-decimal list-inside space-y-1 text-gray-600 text-sm">
+              <li>Highs and lows (everyone shares)</li>
+              <li>Family value spotlight</li>
+              <li>Upcoming week preview</li>
+              <li>Appreciations (thank a family member)</li>
+              <li>Fun closer (joke, game, or activity)</li>
+            </ol>
+          </div>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== SUCCESS METRICS SECTION ===== %>
+  <section class="py-16 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">What Success Looks Like</h2>
+        <p class="text-lg text-gray-600">
+          How do you know it's working? Here's what intentional families report:
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6">
+        <%# Metric 1 %>
+        <div class="flex gap-4 p-6 bg-green-50 rounded-xl">
+          <div class="text-3xl">&#x1F48D;</div>
+          <div>
+            <h3 class="font-bold text-gray-900 mb-1">Stronger Marriage</h3>
+            <p class="text-gray-600 text-sm">Parents are aligned and connected. Less conflict, more teamwork.</p>
+          </div>
+        </div>
+
+        <%# Metric 2 %>
+        <div class="flex gap-4 p-6 bg-blue-50 rounded-xl">
+          <div class="text-3xl">&#x1F3E0;</div>
+          <div>
+            <h3 class="font-bold text-gray-900 mb-1">Clear Family Culture</h3>
+            <p class="text-gray-600 text-sm">Everyone knows what you stand for. Values are lived, not just talked about.</p>
+          </div>
+        </div>
+
+        <%# Metric 3 %>
+        <div class="flex gap-4 p-6 bg-purple-50 rounded-xl">
+          <div class="text-3xl">&#x1F9D1;&#x200D;&#x1F393;</div>
+          <div>
+            <h3 class="font-bold text-gray-900 mb-1">Kids Who Launch</h3>
+            <p class="text-gray-600 text-sm">Children develop responsibility, ownership, and confidence to thrive on their own.</p>
+          </div>
+        </div>
+
+        <%# Metric 4 %>
+        <div class="flex gap-4 p-6 bg-amber-50 rounded-xl">
+          <div class="text-3xl">&#x1F333;</div>
+          <div>
+            <h3 class="font-bold text-gray-900 mb-1">Multi-Generational Legacy</h3>
+            <p class="text-gray-600 text-sm">You're building something that lasts. Kids want to replicate this for their own families.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== GETTING STARTED SECTION ===== %>
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="text-center mb-12">
+        <h2 class="text-3xl font-bold text-gray-900 mb-4">Getting Started</h2>
+        <p class="text-lg text-gray-600">
+          You don't need to implement everything at once. Start small.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6 mb-12">
+        <%# Step 1 %>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center">
+          <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">1</div>
+          <h3 class="font-bold text-gray-900 mb-2">Add Your Family</h3>
+          <p class="text-gray-600 text-sm">Create your family profile and add all members—parents and kids.</p>
+        </div>
+
+        <%# Step 2 %>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center">
+          <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">2</div>
+          <h3 class="font-bold text-gray-900 mb-2">Define Your Vision</h3>
+          <p class="text-gray-600 text-sm">Pick your top family values and write a simple mission statement.</p>
+        </div>
+
+        <%# Step 3 %>
+        <div class="bg-white p-6 rounded-xl shadow-sm text-center">
+          <div class="w-12 h-12 bg-blue-600 text-white rounded-full flex items-center justify-center mx-auto mb-4 text-xl font-bold">3</div>
+          <h3 class="font-bold text-gray-900 mb-2">Start One Rhythm</h3>
+          <p class="text-gray-600 text-sm">Pick one meeting—weekly huddle is great—and commit to it for 4 weeks.</p>
+        </div>
+      </div>
+
+      <% unless user_signed_in? %>
+        <div class="text-center">
+          <%= render "shared/waitlist_modal", lead: Lead.new %>
+        </div>
+      <% else %>
+        <div class="text-center">
+          <%= link_to "Go to Dashboard", current_user.active_family ? family_path(current_user.active_family) : new_family_path,
+              class: "inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl" %>
+        </div>
+      <% end %>
+    </div>
+  </section>
+
+  <%# ===== DOWNLOAD PDF SECTION ===== %>
+  <section class="py-16 bg-white">
+    <div class="max-w-2xl mx-auto px-4 text-center">
+      <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-2xl border border-blue-100">
+        <div class="text-4xl mb-4">&#x1F4D6;</div>
+        <h2 class="text-2xl font-bold text-gray-900 mb-3">Download the Full Guide</h2>
+        <p class="text-gray-600 mb-6">
+          Get the complete Family Operating System PDF—all the frameworks, templates, and sample agendas in one printable document.
+        </p>
+        <%= link_to "/Family_Operating_System.pdf",
+            class: "inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium",
+            target: "_blank" do %>
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Download PDF
+        <% end %>
+      </div>
+    </div>
+  </section>
 </div>

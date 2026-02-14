@@ -4,7 +4,7 @@ Rails.application.routes.draw do
 
   devise_for :users
 
-  resources :leads, only: [:create]
+  resources :leads, only: [:create, :update]
 
   resources :families do
     member do

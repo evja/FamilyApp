@@ -1,0 +1,68 @@
+<%# Step 1: Waitlist Signup Form %>
+<div class="text-center mb-6">
+  <h2 class="text-2xl font-bold text-gray-900 mb-2">Join the FamilyHub Waitlist</h2>
+  <p class="text-gray-600">Be first in line when we launch. Early members get exclusive access.</p>
+</div>
+
+<%= form_with model: lead, url: leads_path, data: { turbo_frame: "waitlist_content" } do |form| %>
+  <%# Display validation errors %>
+  <% if lead.errors.any? %>
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+      <ul class="text-sm text-red-600 list-disc list-inside">
+        <% lead.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="space-y-4">
+    <%# First Name %>
+    <div>
+      <%= form.label :first_name, "First Name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :first_name,
+          required: true,
+          autofocus: true,
+          placeholder: "First name",
+          class: "w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all #{lead.errors[:first_name].any? ? 'border-red-500' : ''}" %>
+    </div>
+
+    <%# Last Name %>
+    <div>
+      <%= form.label :last_name, "Last Name", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.text_field :last_name,
+          required: true,
+          placeholder: "Last name",
+          class: "w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all #{lead.errors[:last_name].any? ? 'border-red-500' : ''}" %>
+    </div>
+
+    <%# Email %>
+    <div>
+      <%= form.label :email, "Email", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.email_field :email,
+          required: true,
+          placeholder: "you@example.com",
+          class: "w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all #{lead.errors[:email].any? ? 'border-red-500' : ''}" %>
+    </div>
+
+    <%# Honeypot field - hidden from humans, visible to bots %>
+    <div class="hidden" aria-hidden="true">
+      <%= form.text_field :hp, tabindex: "-1", autocomplete: "off" %>
+    </div>
+
+    <%# Hidden fields for tracking %>
+    <%= form.hidden_field :source, value: params[:source] %>
+    <%= form.hidden_field :campaign, value: params[:utm_campaign] %>
+    <%= form.hidden_field :referral_source, value: params[:ref] %>
+
+    <%# Submit button %>
+    <div class="pt-2">
+      <%= form.submit "Get Early Access",
+          class: "w-full px-6 py-4 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer" %>
+    </div>
+  </div>
+<% end %>
+
+<p class="mt-4 text-xs text-center text-gray-500">
+  We respect your privacy. No spam, ever.
+</p>

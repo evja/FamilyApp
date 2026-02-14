@@ -1,31 +1,219 @@
-<%
-  # Use default theme colors for non-logged in users
-  colors = if user_signed_in? && current_user.family
-    current_user.family.theme_colors
-  else
-    { primary: "#2563eb", secondary: "#4338ca", background: "#f3f4f6" }
-  end
-%>
+<%# Landing Page - Conversion-focused design with waitlist capture %>
+<% content_for :body_class, "bg-white" %>
 
-<div class="max-w-4xl mx-auto px-4 py-12">
-  <h2 class="text-2xl sm:text-3xl font-bold mb-6" style="color: <%= colors[:primary] %>">Welcome to FamilyHub</h2>
-  
-  <p class="text-lg text-gray-600 mb-8">
-    A space to help your family build vision, rhythms, and responsibility.
-  </p>
-  
-  <div class="flex flex-wrap gap-4">
-    <%= link_to "Learn More", about_path, 
-        class: "inline-block px-6 py-2 rounded transition-all duration-300",
-        style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
+<div class="min-h-screen">
+  <%# ===== HERO SECTION ===== %>
+  <section class="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50">
+    <div class="max-w-6xl mx-auto px-4 py-20 md:py-32">
+      <div class="text-center max-w-3xl mx-auto">
+        <%# Badge %>
+        <div class="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium mb-6">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+          </span>
+          Now accepting early members
+        </div>
 
-    <% unless user_signed_in? %>
-      <%= link_to "Get Started", new_user_registration_path,
-          class: "inline-block px-6 py-2 rounded border transition-all duration-300",
-          style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; 
-                 hover:background-color: #{colors[:primary]}; hover:color: white;" %>
-    <% end %>
-  </div>
+        <%# Headline %>
+        <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          Run Your Family<br class="hidden sm:block" />
+          <span class="text-blue-600">Like It Matters</span>
+        </h1>
 
-  <%= render "leads/leadform" unless user_signed_in? %>
+        <%# Subheadline %>
+        <p class="text-xl md:text-2xl text-gray-600 mb-10 leading-relaxed">
+          FamilyHub gives intentional families the systems to stay connected,
+          aligned, and thriving—without the chaos.
+        </p>
+
+        <%# CTA Button %>
+        <% unless user_signed_in? %>
+          <%= render "shared/waitlist_modal", lead: Lead.new %>
+        <% else %>
+          <%= link_to "Go to Dashboard", current_user.active_family ? family_path(current_user.active_family) : new_family_path,
+              class: "inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl" %>
+        <% end %>
+
+        <%# Waitlist Counter %>
+        <% unless user_signed_in? %>
+          <% lead_count = Lead.count %>
+          <% goal = 500 %>
+          <% progress = [(lead_count.to_f / goal * 100), 100].min %>
+          <% remaining = [goal - lead_count, 0].max %>
+
+          <div class="mt-10 max-w-md mx-auto">
+            <div class="flex justify-between text-sm text-gray-600 mb-2">
+              <span><strong><%= lead_count %></strong> families on waitlist</span>
+              <span><strong><%= remaining %></strong> spots remaining</span>
+            </div>
+            <div class="h-2 bg-gray-200 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-500"
+                   style="width: <%= progress %>%"></div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    </div>
+
+    <%# Decorative elements %>
+    <div class="absolute top-0 left-0 w-72 h-72 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 -translate-x-1/2 -translate-y-1/2"></div>
+    <div class="absolute bottom-0 right-0 w-96 h-96 bg-indigo-100 rounded-full mix-blend-multiply filter blur-3xl opacity-50 translate-x-1/3 translate-y-1/3"></div>
+  </section>
+
+  <%# ===== BENEFITS SECTION ===== %>
+  <section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Why Families Choose FamilyHub</h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Stop reacting to life. Start designing the family culture you actually want.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <%# Benefit 1: Connection %>
+        <div class="bg-gradient-to-br from-blue-50 to-white p-8 rounded-2xl border border-blue-100">
+          <div class="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-7 h-7 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Deepen Connection</h3>
+          <p class="text-gray-600 leading-relaxed">
+            Track relationship health between every family member. Catch disconnection early, before it becomes distance.
+          </p>
+        </div>
+
+        <%# Benefit 2: Prevent Drift %>
+        <div class="bg-gradient-to-br from-indigo-50 to-white p-8 rounded-2xl border border-indigo-100">
+          <div class="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-7 h-7 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Prevent Drift</h3>
+          <p class="text-gray-600 leading-relaxed">
+            Align on vision and values as a family. When everyone knows where you're headed, daily decisions get easier.
+          </p>
+        </div>
+
+        <%# Benefit 3: Systems %>
+        <div class="bg-gradient-to-br from-purple-50 to-white p-8 rounded-2xl border border-purple-100">
+          <div class="w-14 h-14 bg-purple-100 rounded-xl flex items-center justify-center mb-6">
+            <svg class="w-7 h-7 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Build Rhythms</h3>
+          <p class="text-gray-600 leading-relaxed">
+            Create predictable family meetings that actually work. Weekly syncs, monthly check-ins, quarterly retreats.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== INCENTIVES SECTION ===== %>
+  <section class="py-20 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="text-center mb-16">
+        <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Early Access Benefits</h2>
+        <p class="text-xl text-gray-600 max-w-2xl mx-auto">
+          Join the waitlist today and get exclusive founding member perks.
+        </p>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        <%# Incentive 1: Start Free %>
+        <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="text-4xl mb-4">1</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Start Free</h3>
+          <p class="text-gray-600">
+            Founding members get extended free access while we build out features. You shape what we create.
+          </p>
+        </div>
+
+        <%# Incentive 2: Share Input %>
+        <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="text-4xl mb-4">2</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Shape the Product</h3>
+          <p class="text-gray-600">
+            Early members get direct access to our team. Tell us what your family needs and watch us build it.
+          </p>
+        </div>
+
+        <%# Incentive 3: Exclusive Access %>
+        <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition-shadow">
+          <div class="text-4xl mb-4">3</div>
+          <h3 class="text-xl font-bold text-gray-900 mb-3">Lock In Pricing</h3>
+          <p class="text-gray-600">
+            Founding members lock in the lowest price forever. As we add features, your price stays the same.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== ABOUT SECTION ===== %>
+  <section class="py-20 bg-white">
+    <div class="max-w-6xl mx-auto px-4">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <%# Image placeholder %>
+        <div class="order-2 md:order-1">
+          <div class="aspect-[4/3] bg-gradient-to-br from-blue-100 to-indigo-100 rounded-2xl flex items-center justify-center">
+            <div class="text-center p-8">
+              <div class="text-6xl mb-4">&#x1F3E1;</div>
+              <p class="text-gray-600">Family Systems That Work</p>
+            </div>
+          </div>
+        </div>
+
+        <%# Story %>
+        <div class="order-1 md:order-2">
+          <h2 class="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
+            Built by Parents,<br />For Families
+          </h2>
+          <div class="space-y-4 text-lg text-gray-600 leading-relaxed">
+            <p>
+              We started FamilyHub because we were tired of running our family on sticky notes and group texts. Important things kept falling through the cracks.
+            </p>
+            <p>
+              So we built the tool we wished existed—a simple system to help families stay connected, handle issues before they explode, and actually enjoy time together instead of just managing chaos.
+            </p>
+            <p>
+              <strong class="text-gray-900">FamilyHub is the family operating system for intentional parents.</strong>
+            </p>
+          </div>
+          <div class="mt-8">
+            <%= link_to "Learn About Our Approach", about_path,
+                class: "inline-flex items-center gap-2 text-blue-600 font-semibold hover:text-blue-700 transition-colors" %>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <%# ===== BOTTOM CTA SECTION ===== %>
+  <% unless user_signed_in? %>
+    <section class="py-20 bg-gradient-to-r from-blue-600 to-indigo-700">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-3xl md:text-4xl font-bold text-white mb-6">
+          Ready to Run Your Family Intentionally?
+        </h2>
+        <p class="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
+          Join <%= Lead.count %> other families building something better. Get early access when we launch.
+        </p>
+
+        <%= render "shared/waitlist_modal", lead: Lead.new %>
+
+        <p class="mt-6 text-sm text-blue-200">
+          Free to join. No credit card required.
+        </p>
+      </div>
+    </section>
+  <% end %>
 </div>

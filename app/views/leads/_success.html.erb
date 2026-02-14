@@ -1,0 +1,59 @@
+<%# Step 2: Success + Optional Survey %>
+<div class="text-center mb-6">
+  <div class="w-16 h-16 mx-auto mb-4 bg-green-100 rounded-full flex items-center justify-center">
+    <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+  <h2 class="text-2xl font-bold text-gray-900 mb-2">You're on the list, <%= lead.first_name %>!</h2>
+  <p class="text-gray-600">Help us build FamilyHub for families like yours.</p>
+</div>
+
+<%= form_with model: lead, url: lead_path(lead), method: :patch, data: { turbo_frame: "waitlist_content" } do |form| %>
+  <div class="space-y-4">
+    <%# Family Size %>
+    <div>
+      <%= form.label :family_size, "How many people in your family?", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.select :family_size,
+          options_for_select([
+            ["Select...", nil],
+            ["2 (couple)", 2],
+            ["3-4 (small family)", 3],
+            ["5-6 (medium family)", 5],
+            ["7+ (large family)", 7]
+          ], lead.family_size),
+          {},
+          class: "w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
+    </div>
+
+    <%# Biggest Challenge %>
+    <div>
+      <%= form.label :biggest_challenge, "What's your family's biggest challenge?", class: "block text-sm font-medium text-gray-700 mb-1" %>
+      <%= form.select :biggest_challenge,
+          options_for_select([
+            ["Select...", nil],
+            ["Staying connected", "connection"],
+            ["Managing schedules", "schedules"],
+            ["Communication breakdowns", "communication"],
+            ["Getting everyone aligned", "alignment"],
+            ["Building healthy habits", "habits"],
+            ["Other", "other"]
+          ], lead.biggest_challenge),
+          {},
+          class: "w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all" %>
+    </div>
+
+    <%# Submit button %>
+    <div class="pt-2 space-y-3">
+      <%= form.submit "Complete Survey",
+          class: "w-full px-6 py-4 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-all duration-300 cursor-pointer" %>
+
+      <button
+        type="button"
+        data-action="modal#close"
+        class="w-full px-6 py-3 text-sm font-medium text-gray-500 hover:text-gray-700 transition-colors">
+        Skip for now
+      </button>
+    </div>
+  </div>
+<% end %>
