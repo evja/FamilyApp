@@ -25,6 +25,13 @@ bin/rails test       # Minitest suite with fixtures
 
 Database names: `family_app_development`, `family_app_test`. Production uses `DATABASE_URL`.
 
+## Production
+
+- **Domain**: `www.myfamilyhub.com` (canonical host)
+- **Canonical redirect**: `ApplicationController#enforce_canonical_host` redirects all production traffic to `www.myfamilyhub.com` via 301. Skips `/up` health check.
+- **Allowed hosts**: Both `www.myfamilyhub.com` and `myfamilyhub.com` are configured in `production.rb`
+- **Mailer host**: Uses `www.myfamilyhub.com` for email links
+
 ## Models & Relationships
 
 ```

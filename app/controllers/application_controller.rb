@@ -1,5 +1,7 @@
 class ApplicationController < ActionController::Base
+
   before_action :set_no_cache
+  before_action :enforce_canonical_host
   helper_method :current_family, :current_member, :viewing_as_user?, :show_admin_features?, :visible_modules
 
   DASHBOARD_MODULES = %w[Members Issues Vision Rhythms Relationships Responsibilities Rituals].freeze
@@ -78,6 +80,19 @@ class ApplicationController < ActionController::Base
 
   def set_no_cache
     response.headers["Cache-Control"] = "no-store"
+  end
+
+  def enforce_canonical_host
+    return unless Rails.env.production?
+
+    canonical_host = "www.myfamilyhub.com"
+
+    # allow health check if you use it (optional)
+    return if request.path == "/up"
+
+    return if request.host == canonical_host
+
+    redirect_to "#{request.protocol}#{canonical_host}#{request.fullpath}", status: :moved_permanently
   end
 
   def authorize_family!
