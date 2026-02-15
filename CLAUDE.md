@@ -297,6 +297,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
 - **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
 - **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save, wrapped in a transaction that rolls back on validation failure. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
+- **Dashboard Layout**: Clean 6-card module grid (Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals). Members card removed - access via navbar dropdown instead. First Rhythm Banner shows for parents who have completed onboarding but have no rhythms yet, prompting them to set up a Weekly Parent Sync. `FamiliesController#show` sets `@show_first_rhythm_prompt` based on: `current_user.onboarding_complete? && !@has_any_rhythms && current_member.parent_or_above?`.
 - **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
 - **Rhythms module**: Recurring family meetings with customizable agendas. Rhythms have frequency settings (daily to annually) and categories (parent_sync, family_huddle, retreat, check_in, custom). Each rhythm has agenda items with optional links to other sections (issues, vision, members, thrive). Meeting flow: start → check items → finish. Progress is tracked via `RhythmCompletion` and `CompletionItem` records. Turbo Streams update both checkbox items and the actions section (`_rhythm_actions.html.erb` partial) so the "Complete Meeting" button enables when all items are checked.
 - **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
@@ -309,13 +310,17 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 - **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
-- **Onboarding Wizard**: 4-step behavior-driven onboarding for new users. Steps: Welcome (create family) → Add Members → First Issue → Dashboard Intro. Uses `layout 'onboarding'` (minimal layout with progress bar). State machine on User model (`onboarding_state` field). New signups start at `pending`, advance through steps, end at `complete`. `ApplicationController#redirect_to_onboarding` before_action redirects incomplete users. Exempt controllers: onboardings, devise/*, family_invitations, families, members, issues. Invitation acceptees skip onboarding entirely (state set to `complete` in `FamilyInvitationsController#accept`). Micro-celebrations: confetti on dashboard intro, toast notifications on member/issue creation. Skip link available on all steps.
+- **Navbar Layout**: Desktop navbar includes: Dashboard link, Members dropdown (shows all family members with avatars, "+ Add" button, "Manage members" link), Help link, Settings icon (gear), and Subscribe button (for non-subscribers). Mobile menu has equivalent links. The family dropdown (left side) includes: family switcher (if multi-family), Settings link, Create New Family, and Log Out.
+- **Consolidated Settings Page** (`devise/registrations/edit.html.erb`): Single page combining Family Settings (name, theme) and Account Settings (email, password). Family Settings section only shows if user has an active family. Danger Zone at bottom includes Delete Family (for family admins) and Delete Account options with typed confirmation modals.
+- **Onboarding Wizard**: 4-step behavior-driven onboarding for new users. Steps: Welcome (create family) → Add Members → First Issue → Dashboard Intro. Uses `layout 'onboarding'` (minimal layout with progress bar). State machine on User model (`onboarding_state` field). New signups start at `pending`, advance through steps, end at `complete`. `ApplicationController#redirect_to_onboarding` before_action redirects incomplete users. Exempt controllers: onboardings, devise/*, family_invitations, families, members, issues. Invitation acceptees skip onboarding entirely (state set to `complete` in `FamilyInvitationsController#accept`). Micro-celebrations: confetti on dashboard intro, toast notifications on member/issue creation. Skip link available on all steps. Dashboard Intro step includes prominent "Parent Sync" recommendation.
 - **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope. Delete buttons are located on edit pages: member delete in `members/edit.html.erb`, family delete in `families/edit.html.erb`.
 - **Shared UI Partials**: Reusable view components in `app/views/shared/`:
   - `_back_link.html.erb` — Standard back navigation link. Params: `path` (required), `text` (default: "Back to Dashboard").
   - `_page_header.html.erb` — Page header with title, back link, and optional actions. Params: `title`, `back_path` (required), `back_text`, `subtitle`. Use `content_for :page_actions` for action buttons.
   - `_empty_state.html.erb` — Empty state with icon, headline, description, and CTA. Params: `title`, `description`, `action_path`, `action_text` (required), `icon`, `examples`, `examples_label`.
   - `_confirm_delete_modal.html.erb` — Typed confirmation modal for destructive actions. See Safe Delete Confirmation above.
+- **Dashboard Partials** (`app/views/families/`):
+  - `_first_rhythm_banner.html.erb` — Prompts parents to start their first Parent Sync meeting. Shows when `@show_first_rhythm_prompt` is true (onboarding complete, no rhythms, user is parent). Links to rhythm setup with "Weekly Parent Sync" template pre-selected.
 - **Button Classes**: Standardized button classes in `theme_plugin.js`:
   - `btn-primary` — Main action buttons (uses `--primary-color` CSS variable)
   - `btn-secondary` — Outline style with theme color border
@@ -328,7 +333,8 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 The app has been simplified for MVP launch. Fields and features are hidden from the UI but preserved in the database for future use.
 
 ### Dashboard Card Visibility
-- **All modules**: Members, Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals (defined in `ApplicationController::DASHBOARD_MODULES`)
+- **Dashboard modules**: Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals (6 cards in grid)
+- **Members**: Accessed via navbar dropdown, not in dashboard grid
 - Admins can toggle which modules are visible to regular users via the admin dashboard
 - Hidden modules stored in `session[:hidden_modules]` (no database migration needed)
 - `visible_modules` helper returns array of currently visible module names
@@ -415,7 +421,8 @@ Users can enter a signup code during registration to get special access:
 **Module Availability Logic** (`families/show.html.erb`):
 - `current_user.has_full_access?` returns true if: admin OR beta_tester OR is_subscribed
 - Users with full access: all modules available
-- Users without full access: only Issues and Members are free, rest require subscription
+- Users without full access: only Issues is free in the dashboard grid, rest require subscription
+- Members access is always available via navbar dropdown (not gated by subscription)
 
 **User Model Methods**:
 - `signup_code_type` → returns `:beta_tester` or `nil` based on code
