@@ -11,6 +11,8 @@ class Family < ApplicationRecord
   has_many :rhythms, dependent: :destroy
   has_many :relationships, dependent: :destroy
   has_many :invitations, class_name: 'FamilyInvitation', dependent: :destroy
+  has_many :maturity_levels, dependent: :destroy
+  has_many :rituals, dependent: :destroy
   has_one :vision, class_name: "FamilyVision", dependent: :destroy
 
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }

@@ -1,0 +1,145 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-6xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <h2 class="text-2xl font-bold mb-2 mt-4" style="color: <%= colors[:primary] %>">Maturity Chart</h2>
+  <p class="text-gray-600 mb-6">Age-appropriate expectations and privileges for growing children.</p>
+
+  <% if @maturity_levels.empty? %>
+    <div class="bg-white p-8 rounded-lg shadow text-center">
+      <p class="text-gray-600 mb-4">No maturity chart available.</p>
+    </div>
+  <% else %>
+    <!-- Overview Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+      <% @maturity_levels.each do |level| %>
+        <a href="#level-<%= level.id %>" class="block">
+          <div class="bg-white p-4 rounded-lg shadow text-center hover:shadow-md transition-shadow cursor-pointer border-t-4"
+               style="border-top-color: <%= level.color_code %>;">
+            <div class="text-lg font-bold" style="color: <%= level.color_code %>;">
+              <%= level.color_name %>
+            </div>
+            <div class="text-xs text-gray-500 mt-1">
+              Ages <%= level.age_min %>-<%= level.age_max %>
+            </div>
+            <% members_at_level = @members_by_level[level.id] || [] %>
+            <% if members_at_level.any? %>
+              <div class="mt-2 flex flex-wrap justify-center gap-1">
+                <% members_at_level.first(3).each do |member| %>
+                  <span class="inline-block w-6 h-6 rounded-full bg-gray-100 text-xs leading-6 text-center" title="<%= member.name %>">
+                    <%= member.avatar_emoji || member.name[0].upcase %>
+                  </span>
+                <% end %>
+                <% if members_at_level.count > 3 %>
+                  <span class="text-xs text-gray-400">+<%= members_at_level.count - 3 %></span>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </a>
+      <% end %>
+    </div>
+
+    <!-- Detailed Level Cards -->
+    <div class="space-y-8">
+      <% @maturity_levels.each do |level| %>
+        <div id="level-<%= level.id %>" class="bg-white rounded-lg shadow overflow-hidden">
+          <!-- Level Header -->
+          <div class="p-6 border-l-4" style="border-left-color: <%= level.color_code %>; background: linear-gradient(to right, <%= level.color_code %>10, transparent);">
+            <div class="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 class="text-xl font-bold" style="color: <%= level.color_code %>;">
+                  <%= level.name %>
+                </h3>
+                <p class="text-gray-600 text-sm mt-1"><%= level.description %></p>
+              </div>
+              <% members_at_level = @members_by_level[level.id] || [] %>
+              <% if members_at_level.any? %>
+                <div class="bg-white rounded-lg px-4 py-2 shadow-sm">
+                  <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Family Members</div>
+                  <div class="flex items-center gap-2">
+                    <% members_at_level.each do |member| %>
+                      <span class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 rounded-full text-sm">
+                        <span><%= member.avatar_emoji || member.name[0].upcase %></span>
+                        <span><%= member.name.split.first %></span>
+                        <span class="text-gray-400">(<%= member.age %>)</span>
+                      </span>
+                    <% end %>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
+
+          <div class="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+            <!-- Expectations Column -->
+            <div class="p-6">
+              <h4 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Expected Behaviors
+              </h4>
+              <% level.behaviors_by_category.each do |category, behaviors| %>
+                <div class="mb-4">
+                  <h5 class="text-sm font-medium text-gray-600 mb-2 uppercase tracking-wide">
+                    <%= MaturityBehavior::CATEGORY_LABELS[category] || category.titleize %>
+                  </h5>
+                  <ul class="space-y-1">
+                    <% behaviors.each do |behavior| %>
+                      <li class="text-sm text-gray-700 flex items-start gap-2">
+                        <span class="text-gray-300 mt-1">•</span>
+                        <span><%= behavior.description %></span>
+                      </li>
+                    <% end %>
+                  </ul>
+                </div>
+              <% end %>
+            </div>
+
+            <!-- Privileges Column -->
+            <div class="p-6 bg-gray-50">
+              <h4 class="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"></path>
+                </svg>
+                Privileges & Freedoms
+              </h4>
+              <div class="space-y-3">
+                <% level.privileges.ordered.each do |privilege| %>
+                  <div class="flex items-start justify-between gap-4">
+                    <div>
+                      <span class="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                        <%= MaturityPrivilege::CATEGORY_LABELS[privilege.category] || privilege.category&.titleize %>
+                      </span>
+                      <div class="text-sm text-gray-700"><%= privilege.description %></div>
+                    </div>
+                    <% if privilege.value.present? %>
+                      <span class="text-sm font-semibold whitespace-nowrap px-2 py-1 rounded"
+                            style="background-color: <%= level.color_code %>20; color: <%= level.color_code %>;">
+                        <%= privilege.value %>
+                      </span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Details Link -->
+          <div class="px-6 py-3 bg-gray-50 border-t border-gray-100 text-right">
+            <%= link_to "View Full Details", family_maturity_level_path(@family, level),
+                class: "text-sm font-medium hover:underline",
+                style: "color: #{colors[:primary]};" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
+      class: "theme-button-outline text-sm mt-8 inline-block" %>
+</div>

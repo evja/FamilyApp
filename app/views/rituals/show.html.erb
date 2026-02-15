@@ -1,0 +1,160 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-4xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_rituals_path(@family), text: "Back to Rituals" %>
+
+  <!-- Header -->
+  <div class="bg-white rounded-lg shadow overflow-hidden mt-4 mb-6">
+    <div class="p-6 border-l-4" style="border-left-color: <%= colors[:primary] %>;">
+      <div class="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xs px-2 py-1 rounded-full font-medium"
+                  style="background-color: <%= colors[:primary] %>20; color: <%= colors[:primary] %>;">
+              <%= @ritual.ritual_type_label %>
+            </span>
+            <% if !@ritual.is_active %>
+              <span class="text-xs px-2 py-1 rounded-full bg-gray-100 text-gray-500">Inactive</span>
+            <% end %>
+          </div>
+          <h2 class="text-2xl font-bold text-gray-800"><%= @ritual.name %></h2>
+          <% if @ritual.description.present? %>
+            <p class="text-gray-600 mt-2"><%= @ritual.description %></p>
+          <% end %>
+        </div>
+        <div class="flex gap-2">
+          <%= link_to edit_family_ritual_path(@family, @ritual),
+              class: "btn-secondary text-sm" do %>
+            Edit
+          <% end %>
+        </div>
+      </div>
+
+      <!-- Metadata -->
+      <div class="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
+        <% if @ritual.frequency.present? %>
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span><%= @ritual.frequency_label %></span>
+          </div>
+        <% end %>
+        <% if @ritual.duration_display.present? %>
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+            </svg>
+            <span><%= @ritual.duration_display %></span>
+          </div>
+        <% end %>
+        <% if @components.any? %>
+          <div class="flex items-center gap-2 text-sm text-gray-600">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <span><%= @components.count %> step<%= @components.count == 1 ? '' : 's' %></span>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+
+  <!-- Purpose -->
+  <% if @ritual.purpose.present? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h3 class="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+        <svg class="w-5 h-5" style="color: <%= colors[:primary] %>;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+        </svg>
+        Why This Matters
+      </h3>
+      <p class="text-gray-600"><%= @ritual.purpose %></p>
+    </div>
+  <% end %>
+
+  <!-- Connected Values -->
+  <% if @ritual.family_values.any? %>
+    <div class="bg-white rounded-lg shadow p-6 mb-6">
+      <h3 class="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+        <svg class="w-5 h-5" style="color: <%= colors[:primary] %>;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+        </svg>
+        Connected to Family Values
+      </h3>
+      <div class="flex flex-wrap gap-2">
+        <% @ritual.family_values.each do |value| %>
+          <span class="px-3 py-1 rounded-full text-sm font-medium"
+                style="background-color: <%= colors[:secondary] %>20; color: <%= colors[:primary] %>;">
+            <%= value.name %>
+          </span>
+        <% end %>
+      </div>
+    </div>
+  <% end %>
+
+  <!-- Components / Steps -->
+  <div class="bg-white rounded-lg shadow overflow-hidden mb-6">
+    <div class="p-6 border-b border-gray-100">
+      <h3 class="font-semibold text-gray-800 flex items-center gap-2">
+        <svg class="w-5 h-5" style="color: <%= colors[:primary] %>;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+        </svg>
+        Ritual Steps
+      </h3>
+    </div>
+
+    <% if @components.empty? %>
+      <div class="p-6 text-center text-gray-500">
+        <p>No steps defined yet.</p>
+        <%= link_to "Add steps", edit_family_ritual_path(@family, @ritual),
+            class: "text-sm font-medium mt-2 inline-block",
+            style: "color: #{colors[:primary]};" %>
+      </div>
+    <% else %>
+      <div class="divide-y divide-gray-100">
+        <% @components.group_by(&:component_type).each do |type, components| %>
+          <div class="p-4">
+            <h4 class="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3">
+              <%= RitualComponent::COMPONENT_TYPE_LABELS[type] || type.titleize %>
+            </h4>
+            <ul class="space-y-3">
+              <% components.each_with_index do |component, index| %>
+                <li class="flex items-start gap-3">
+                  <span class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                        style="background-color: <%= colors[:primary] %>;">
+                    <%= index + 1 %>
+                  </span>
+                  <div class="flex-1">
+                    <div class="font-medium text-gray-800"><%= component.title %></div>
+                    <% if component.description.present? %>
+                      <p class="text-sm text-gray-600 mt-1"><%= component.description %></p>
+                    <% end %>
+                    <% if component.duration_display.present? %>
+                      <span class="inline-block mt-1 text-xs text-gray-400">
+                        <svg class="w-3 h-3 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <%= component.duration_display %>
+                      </span>
+                    <% end %>
+                  </div>
+                </li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-between items-center">
+    <%= link_to "&larr; Back to Rituals".html_safe, family_rituals_path(@family),
+        class: "theme-button-outline text-sm" %>
+    <%= link_to "Edit Ritual", edit_family_ritual_path(@family, @ritual),
+        class: "btn-primary text-sm" %>
+  </div>
+</div>

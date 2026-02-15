@@ -1,0 +1,79 @@
+<%
+  colors = @family.theme_colors
+%>
+
+<div class="max-w-6xl mx-auto mt-10">
+  <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
+
+  <div class="flex items-center justify-between flex-wrap gap-4 mt-4 mb-6">
+    <div>
+      <h2 class="text-2xl font-bold" style="color: <%= colors[:primary] %>">Family Rituals</h2>
+      <p class="text-gray-600 text-sm mt-1">Meaningful traditions that strengthen your family bonds.</p>
+    </div>
+    <% if @has_any_rituals %>
+      <%= link_to new_family_ritual_path(@family),
+          class: "btn-primary" do %>
+        + Add Ritual
+      <% end %>
+    <% end %>
+  </div>
+
+  <% if !@has_any_rituals %>
+    <%= render "shared/empty_state",
+        title: "Create Your First Family Ritual",
+        description: "Rituals are meaningful traditions that connect your family. They can be daily habits, weekly traditions, or milestone celebrations.",
+        action_path: new_family_ritual_path(@family),
+        action_text: "+ Create Your First Ritual",
+        examples: [
+          "Bedtime stories with a special song",
+          "Sunday morning pancakes together",
+          "Birthday celebration traditions",
+          "Back-to-school preparation ritual"
+        ],
+        examples_label: "Ideas to get started:",
+        icon: '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />' %>
+  <% else %>
+    <!-- Stats Overview -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-3xl font-bold" style="color: <%= colors[:primary] %>"><%= @rituals.count %></div>
+        <div class="text-sm text-gray-600">Total Rituals</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-3xl font-bold text-green-600"><%= @rituals.active.count %></div>
+        <div class="text-sm text-gray-600">Active</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-3xl font-bold text-purple-600"><%= Ritual::RITUAL_TYPES.count { |type| @rituals_by_type[type].present? } %></div>
+        <div class="text-sm text-gray-600">Categories</div>
+      </div>
+      <div class="bg-white p-4 rounded-lg shadow text-center">
+        <div class="text-3xl font-bold text-blue-600"><%= @rituals.sum { |r| r.components.count } %></div>
+        <div class="text-sm text-gray-600">Total Steps</div>
+      </div>
+    </div>
+
+    <!-- Rituals by Type -->
+    <% Ritual::RITUAL_TYPES.each do |ritual_type| %>
+      <% rituals_in_type = @rituals_by_type[ritual_type] || [] %>
+      <% next if rituals_in_type.empty? %>
+
+      <div class="mb-8">
+        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full" style="background-color: <%= colors[:primary] %>;"></span>
+          <%= Ritual::RITUAL_TYPE_LABELS[ritual_type] %>
+          <span class="text-sm font-normal text-gray-500">(<%= rituals_in_type.count %>)</span>
+        </h3>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <% rituals_in_type.each do |ritual| %>
+            <%= render "rituals/ritual_card", ritual: ritual, family: @family, colors: colors %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
+
+  <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
+      class: "theme-button-outline text-sm mt-6 inline-block" %>
+</div>

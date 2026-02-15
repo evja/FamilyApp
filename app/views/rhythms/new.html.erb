@@ -7,33 +7,27 @@
 
   <h2 class="text-2xl font-bold mb-6 mt-4 theme-text">New Rhythm</h2>
 
-  <!-- Template Selection -->
-  <% if @templates.any? %>
-    <div class="bg-white p-6 rounded-lg shadow border theme-border mb-8">
-      <h3 class="text-lg font-semibold theme-text mb-4">Quick Start: Choose a Template</h3>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <% @templates.each do |template| %>
-          <%= button_to family_rhythms_path(@family), method: :post, params: { template_name: template[:name] }, class: "text-left p-4 rounded-lg border-2 border-gray-200 hover:border-gray-400 transition-colors" do %>
-            <div class="font-medium theme-text"><%= template[:name] %></div>
-            <p class="text-sm text-gray-600 mt-1"><%= template[:description] %></p>
-            <div class="flex gap-3 mt-2 text-xs text-gray-500">
-              <span><%= Rhythm::FREQUENCY_LABELS[template[:frequency_type]] %></span>
-              <span>|</span>
-              <span><%= template[:item_count] %> items</span>
-              <% if template[:total_duration] > 0 %>
-                <span>|</span>
-                <span><%= template[:total_duration] %> min</span>
-              <% end %>
-            </div>
-          <% end %>
-        <% end %>
+  <!-- Template Library Link -->
+  <div class="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-6 mb-8">
+    <div class="flex items-start justify-between flex-wrap gap-4">
+      <div>
+        <h3 class="text-lg font-semibold text-gray-800 mb-1">Quick Start with Templates</h3>
+        <p class="text-gray-600 text-sm">Browse our pre-built rhythm templates designed for parent syncs, family huddles, retreats, and more.</p>
       </div>
+      <%= link_to templates_family_rhythms_path(@family),
+          class: "inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-colors hover:opacity-90",
+          style: "background-color: #{colors[:primary]};" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path>
+        </svg>
+        Browse Templates
+      <% end %>
     </div>
-  <% end %>
+  </div>
 
   <!-- Custom Creation Form -->
   <div class="bg-white p-6 rounded-lg shadow border theme-border">
-    <h3 class="text-lg font-semibold theme-text mb-2">Or Create a Custom Rhythm</h3>
+    <h3 class="text-lg font-semibold theme-text mb-2">Create a Custom Rhythm</h3>
     <p class="text-sm text-gray-500 mb-4">Create your rhythm first, then add agenda items on the next step.</p>
     <%= render "form", rhythm: @rhythm, family: @family %>
   </div>

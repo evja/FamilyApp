@@ -155,6 +155,12 @@ class RhythmsController < ApplicationController
     @existing_rhythm_names = @family.rhythms.pluck(:name)
   end
 
+  def templates
+    @templates_by_category = RhythmTemplates.templates_by_category
+    @category_labels = RhythmTemplates.category_groups
+    @existing_rhythm_names = @family.rhythms.pluck(:name)
+  end
+
   def update_setup
     selected_templates = params[:templates] || []
 

@@ -27,9 +27,12 @@ class FamiliesController < ApplicationController
     @relationships_needing_attention_count = @family.relationships.needs_attention.count +
                                              @family.relationships.unassessed.count
 
-    # Future badges (prep for later)
-    @overdue_responsibilities_count = 0
-    @upcoming_rituals_count = 0
+    # Responsibilities - now shows maturity levels
+    @has_maturity_chart = @family.maturity_levels.exists?
+
+    # Rituals
+    @rituals_count = @family.rituals.active.count
+    @has_any_rituals = @family.rituals.exists?
   end
 
   def new
