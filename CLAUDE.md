@@ -312,7 +312,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
 - **Navbar Layout**: Desktop navbar includes: Dashboard link, Members dropdown (shows all family members with avatars, "+ Add" button, "Manage members" link), Help link, Settings icon (gear), and Subscribe button (for non-subscribers). Mobile menu has equivalent links. The family dropdown (left side) includes: family switcher (if multi-family), Settings link, Create New Family, and Log Out.
 - **Consolidated Settings Page** (`devise/registrations/edit.html.erb`): Single page combining Family Settings (name, theme) and Account Settings (email, password). Family Settings section only shows if user has an active family. Danger Zone at bottom includes Delete Family (for family admins) and Delete Account options with typed confirmation modals.
-- **Onboarding Wizard**: 4-step behavior-driven onboarding for new users. Steps: Welcome (create family) → Add Members → First Issue → Dashboard Intro. Uses `layout 'onboarding'` (minimal layout with progress bar). State machine on User model (`onboarding_state` field). New signups start at `pending`, advance through steps, end at `complete`. `ApplicationController#redirect_to_onboarding` before_action redirects incomplete users. Exempt controllers: onboardings, devise/*, family_invitations, families, members, issues. Invitation acceptees skip onboarding entirely (state set to `complete` in `FamilyInvitationsController#accept`). Micro-celebrations: confetti on dashboard intro, toast notifications on member/issue creation. Skip link available on all steps. Dashboard Intro step includes prominent "Parent Sync" recommendation.
+- **Onboarding Wizard**: 4-step behavior-driven onboarding for new users. Steps: Welcome (create family) → Add Members ("Who else is in your family?" - user is already set up as parent) → First Issue → Dashboard Intro. Uses `layout 'onboarding'` (minimal layout with progress bar). State machine on User model (`onboarding_state` field). New signups start at `pending`, advance through steps, end at `complete`. `ApplicationController#redirect_to_onboarding` before_action redirects incomplete users. Exempt controllers: onboardings, devise/*, family_invitations, families, members, issues. Invitation acceptees skip onboarding entirely (state set to `complete` in `FamilyInvitationsController#accept`). Micro-celebrations: confetti on dashboard intro, toast notifications on member/issue creation. Skip link available on all steps. Dashboard Intro step includes prominent "Parent Sync" recommendation.
 - **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope. Delete buttons are located on edit pages: member delete in `members/edit.html.erb`, family delete in `families/edit.html.erb`.
 - **Shared UI Partials**: Reusable view components in `app/views/shared/`:
   - `_back_link.html.erb` — Standard back navigation link. Params: `path` (required), `text` (default: "Back to Dashboard").
@@ -336,15 +336,13 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **Dashboard modules** (ordered by progression): Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (6 cards in grid)
 - **Card order rationale**: Matches Stabilize → Orient → Operate transformation tiers
 - **Members**: Accessed via navbar dropdown, not in dashboard grid
-- **Two-level access control**: Each module has both progression lock AND subscription lock
-  - **Progression lock**: Must complete previous steps to unlock (gray lock icon, "Complete steps to unlock")
-  - **Subscription lock**: Only Issues is free, rest require subscription (themed lock icon, "Subscribe to unlock")
-  - Both locks must be cleared for a module to be accessible
-- Admins can toggle which modules are visible to regular users via the admin dashboard
-- Hidden modules stored in `session[:hidden_modules]` (no database migration needed)
-- `visible_modules` helper returns array of currently visible module names
-- Non-visible modules only shown to admins when not in "View as User" mode, with an "Admin Preview - Hidden from users" badge
-- Controlled by `show_admin_features?` and `visible_modules` helpers in `ApplicationController`
+- **Access control logic** (`families/show.html.erb`):
+  - **Full access users** (admin, beta testers, subscribers): ALL modules available, bypass progression lock
+  - **Free users**: Only Issues is free; other modules require both progression AND subscription
+  - **Progression lock**: Gray lock icon, "Complete steps to unlock" badge
+  - **Subscription lock**: Themed lock icon, "Subscribe to unlock" badge
+- **Next Step Banner**: Shows for free users only, displays next module to unlock with progress bar and action button linking to relevant page
+- All 6 modules always visible on dashboard (never hidden), just locked appropriately
 
 ### Simplified Forms
 - **Member form** (`members/_form.html.erb`): shows name, birthdate (optional), age, role dropdown (Parent/Teen/Child), and email field (shown via Alpine.js for parent/teen roles). When birthdate is provided, age is auto-calculated and child/teen role is auto-assigned (13+ = teen, under 13 = child). Parent roles are never auto-assigned. Hidden fields (personality, interests, health, needs, development) remain in DB schema and strong params.
@@ -359,15 +357,8 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 ### Admin "View as User" Toggle
 - Admins can toggle a "View as User" mode via `session[:view_as_user]`
 - Route: `POST /admin/toggle_view_as_user`
-- When active, `show_admin_features?` returns false, hiding non-visible dashboard cards and showing an indigo banner
-- Helper methods: `viewing_as_user?`, `show_admin_features?`, `visible_modules` (all exposed as `helper_method` in `ApplicationController`)
-
-### Admin Module Visibility Toggle
-- Admins can toggle individual dashboard modules on/off from the admin dashboard
-- Route: `POST /admin/toggle_module_visibility` with `module_name` param
-- Stores hidden modules in `session[:hidden_modules]` array
-- `visible_modules` helper returns `DASHBOARD_MODULES - hidden_modules`
-- Modules: Members, Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals
+- When active, `show_admin_features?` returns false and shows an indigo banner
+- Helper methods: `viewing_as_user?`, `show_admin_features?` (exposed as `helper_method` in `ApplicationController`)
 
 ### Progressive Module Unlock System
 
@@ -399,19 +390,18 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 - `module_unlock_message(module_name)` — motivational message for the module
 - `module_unlock_condition(module_name)` — human-readable unlock requirement
 - `module_unlock_progress(module_name)` — returns progress data (numeric, boolean, or blocked)
-- `module_visible_to_user?(module_key)` — combines unlock state with admin visibility settings
 
-**Dashboard Behavior**:
+**Dashboard Behavior** (`families/show.html.erb`):
 - **Card Order**: Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (matches progression)
-- **Two-Level Access**: Modules require both progression unlock AND subscription
-  - `is_available = is_unlocked && (has_subscription || is_free_module)`
-  - Only Issues is free; all others require subscription
+- **Access Logic**:
+  - `is_available = has_full_access || (is_unlocked && is_free_module)`
+  - Full access users (admin/beta/subscribed): ALL modules available, bypass progression
+  - Free users: Only Issues is free; others require both progression AND subscription
   - Progression-locked modules show gray "Complete steps to unlock" badge
   - Subscription-locked modules show themed "Subscribe to unlock" badge
-- **Next Step Banner**: Shows above module cards for non-admins, displays the next module to unlock with progress indicator
-- **All Unlocked Celebration**: Green banner when all modules are unlocked
-- **Admin Bypass**: Admins always see all modules with contextual badges ("Locked for users" or "Hidden by admin")
-- **Layered Visibility**: A module must be both unlocked AND not admin-hidden to appear for regular users
+- **Next Step Banner**: Shows for free users only, displays next module to unlock with progress bar and action button
+- **All Unlocked Celebration**: Green banner when all modules are unlocked (for free users who progress)
+- All 6 modules always visible on dashboard, just locked appropriately
 
 **Cross-Module Link Protection**: Issue creation buttons are conditionally hidden until Issues module is unlocked:
 - `members/show.html.erb`: "+ Issue" button wrapped in `module_unlocked?(:issues)` check
@@ -431,10 +421,10 @@ Users can enter a signup code during registration to get special access:
 
 **Module Availability Logic** (`families/show.html.erb`):
 - `current_user.has_full_access?` returns true if: admin OR beta_tester OR is_subscribed
-- Users with full access: subscription lock bypassed, but still must progress through unlock flow
-- Users without full access: only Issues is free, rest show "Subscribe to unlock"
-- Members access is always available via navbar dropdown (not gated by subscription)
-- All modules visible on dashboard (no hiding), but locked appropriately based on progression + subscription
+- Users with full access: ALL modules available (bypass both progression AND subscription locks)
+- Users without full access: only Issues is free, must progress AND subscribe for others
+- Members access is always available via navbar dropdown (not gated)
+- All 6 modules visible on dashboard, locked appropriately for free users
 
 **User Model Methods**:
 - `signup_code_type` → returns `:beta_tester` or `nil` based on code
