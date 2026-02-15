@@ -87,9 +87,9 @@ class Family < ApplicationRecord
     owner_member&.user
   end
 
-  # Check if family has an active subscription
+  # Check if family has an active subscription (includes trial)
   def subscribed?
-    subscription_status == 'active'
+    subscription_status.in?(%w[active trial])
   end
 
   def ensure_all_relationships!

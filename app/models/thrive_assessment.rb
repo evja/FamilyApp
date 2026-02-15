@@ -17,6 +17,7 @@ class ThriveAssessment < ApplicationRecord
 
   scope :recent, -> { order(assessed_at: :desc) }
   scope :for_member, ->(member) { where(member: member) }
+  # TODO: Currently unused - kept for future assessment history filtering
   scope :in_date_range, ->(start_date, end_date) { where(assessed_at: start_date..end_date) }
 
   # Immutable - assessments cannot be updated or destroyed after creation

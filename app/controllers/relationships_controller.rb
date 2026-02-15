@@ -28,7 +28,7 @@ class RelationshipsController < ApplicationController
           color: m.display_color, avatar_emoji: m.avatar_emoji,
           display_name: m.display_name }
       },
-      relationships: @family.relationships.map { |r|
+      relationships: @family.relationships.includes(:assessments).map { |r|
         { id: r.id, source: r.member_low_id, target: r.member_high_id,
           health_score: r.current_health_score, health_band: r.current_health_band,
           health_color: r.health_color_hsl, display_name: r.display_name,
@@ -65,10 +65,5 @@ class RelationshipsController < ApplicationController
       :score_cooperation, :score_affection, :score_trust,
       :whats_working, :whats_not_working, :action_items
     )
-  end
-
-  def relationship_json(r)
-    { id: r.id, health_score: r.current_health_score, health_band: r.current_health_band,
-      health_color: r.health_color_hsl, display_name: r.display_name }
   end
 end

@@ -12,6 +12,7 @@ class Lead < ApplicationRecord
   scope :hot_leads, -> { where("signal_strength >= ?", 3) }
   scope :warm_leads, -> { where(signal_strength: 1..2) }
   scope :cold_leads, -> { where("signal_strength < ?", 1) }
+  # TODO: Currently unused - kept for future admin lead sorting feature
   scope :by_signal_strength, -> { order(signal_strength: :desc, created_at: :desc) }
 
   # Callbacks

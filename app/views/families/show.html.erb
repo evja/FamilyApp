@@ -9,8 +9,8 @@
     </h2>
   </div>
   
-  <%# Progressive Unlock - Next Step Banner (only for free users who need to progress) %>
-  <% unless show_admin_features? || current_user.has_full_access? %>
+  <%# Progressive Unlock - Next Step Banner (hidden if First Rhythm banner is showing) %>
+  <% if @show_next_step_banner %>
     <% if next_module = next_unlockable_module %>
       <!-- Next Step Banner -->
       <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 rounded-lg shadow-sm overflow-hidden" style="border-left-color: <%= colors[:primary] %>;">
@@ -95,7 +95,7 @@
     <% end %>
   <% end %>
 
-  <%# First Rhythm Banner - For parents without rhythms %>
+  <%# First Rhythm Banner - For parents without rhythms (mutually exclusive with Next Step) %>
   <% if @show_first_rhythm_prompt %>
     <%= render 'families/first_rhythm_banner' %>
   <% end %>
@@ -115,14 +115,16 @@
       <% module_key = item[:label].downcase.to_sym %>
       <% is_unlocked = module_unlocked?(module_key) %>
 
-      <%# Access logic: %>
-      <%# - Full access users (admin, beta, subscribed): ALL modules available (bypass progression) %>
-      <%# - Free users: only Issues is free, must subscribe AND progress for others %>
-      <% has_full_access = current_user.has_full_access? %>
+      <%# Access logic (two separate gates): %>
+      <%# - bypasses_progression (admin only): skip unlock sequence entirely %>
+      <%# - bypasses_subscription (admin, beta, subscribed): access paid features %>
+      <%# - Beta testers see progression locks but not subscription locks (so they can test the flow) %>
+      <% bypasses_progression = current_user.bypasses_progression? %>
+      <% bypasses_subscription = current_user.bypasses_subscription? %>
       <% is_free_module = item[:label] == "Issues" %>
-      <% is_available = has_full_access || (is_unlocked && is_free_module) %>
-      <% progression_locked = !has_full_access && !is_unlocked %>
-      <% subscription_locked = !has_full_access && is_unlocked && !is_free_module %>
+      <% is_available = bypasses_progression || (is_unlocked && (is_free_module || bypasses_subscription)) %>
+      <% progression_locked = !bypasses_progression && !is_unlocked %>
+      <% subscription_locked = !bypasses_subscription && is_unlocked && !is_free_module %>
 
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative #{is_available ? 'hover:shadow-lg hover:scale-[1.02]' : 'cursor-not-allowed opacity-75'}",

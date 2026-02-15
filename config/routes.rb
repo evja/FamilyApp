@@ -67,13 +67,11 @@ Rails.application.routes.draw do
     resources :family_invitations, only: [:new, :create, :destroy]
     resource :vision, controller: 'family_visions', only: [:show, :edit, :update] do
       post :assist, on: :member
-      resources :values, controller: 'family_values', except: [:show]
     end
   end
 
   get 'invitations/:token/accept', to: 'family_invitations#accept', as: :accept_family_invitation
 
-  get 'billing', to: 'billing#index'
   post "billing/checkout", to: "billing#checkout", as: :checkout
 
   # Module tour completion
@@ -83,9 +81,8 @@ Rails.application.routes.draw do
   post 'admin/toggle_module_visibility', to: 'application#toggle_module_visibility', as: :toggle_module_visibility
 
   namespace :admin do
-    get 'leads/index'
     get "dashboard", to: "dashboard#index", as: :dashboard
-    resources :leads, only: [:index] do # <-- Admin-only view
+    resources :leads, only: [:index] do
       collection do
         get :export
       end

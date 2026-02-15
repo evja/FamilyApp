@@ -50,6 +50,7 @@ class Issue < ApplicationRecord
       .or(where(list_type: "individual", id: IssueMember.where(member_id: member.id).select(:issue_id)))
   }
 
+  # TODO: Currently unused - direct where() used in controller; kept for API/future use
   scope :for_list_type, ->(type) { where(list_type: type) if type.present? && LIST_TYPES.include?(type) }
 
   # Alias for clarity in views

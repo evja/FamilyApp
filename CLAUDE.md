@@ -47,7 +47,11 @@ User
   # Methods: active_family, switch_family!(family), member_of?(family), member_in(family)
   # Methods: family_admin?, family_parent?, family_role (use active_family context)
   # Methods: onboarding_complete?, onboarding_pending?, in_onboarding?, advance_onboarding_to!(state), complete_onboarding!
-  # Methods: signup_code_type, beta_tester?, has_full_access?
+  # Methods: signup_code_type, beta_tester?
+  # Access methods (two-gate system):
+  #   - bypasses_subscription? → true if admin, beta_tester, OR subscribed (can access paid features)
+  #   - bypasses_progression? → true if admin only (can skip unlock sequence)
+  #   - has_full_access? → alias for bypasses_subscription? (legacy)
 
 Family
   has_many :users (dependent: nullify)
@@ -241,8 +245,7 @@ All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/issues` (+ collection route `solve`, member route `advance_status`)
 - `/families/:family_id/issue_assists` (POST only — AI writing assistant)
 - `/families/:family_id/family_invitations`
-- `/families/:family_id/vision` (singular resource)
-- `/families/:family_id/vision/values` (nested under vision)
+- `/families/:family_id/vision` (singular resource with `assist` action for AI suggestions)
 - `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`, `templates`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
 - `/families/:family_id/rhythms/:rhythm_id/agenda_items` (CRUD for agenda items)
 - `/families/:family_id/maturity_levels` (view-only maturity chart)
@@ -256,7 +259,7 @@ Other routes:
 - `/leads` — lead capture POST
 - `/onboarding` — 4-step onboarding wizard (GET show, PATCH update, POST complete, POST skip)
 - `/invitations/:token/accept` — invitation acceptance
-- `/billing` and `/billing/checkout` — Stripe integration
+- `/billing/checkout` (POST) — Stripe checkout session creation
 - `/admin/dashboard` and `/admin/leads` — admin area
 - `/admin/toggle_view_as_user` — toggle "View as User" mode
 - `/admin/toggle_module_visibility` — toggle dashboard module visibility
@@ -336,12 +339,23 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 - **Dashboard modules** (ordered by progression): Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (6 cards in grid)
 - **Card order rationale**: Matches Stabilize → Orient → Operate transformation tiers
 - **Members**: Accessed via navbar dropdown, not in dashboard grid
-- **Access control logic** (`families/show.html.erb`):
-  - **Full access users** (admin, beta testers, subscribers): ALL modules available, bypass progression lock
-  - **Free users**: Only Issues is free; other modules require both progression AND subscription
+- **Two-Gate Access System** (`families/show.html.erb`):
+  - **Gate 1: Progression** — Must complete unlock steps (add members → create issue → complete rhythm → etc.)
+  - **Gate 2: Subscription** — Must be admin, beta tester, or paid subscriber
+  - Access formula: `is_available = bypasses_progression || (is_unlocked && (is_free_module || bypasses_subscription))`
+- **User Type Behavior**:
+
+  | User Type | `bypasses_subscription?` | `bypasses_progression?` | Experience |
+  |-----------|-------------------------|------------------------|------------|
+  | Admin | ✅ | ✅ | All modules unlocked immediately |
+  | Beta Tester | ✅ | ❌ | Sees progression locks (can test flow), NO subscription locks |
+  | Subscriber | ✅ | ❌ | Same as beta tester |
+  | Free User | ❌ | ❌ | Sees both progression AND subscription locks |
+
+- **Lock Badge Display**:
   - **Progression lock**: Gray lock icon, "Complete steps to unlock" badge
   - **Subscription lock**: Themed lock icon, "Subscribe to unlock" badge
-- **Next Step Banner**: Shows for free users only, displays next module to unlock with progress bar and action button linking to relevant page
+- **Next Step Banner**: Shows when `!bypasses_progression? && next_unlockable_module.present?` (beta testers see it, admins don't)
 - All 6 modules always visible on dashboard (never hidden), just locked appropriately
 
 ### Simplified Forms
@@ -393,14 +407,21 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 
 **Dashboard Behavior** (`families/show.html.erb`):
 - **Card Order**: Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (matches progression)
-- **Access Logic**:
-  - `is_available = has_full_access || (is_unlocked && is_free_module)`
-  - Full access users (admin/beta/subscribed): ALL modules available, bypass progression
-  - Free users: Only Issues is free; others require both progression AND subscription
+- **Access Logic** (two-gate system):
+  ```
+  bypasses_progression = current_user.bypasses_progression?  # admin only
+  bypasses_subscription = current_user.bypasses_subscription?  # admin, beta, subscriber
+  is_available = bypasses_progression || (is_unlocked && (is_free_module || bypasses_subscription))
+  progression_locked = !bypasses_progression && !is_unlocked
+  subscription_locked = !bypasses_subscription && is_unlocked && !is_free_module
+  ```
+  - **Admin**: bypasses both gates → all modules available immediately
+  - **Beta/Subscriber**: bypasses subscription only → must progress through unlock sequence, but no payment gate
+  - **Free user**: blocked by both gates → must progress AND subscribe
   - Progression-locked modules show gray "Complete steps to unlock" badge
   - Subscription-locked modules show themed "Subscribe to unlock" badge
-- **Next Step Banner**: Shows for free users only, displays next module to unlock with progress bar and action button
-- **All Unlocked Celebration**: Green banner when all modules are unlocked (for free users who progress)
+- **Next Step Banner**: Shows when `!bypasses_progression? && next_unlockable_module.present?` (beta testers see this)
+- **All Unlocked Celebration**: Green banner when all modules are unlocked (for users who progress)
 - All 6 modules always visible on dashboard, just locked appropriately
 
 **Cross-Module Link Protection**: Issue creation buttons are conditionally hidden until Issues module is unlocked:
@@ -417,19 +438,25 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 Users can enter a signup code during registration to get special access:
 
 **Valid Codes** (defined in `User::VALID_SIGNUP_CODES`):
-- `beta26`, `betatester`, `familyhub2026` → Beta tester access (full module access)
+- `beta26`, `betatester`, `familyhub2026` → Beta tester access
 
-**Module Availability Logic** (`families/show.html.erb`):
-- `current_user.has_full_access?` returns true if: admin OR beta_tester OR is_subscribed
-- Users with full access: ALL modules available (bypass both progression AND subscription locks)
-- Users without full access: only Issues is free, must progress AND subscribe for others
-- Members access is always available via navbar dropdown (not gated)
-- All 6 modules visible on dashboard, locked appropriately for free users
+**Two-Gate Access System**:
+The app separates two concerns to allow beta testers to experience the real user flow:
+1. **`bypasses_subscription?`** — Can access paid features without paying (admin, beta, subscriber)
+2. **`bypasses_progression?`** — Can skip the progressive unlock sequence (admin only)
+
+**Why This Matters**:
+- Beta testers need to TEST the progression flow, not skip it
+- They should see "Complete steps to unlock" badges as they progress
+- They should NOT see "Subscribe to unlock" badges (they're testing for free)
+- Admins bypass everything for debugging/support purposes
 
 **User Model Methods**:
 - `signup_code_type` → returns `:beta_tester` or `nil` based on code
 - `beta_tester?` → true if user signed up with a beta tester code
-- `has_full_access?` → true if admin, beta tester, or subscribed
+- `bypasses_subscription?` → true if admin, beta_tester, or is_subscribed
+- `bypasses_progression?` → true if admin only
+- `has_full_access?` → alias for `bypasses_subscription?` (legacy compatibility)
 
 **Registration Form**: `devise/registrations/new.html.erb` includes optional "Access Code" field. Permitted via `configure_permitted_parameters` in ApplicationController.
 
@@ -440,7 +467,7 @@ Users can enter a signup code during registration to get special access:
 - **Devise email sender** in `config/initializers/devise.rb` likely needs updating for production.
 - **`IssueMember` model** has incorrect associations (`has_many :issue_members` and `has_many :issues, through: :issue_members` on a join model) — these are dead code but could cause confusion.
 - **No test coverage for authorization**. The auth fixes (authenticate_user!, authorize_family!) don't have corresponding controller tests yet.
-- **Alpine.js loaded via CDN** — no pinned version, could break on major update.
+- **Alpine.js loaded via CDN** — pinned to `@3.14.0` in both `application.html.erb` and `onboarding.html.erb`.
 - **`FamiliesController#new`** now allows creating additional families (multi-family support). No longer redirects if user has a family.
 - **JavaScript must use `javascript_importmap_tags`** in `application.html.erb`, not `javascript_include_tag`. The importmap helper is required for ES module `import` statements to work.
 - **Stimulus reserved properties**: Don't use `this.data` in Stimulus controllers — it's a read-only property (DataMap for `data-*` attributes). Use a different name like `this.graphData` or `this._data`.

@@ -39,6 +39,12 @@ class FamiliesController < ApplicationController
     @show_first_rhythm_prompt = current_user.onboarding_complete? &&
                                  !@has_any_rhythms &&
                                  current_member&.parent_or_above?
+
+    # Next Step banner - hide if First Rhythm banner is showing (mutual exclusion)
+    # Use bypasses_progression? so beta testers can still see/test the unlock flow
+    @show_next_step_banner = !@show_first_rhythm_prompt &&
+                              !current_user.bypasses_progression? &&
+                              helpers.next_unlockable_module.present?
   end
 
   def new

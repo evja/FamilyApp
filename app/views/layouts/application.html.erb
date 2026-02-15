@@ -9,7 +9,7 @@
     <%= stylesheet_link_tag "theme", "data-turbo-track": "reload" %>
     <%= javascript_importmap_tags %>
     <script src="https://js.stripe.com/v3/"></script>
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js" defer></script>
   </head>
 
   <body class="font-sans" data-theme="<%= (defined?(@family) && @family&.theme.presence) || current_user&.active_family&.theme || 'default' %>">

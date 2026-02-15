@@ -111,8 +111,21 @@ class User < ApplicationRecord
     signup_code_type == :beta_tester
   end
 
-  def has_full_access?
+  # Can access subscription-gated features without paying
+  # (admin, beta testers, or actual subscribers)
+  def bypasses_subscription?
     admin? || beta_tester? || is_subscribed?
+  end
+
+  # Can skip the progressive unlock sequence entirely
+  # (admin only - beta testers should test the progression flow)
+  def bypasses_progression?
+    admin?
+  end
+
+  # Legacy method - now just an alias for bypasses_subscription
+  def has_full_access?
+    bypasses_subscription?
   end
 
   private

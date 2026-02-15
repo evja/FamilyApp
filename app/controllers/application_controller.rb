@@ -110,8 +110,9 @@ class ApplicationController < ActionController::Base
       families
       members
       issues
+      billing
     ]
-    exempt_controllers.include?(controller_path)
+    exempt_controllers.include?(controller_path) || controller_path.start_with?('admin/')
   end
 
   def set_no_cache

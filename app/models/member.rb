@@ -41,8 +41,8 @@ class Member < ApplicationRecord
   before_save :sync_is_parent_with_role
   after_create :ensure_family_relationships
 
-  scope :parents, -> { where(is_parent: true) }
-  scope :children, -> { where(is_parent: false) }
+  scope :parents, -> { where(role: %w[admin_parent parent]) }
+  scope :children, -> { where(role: %w[teen child]) }
   scope :by_role, ->(role) { where(role: role) }
   scope :admin_parents, -> { where(role: 'admin_parent') }
   scope :invitable, -> { where(role: %w[admin_parent parent teen]).where(user_id: nil) }

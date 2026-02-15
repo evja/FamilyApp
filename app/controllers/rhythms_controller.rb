@@ -7,10 +7,11 @@ class RhythmsController < ApplicationController
   before_action :require_parent_access!, only: [:new, :create, :edit, :update, :destroy, :setup, :update_setup]
 
   def index
-    @overdue_rhythms = @family.rhythms.overdue.order(:next_due_at)
-    @due_soon_rhythms = @family.rhythms.due_soon.order(:next_due_at)
-    @on_track_rhythms = @family.rhythms.on_track.order(:next_due_at)
-    @inactive_rhythms = @family.rhythms.inactive.order(:name)
+    rhythms_base = @family.rhythms.includes(:agenda_items, :completions)
+    @overdue_rhythms = rhythms_base.overdue.order(:next_due_at)
+    @due_soon_rhythms = rhythms_base.due_soon.order(:next_due_at)
+    @on_track_rhythms = rhythms_base.on_track.order(:next_due_at)
+    @inactive_rhythms = rhythms_base.inactive.order(:name)
     @has_any_rhythms = @family.rhythms.exists?
   end
 
