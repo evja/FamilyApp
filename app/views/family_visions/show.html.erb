@@ -68,3 +68,12 @@
     <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
   </div>
 </div>
+
+<%= render "shared/module_tour",
+    module_key: "vision",
+    icon: "eye",
+    title: "Define Your Direction",
+    purpose: "Every family needs a shared direction. Your vision guides decisions and unites your family.",
+    key_action: "Write your family's mission",
+    cta_text: "Start Building Vision",
+    cta_path: edit_family_vision_path(@family) %>

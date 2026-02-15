@@ -220,3 +220,12 @@
       class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>
 
+<%= render "shared/module_tour",
+    module_key: "issues",
+    icon: "alert-circle",
+    title: "Capture Family Challenges",
+    purpose: "Problems don't go away when ignored - they grow. Capturing issues helps you address them before they escalate.",
+    key_action: "Log what's weighing on your family",
+    cta_text: "Log Your First Issue",
+    cta_path: new_family_issue_path(@family) %>
+

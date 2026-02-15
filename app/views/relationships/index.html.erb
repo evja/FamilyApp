@@ -106,3 +106,12 @@
   <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
       class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>
+
+<%= render "shared/module_tour",
+    module_key: "relationships",
+    icon: "heart",
+    title: "Track Family Connections",
+    purpose: "Strong families are built on strong relationships. Regularly assess how each pair is doing.",
+    key_action: "Check in on a relationship",
+    cta_text: "Assess a Relationship",
+    cta_path: nil %>

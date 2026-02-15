@@ -76,6 +76,9 @@ Rails.application.routes.draw do
   get 'billing', to: 'billing#index'
   post "billing/checkout", to: "billing#checkout", as: :checkout
 
+  # Module tour completion
+  post 'module_tours/:module_name/complete', to: 'application#complete_module_tour', as: :complete_module_tour
+
   post 'admin/toggle_view_as_user', to: 'application#toggle_view_as_user', as: :toggle_view_as_user
   post 'admin/toggle_module_visibility', to: 'application#toggle_module_visibility', as: :toggle_module_visibility
 

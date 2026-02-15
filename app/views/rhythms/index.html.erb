@@ -110,3 +110,12 @@
     <%= render "shared/back_link", path: family_path(@family), text: "Back to Dashboard" %>
   </div>
 </div>
+
+<%= render "shared/module_tour",
+    module_key: "rhythms",
+    icon: "repeat",
+    title: "Schedule Family Meetings",
+    purpose: "What you don't schedule, you drift from. Regular rhythms keep your family aligned.",
+    key_action: "Set up a recurring meeting",
+    cta_text: "Create Your First Rhythm",
+    cta_path: setup_family_rhythms_path(@family) %>

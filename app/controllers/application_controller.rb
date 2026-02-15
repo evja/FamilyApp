@@ -82,6 +82,13 @@ class ApplicationController < ActionController::Base
     all - hidden
   end
 
+  def complete_module_tour
+    session[:completed_tours] ||= []
+    module_name = params[:module_name]
+    session[:completed_tours] << module_name unless session[:completed_tours].include?(module_name)
+    head :ok
+  end
+
   private
 
   def redirect_to_onboarding

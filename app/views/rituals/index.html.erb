@@ -77,3 +77,12 @@
   <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
       class: "theme-button-outline text-sm mt-6 inline-block" %>
 </div>
+
+<%= render "shared/module_tour",
+    module_key: "rituals",
+    icon: "mountain",
+    title: "Create Meaningful Traditions",
+    purpose: "Rituals create the moments that matter. They build identity and lasting memories.",
+    key_action: "Design a family tradition",
+    cta_text: "Create Your First Ritual",
+    cta_path: new_family_ritual_path(@family) %>

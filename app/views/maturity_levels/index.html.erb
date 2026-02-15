@@ -143,3 +143,12 @@
   <%= link_to "&larr; Back to Dashboard".html_safe, family_path(@family),
       class: "theme-button-outline text-sm mt-8 inline-block" %>
 </div>
+
+<%= render "shared/module_tour",
+    module_key: "responsibilities",
+    icon: "check-square",
+    title: "Set Age-Appropriate Expectations",
+    purpose: "Growth happens through consistent practice. Clear expectations help kids develop independence.",
+    key_action: "Review what kids can do at each age",
+    cta_text: "Explore the Chart",
+    cta_path: nil %>
