@@ -83,6 +83,9 @@ class FamilyInvitationsController < ApplicationController
         end
       end
 
+      # Mark onboarding as complete - invitees join an existing family
+      current_user.complete_onboarding! unless current_user.onboarding_complete?
+
       @invitation.accept!
     end
     session.delete(:invitation_token)

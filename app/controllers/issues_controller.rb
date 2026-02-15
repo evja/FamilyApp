@@ -33,8 +33,14 @@ class IssuesController < ApplicationController
     @issue.status ||= "new"
 
     if @issue.save
-      return_path = params[:return_to].presence || family_issues_path(@family)
-      redirect_to return_path, notice: "Issue captured successfully."
+      # Handle onboarding flow
+      if params[:onboarding_redirect] && current_user.onboarding_state == 'first_issue'
+        current_user.advance_onboarding_to!('dashboard_intro')
+        redirect_to onboarding_path, notice: "Issue captured! That's one thing off your mind."
+      else
+        return_path = params[:return_to].presence || family_issues_path(@family)
+        redirect_to return_path, notice: "Issue captured successfully."
+      end
     else
       @members = @family.members.order(:name)
       @values = @family.family_values

@@ -3,22 +3,32 @@ module ApplicationHelper
   # PROGRESSIVE MODULE UNLOCK SYSTEM
   # ============================================================================
 
+  # Progressive unlock based on transformation tiers:
+  # Stabilize (Plug the holes)  → Members + Issues
+  # Orient (Organize the ship)  → Rhythms + Relationships
+  # Operate (Set sail)          → Vision + Responsibilities + Rituals
   def module_unlocked?(module_name)
     return true if show_admin_features?
 
     case module_name.to_s.downcase.to_sym
     when :members
+      # Always unlocked - entry point
       true
-    when :vision
-      @family.members.count > 1
     when :issues
-      vision_complete?
+      # Stabilize tier: 1+ members added
+      @family.members.count > 1
     when :rhythms
+      # Orient tier: 1+ issue logged
       module_unlocked?(:issues) && @family.issues.count >= 1
     when :relationships
-      module_unlocked?(:issues)
+      # Orient tier: 1+ member beyond admin (need pairs)
+      @family.members.count > 1
+    when :vision
+      # Operate tier: 1+ rhythm completed (earned through action)
+      @family.rhythms.joins(:completions).where(rhythm_completions: { status: 'completed' }).exists?
     when :responsibilities, :rituals
-      module_unlocked?(:rhythms)
+      # Operate tier: Vision started
+      vision_complete?
     else
       false
     end
@@ -30,10 +40,11 @@ module ApplicationHelper
       @family.vision.mission_statement.length >= 10
   end
 
+  # Order follows transformation tiers: Stabilize → Orient → Operate
   def next_unlockable_module
     return nil if show_admin_features?
 
-    [:members, :vision, :issues, :rhythms, :relationships, :responsibilities, :rituals].each do |mod|
+    [:members, :issues, :relationships, :rhythms, :vision, :responsibilities, :rituals].each do |mod|
       return mod unless module_unlocked?(mod)
     end
     nil
@@ -41,10 +52,10 @@ module ApplicationHelper
 
   def module_unlock_message(module_name)
     {
-      vision: "Every family needs a shared direction.",
       issues: "Problems don't go away when ignored - they grow.",
-      rhythms: "What you don't schedule, you drift from.",
       relationships: "Connection requires intention.",
+      rhythms: "What you don't schedule, you drift from.",
+      vision: "Every family needs a shared direction.",
       responsibilities: "Growth happens through consistent practice.",
       rituals: "Rituals create the moments that matter."
     }[module_name.to_sym]
@@ -52,31 +63,32 @@ module ApplicationHelper
 
   def module_unlock_condition(module_name)
     {
-      vision: "Add your family members to unlock",
-      issues: "Complete your family vision to start capturing issues",
+      issues: "Add your family members to start capturing issues",
+      relationships: "Add your family members to track relationships",
       rhythms: "Create your first issue to unlock Rhythms",
-      relationships: "Complete your family vision (unlocks with Issues)",
-      responsibilities: "Create your first rhythm to unlock Responsibilities",
-      rituals: "Create your first rhythm to unlock Rituals"
+      vision: "Complete a rhythm meeting to unlock Vision",
+      responsibilities: "Complete your family vision to unlock Responsibilities",
+      rituals: "Complete your family vision to unlock Rituals"
     }[module_name.to_sym]
   end
 
   def module_unlock_progress(module_name)
     case module_name.to_sym
-    when :vision
-      { current: @family.members.count, required: 1, label: "members", type: :numeric }
     when :issues
-      { complete: vision_complete?, label: "vision complete", type: :boolean }
+      { current: @family.members.count - 1, required: 1, label: "members (beyond you)", type: :numeric }
+    when :relationships
+      { current: @family.members.count - 1, required: 1, label: "members (beyond you)", type: :numeric }
     when :rhythms
       if module_unlocked?(:issues)
         { current: @family.issues.count, required: 1, label: "issues", type: :numeric }
       else
         { prerequisite: "Unlock Issues first", type: :blocked }
       end
-    when :relationships
-      { complete: module_unlocked?(:issues), label: "issues unlocked", type: :boolean }
+    when :vision
+      completed_rhythm = @family.rhythms.joins(:completions).where(rhythm_completions: { status: 'completed' }).exists?
+      { complete: completed_rhythm, label: "rhythm completed", type: :boolean }
     when :responsibilities, :rituals
-      { complete: module_unlocked?(:rhythms), label: "rhythms unlocked", type: :boolean }
+      { complete: vision_complete?, label: "vision complete", type: :boolean }
     else
       nil
     end

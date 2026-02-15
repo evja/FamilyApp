@@ -22,6 +22,15 @@
       <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" %>
     </div>
 
+    <div class="field">
+      <%= f.label :signup_code, "Access Code (optional)" %><br />
+      <%= f.text_field :signup_code,
+          autocomplete: "off",
+          placeholder: "Enter code if you have one",
+          class: "w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" %>
+      <p class="text-xs text-gray-500 mt-1">Beta testers and special access users enter your code here.</p>
+    </div>
+
     <div class="actions">
       <%= f.submit "Sign Up", class: "w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition" %>
     </div>

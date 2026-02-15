@@ -1,0 +1,106 @@
+<div class="bg-white rounded-2xl shadow-xl p-8 md:p-12 text-center">
+  <!-- Celebration Icon -->
+  <div class="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg celebrate-check">
+    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+  </div>
+
+  <!-- Headline -->
+  <h1 class="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+    Nice Work!
+  </h1>
+  <p class="text-lg text-gray-600 mb-8">
+    You've taken the first steps to organize your family.
+  </p>
+
+  <!-- Accomplishments -->
+  <div class="bg-gray-50 rounded-xl p-6 mb-8 text-left max-w-md mx-auto">
+    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-4">What you've accomplished:</h3>
+    <ul class="space-y-3">
+      <li class="flex items-center gap-3">
+        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span class="text-gray-700">Created your <%= @family.name %> family</span>
+      </li>
+      <% members_count = @family.members.count - 1 %>
+      <li class="flex items-center gap-3">
+        <div class="w-6 h-6 <%= members_count > 0 ? 'bg-green-500' : 'bg-gray-300' %> rounded-full flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span class="text-gray-700">
+          <% if members_count > 0 %>
+            Added <%= pluralize(members_count, 'family member') %>
+          <% else %>
+            <span class="text-gray-400">Add family members (you can do this later)</span>
+          <% end %>
+        </span>
+      </li>
+      <% issues_count = @family.issues.count %>
+      <li class="flex items-center gap-3">
+        <div class="w-6 h-6 <%= issues_count > 0 ? 'bg-green-500' : 'bg-gray-300' %> rounded-full flex items-center justify-center flex-shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <span class="text-gray-700">
+          <% if issues_count > 0 %>
+            Captured your first issue
+          <% else %>
+            <span class="text-gray-400">Capture issues (you can do this later)</span>
+          <% end %>
+        </span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- What's Next -->
+  <div class="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8 text-left max-w-md mx-auto">
+    <h3 class="text-sm font-semibold text-blue-800 uppercase tracking-wide mb-3">What's next:</h3>
+    <ul class="space-y-2 text-sm text-blue-700">
+      <li class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+        <span>Explore your dashboard to discover all features</span>
+      </li>
+      <li class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+        <span>Invite other parents to collaborate</span>
+      </li>
+      <li class="flex items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+        </svg>
+        <span>Set up family rhythms for regular check-ins</span>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Go to Dashboard Button -->
+  <%= form_with url: onboarding_path, method: :patch, local: true do %>
+    <button type="submit"
+            class="w-full max-w-md bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold py-4 px-6 rounded-lg hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+      Go to Dashboard
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </button>
+  <% end %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Trigger confetti celebration
+    setTimeout(function() {
+      window.showConfetti();
+    }, 300);
+  });
+</script>

@@ -4,6 +4,23 @@ class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
 
+  # Onboarding state machine
+  ONBOARDING_STATES = %w[pending welcome add_members first_issue dashboard_intro complete].freeze
+
+  # Valid signup codes for special access
+  # beta26: Beta testers - full module access
+  # Add more codes as needed: admin2026, etc.
+  VALID_SIGNUP_CODES = {
+    'beta26' => :beta_tester,
+    'betatester' => :beta_tester,
+    'familyhub2026' => :beta_tester
+  }.freeze
+
+  validates :onboarding_state, inclusion: { in: ONBOARDING_STATES }
+
+  scope :onboarding_incomplete, -> { where.not(onboarding_state: 'complete') }
+  scope :onboarding_complete, -> { where(onboarding_state: 'complete') }
+
   # Legacy single-family association (kept for backward compatibility)
   belongs_to :family, optional: true
 
@@ -57,6 +74,45 @@ class User < ApplicationRecord
 
   def family_role
     member&.role
+  end
+
+  # Onboarding state helpers
+  def onboarding_complete?
+    onboarding_state == 'complete'
+  end
+
+  def onboarding_pending?
+    onboarding_state == 'pending'
+  end
+
+  def in_onboarding?
+    !onboarding_complete?
+  end
+
+  def advance_onboarding_to!(state)
+    return if onboarding_complete?
+    return unless ONBOARDING_STATES.include?(state)
+
+    update!(onboarding_state: state)
+    update!(onboarding_completed_at: Time.current) if state == 'complete'
+  end
+
+  def complete_onboarding!
+    advance_onboarding_to!('complete')
+  end
+
+  # Signup code access methods
+  def signup_code_type
+    return nil if signup_code.blank?
+    VALID_SIGNUP_CODES[signup_code.downcase.strip]
+  end
+
+  def beta_tester?
+    signup_code_type == :beta_tester
+  end
+
+  def has_full_access?
+    admin? || beta_tester? || is_subscribed?
   end
 
   private

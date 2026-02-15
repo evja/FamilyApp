@@ -106,8 +106,8 @@
       { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), badge_count: @issues_needing_attention },
       { label: "Vision", icon: "eye", path: family_vision_path(@family), badge_count: @vision_incomplete_count },
       { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), badge_count: @overdue_rhythms_count },
-      { label: "Responsibilities", icon: "check-square", path: family_issues_path(@family), badge_count: @overdue_responsibilities_count },
-      { label: "Rituals", icon: "mountain", path: family_issues_path(@family), badge_count: @upcoming_rituals_count },
+      { label: "Responsibilities", icon: "check-square", path: family_maturity_levels_path(@family), badge_count: nil },
+      { label: "Rituals", icon: "mountain", path: family_rituals_path(@family), badge_count: @rituals_count > 0 ? @rituals_count : nil },
       { label: "Relationships", icon: "heart", path: family_relationships_path(@family), badge_count: @relationships_needing_attention_count }
     ] %>
 
@@ -115,7 +115,9 @@
       <% module_key = item[:label].downcase.to_sym %>
       <% is_visible = module_visible_to_user?(module_key) %>
       <% next unless is_visible || show_admin_features? %>
-      <% is_available = current_user.admin? || current_user.is_subscribed? || ["Issues", "Members", "Vision"].include?(item[:label]) %>
+      <%# Module availability: admins, beta testers, and subscribers get all modules %>
+      <%# Others: only Issues and Members are free, rest require subscription %>
+      <% is_available = current_user.has_full_access? || ["Issues", "Members"].include?(item[:label]) %>
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
@@ -169,6 +171,20 @@
                 <%= pluralize(@relationships_needing_attention_count, 'relationship') %> to assess
               <% else %>
                 All relationships healthy
+              <% end %>
+            <% when "Responsibilities" %>
+              <% if @has_maturity_chart %>
+                View maturity chart
+              <% else %>
+                Set up maturity chart
+              <% end %>
+            <% when "Rituals" %>
+              <% if @rituals_count.to_i > 0 %>
+                <%= pluralize(@rituals_count, 'active ritual') %>
+              <% elsif @has_any_rituals %>
+                No active rituals
+              <% else %>
+                No rituals set up yet
               <% end %>
             <% else %>
               Manage your family's <%= item[:label].downcase %>

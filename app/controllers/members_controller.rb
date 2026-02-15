@@ -28,7 +28,12 @@ class MembersController < ApplicationController
   def create
     @member = @family.members.new(member_params)
     if @member.save
-      redirect_to family_members_path(@family), notice: "Member added."
+      # Handle onboarding flow
+      if params[:onboarding_redirect] && current_user.onboarding_state == 'add_members'
+        redirect_to onboarding_path, notice: "#{@member.name} added to your family!"
+      else
+        redirect_to family_members_path(@family), notice: "Member added."
+      end
     else
       render :new, status: :unprocessable_entity
     end

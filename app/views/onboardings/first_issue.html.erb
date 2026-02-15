@@ -1,0 +1,108 @@
+<div class="bg-white rounded-2xl shadow-xl p-8 md:p-12">
+  <!-- Header -->
+  <div class="text-center mb-8">
+    <div class="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    </div>
+    <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+      Get One Thing Off Your Mind
+    </h1>
+    <p class="text-gray-600">
+      What's one thing weighing on you about your family right now?
+    </p>
+  </div>
+
+  <!-- Examples -->
+  <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8">
+    <p class="text-sm font-medium text-amber-800 mb-2">Example issues families capture:</p>
+    <ul class="text-sm text-amber-700 space-y-1">
+      <li class="flex items-center gap-2">
+        <span class="text-amber-500">*</span>
+        "Kids' bedtime routine has gotten chaotic"
+      </li>
+      <li class="flex items-center gap-2">
+        <span class="text-amber-500">*</span>
+        "We need to coordinate school pickup schedules"
+      </li>
+      <li class="flex items-center gap-2">
+        <span class="text-amber-500">*</span>
+        "Haven't had a family dinner together in weeks"
+      </li>
+    </ul>
+  </div>
+
+  <!-- Issue Form -->
+  <div class="mb-8">
+    <%= form_with model: [@family, @issue], url: family_issues_path(@family), method: :post, local: true do |f| %>
+      <input type="hidden" name="onboarding_redirect" value="true">
+      <%= f.hidden_field :list_type, value: 'family' %>
+
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 mb-2">What's the issue?</label>
+        <%= f.text_area :description,
+            rows: 3,
+            class: "w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500 resize-none",
+            placeholder: "Describe what's been on your mind...",
+            required: true %>
+      </div>
+
+      <!-- Urgency -->
+      <div class="mb-6">
+        <label class="block text-sm font-medium text-gray-700 mb-2">How urgent is this?</label>
+        <div class="flex gap-3">
+          <label class="flex-1 cursor-pointer">
+            <%= f.radio_button :urgency, 'Low', class: 'peer hidden', checked: true %>
+            <span class="block w-full py-2 px-3 text-center border border-gray-300 rounded-lg peer-checked:border-green-500 peer-checked:bg-green-50 peer-checked:text-green-700 transition-colors">
+              Low
+            </span>
+          </label>
+          <label class="flex-1 cursor-pointer">
+            <%= f.radio_button :urgency, 'Medium', class: 'peer hidden' %>
+            <span class="block w-full py-2 px-3 text-center border border-gray-300 rounded-lg peer-checked:border-amber-500 peer-checked:bg-amber-50 peer-checked:text-amber-700 transition-colors">
+              Medium
+            </span>
+          </label>
+          <label class="flex-1 cursor-pointer">
+            <%= f.radio_button :urgency, 'High', class: 'peer hidden' %>
+            <span class="block w-full py-2 px-3 text-center border border-gray-300 rounded-lg peer-checked:border-red-500 peer-checked:bg-red-50 peer-checked:text-red-700 transition-colors">
+              High
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit"
+              class="w-full bg-amber-600 text-white font-medium py-3 px-4 rounded-lg hover:bg-amber-700 transition-colors flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        </svg>
+        Capture This Issue
+      </button>
+    <% end %>
+  </div>
+
+  <!-- Divider -->
+  <div class="relative my-8">
+    <div class="absolute inset-0 flex items-center">
+      <div class="w-full border-t border-gray-200"></div>
+    </div>
+    <div class="relative flex justify-center">
+      <span class="bg-white px-4 text-sm text-gray-500">or</span>
+    </div>
+  </div>
+
+  <!-- Skip/Continue Button -->
+  <%= form_with url: onboarding_path, method: :patch, local: true do %>
+    <button type="submit"
+            class="w-full bg-gray-100 text-gray-700 font-medium py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors">
+      I'll add issues later
+    </button>
+  <% end %>
+
+  <!-- Encouragement -->
+  <p class="text-center text-sm text-gray-500 mt-4">
+    Capturing issues is the first step to solving them together.
+  </p>
+</div>

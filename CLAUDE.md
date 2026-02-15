@@ -41,8 +41,13 @@ User
   has_many :members (dependent: nullify)
   has_many :families, through: :members
   # Devise handles auth. Has admin flag. Last user destroys family on delete.
+  # Onboarding: onboarding_state (pending, welcome, add_members, first_issue, dashboard_intro, complete)
+  # Onboarding: onboarding_completed_at (timestamp when onboarding finished)
+  # Signup code: signup_code (e.g., "beta26" for beta testers)
   # Methods: active_family, switch_family!(family), member_of?(family), member_in(family)
   # Methods: family_admin?, family_parent?, family_role (use active_family context)
+  # Methods: onboarding_complete?, onboarding_pending?, in_onboarding?, advance_onboarding_to!(state), complete_onboarding!
+  # Methods: signup_code_type, beta_tester?, has_full_access?
 
 Family
   has_many :users (dependent: nullify)
@@ -52,6 +57,9 @@ Family
   has_many :issues (dependent: destroy)
   has_many :invitations (FamilyInvitation, dependent: destroy)
   has_many :rhythms (dependent: destroy)
+  has_many :relationships (dependent: destroy)
+  has_many :maturity_levels (dependent: destroy)
+  has_many :rituals (dependent: destroy)
   has_one  :vision (FamilyVision, dependent: destroy)
   includes Themeable concern (7 theme presets: forest, ocean, sunset, earth, olive, slate, rosegold)
   # Subscription: subscription_status (free, trial, active, past_due, canceled), stripe_subscription_id
@@ -175,7 +183,55 @@ RelationshipAssessment
   # SCORE_LABELS constant for display
   # Scopes: recent
 
-Join tables: IssueMember, IssueValue, IssueAssist
+MaturityLevel
+  belongs_to :family
+  has_many :behaviors (MaturityBehavior, dependent: destroy)
+  has_many :privileges (MaturityPrivilege, dependent: destroy)
+  # Age-based maturity levels for children (Yellow 3-6, Orange 7-8, etc.)
+  # Fields: name, color_code, age_min, age_max, position, description
+  # Scopes: ordered
+  # Methods: color_name, age_range_label, behaviors_by_category, privileges_by_category
+  # Auto-seeded via MaturityChartSeeder service
+
+MaturityBehavior
+  belongs_to :maturity_level
+  # Expected behaviors at each maturity level
+  # CATEGORIES: body, things, clothing, responsibilities, emotions
+  # Fields: category, description, position
+  # Scopes: ordered, by_category
+
+MaturityPrivilege
+  belongs_to :maturity_level
+  # Privileges earned at each maturity level
+  # CATEGORIES: money, bedtime, screen_time, food, social, independence
+  # Fields: category, description, value, position
+  # Scopes: ordered, by_category
+
+Ritual
+  belongs_to :family
+  has_many :components (RitualComponent, dependent: destroy)
+  has_many :ritual_values (dependent: destroy)
+  has_many :family_values, through: :ritual_values
+  # Meaningful family traditions
+  # RITUAL_TYPES: connection, special_person, community, coming_of_age, celebration
+  # FREQUENCIES: daily, weekly, monthly, yearly, milestone
+  # Fields: name, description, ritual_type, frequency, purpose, is_active, position
+  # Scopes: active, inactive, by_type, ordered
+  # Methods: ritual_type_label, frequency_label, total_duration_minutes, duration_display
+
+RitualComponent
+  belongs_to :ritual
+  # Steps within a ritual
+  # COMPONENT_TYPES: prepare, begin, perform, end
+  # Fields: component_type, title, description, duration_minutes, position
+  # Scopes: ordered, by_type
+
+RitualValue
+  belongs_to :ritual
+  belongs_to :family_value
+  # Join table linking rituals to family values
+
+Join tables: IssueMember, IssueValue, IssueAssist, RitualValue
 ```
 
 ## Route Structure
@@ -187,8 +243,10 @@ All family resources are nested under `/families/:family_id/`:
 - `/families/:family_id/family_invitations`
 - `/families/:family_id/vision` (singular resource)
 - `/families/:family_id/vision/values` (nested under vision)
-- `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
+- `/families/:family_id/rhythms` (+ collection routes `setup`, `update_setup`, `templates`; member routes `start`, `run`, `check_item`, `uncheck_item`, `finish`, `skip`)
 - `/families/:family_id/rhythms/:rhythm_id/agenda_items` (CRUD for agenda items)
+- `/families/:family_id/maturity_levels` (view-only maturity chart)
+- `/families/:family_id/rituals` (CRUD for family rituals)
 - `/families/:family_id/relationships` (+ collection route `graph_data`; member routes `assess`, `create_assessment`)
 - `/families/:id/switch` (POST — switch user's current family for multi-family support)
 
@@ -196,6 +254,7 @@ Other routes:
 - `/` — landing page (redirects to family if logged in)
 - `/about` — static page
 - `/leads` — lead capture POST
+- `/onboarding` — 4-step onboarding wizard (GET show, PATCH update, POST complete, POST skip)
 - `/invitations/:token/accept` — invitation acceptance
 - `/billing` and `/billing/checkout` — Stripe integration
 - `/admin/dashboard` and `/admin/leads` — admin area
@@ -250,6 +309,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
 - **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
+- **Onboarding Wizard**: 4-step behavior-driven onboarding for new users. Steps: Welcome (create family) → Add Members → First Issue → Dashboard Intro. Uses `layout 'onboarding'` (minimal layout with progress bar). State machine on User model (`onboarding_state` field). New signups start at `pending`, advance through steps, end at `complete`. `ApplicationController#redirect_to_onboarding` before_action redirects incomplete users. Exempt controllers: onboardings, devise/*, family_invitations, families, members, issues. Invitation acceptees skip onboarding entirely (state set to `complete` in `FamilyInvitationsController#accept`). Micro-celebrations: confetti on dashboard intro, toast notifications on member/issue creation. Skip link available on all steps.
 - **Safe Delete Confirmation**: Destructive actions (delete member, delete family, delete user account) require typed confirmation. Uses `confirm_delete_controller.js` Stimulus controller. User must type exact phrase (e.g., "Delete John") to enable delete button. Shows cascade warning of what will be deleted. ESC or backdrop click closes modal. Reusable pattern: wrap button + modal in same `data-controller="confirm-delete"` scope. Delete buttons are located on edit pages: member delete in `members/edit.html.erb`, family delete in `families/edit.html.erb`.
 - **Shared UI Partials**: Reusable view components in `app/views/shared/`:
   - `_back_link.html.erb` — Standard back navigation link. Params: `path` (required), `text` (default: "Back to Dashboard").
@@ -300,21 +360,26 @@ The app has been simplified for MVP launch. Fields and features are hidden from 
 
 ### Progressive Module Unlock System
 
-New families are guided through FamilyHub with a linear unlock path to prevent overwhelm. Modules unlock progressively as families complete foundational steps.
+New families are guided through FamilyHub with a linear unlock path to prevent overwhelm. Modules unlock progressively based on the Family Operating System's transformation tiers.
 
-**Design Intent**: Rather than showing all 7 modules at once (which can overwhelm new users), the system reveals features as families build their foundation. This creates a natural onboarding flow: add members → define vision → capture issues → establish rhythms.
+**Design Intent**: Rather than showing all 7 modules at once (which can overwhelm new users), the system reveals features as families progress through transformation tiers. This creates a natural flow: stabilize (capture issues) → orient (establish rhythms) → operate (define vision).
+
+**Transformation Tiers**:
+- **Stabilize** (Plug the holes): Members + Issues
+- **Orient** (Organize the ship): Rhythms + Relationships
+- **Operate** (Set sail): Vision + Responsibilities + Rituals
 
 **Unlock Order & Conditions**:
 
-| Module | Unlock Condition | Rationale |
-|--------|------------------|-----------|
-| Members | Always unlocked | Entry point - every family starts here |
-| Vision | 1+ family members exist | Need people before defining shared direction |
-| Issues | Vision complete (mission_statement 10+ chars) | Vision frames how issues are approached |
-| Relationships | Same as Issues | Unlocks alongside Issues |
-| Rhythms | Issues unlocked AND 1+ issue exists | Need issues to discuss in meetings |
-| Responsibilities | Rhythms unlocked | Placeholder module - future feature |
-| Rituals | Rhythms unlocked | Placeholder module - future feature |
+| Module | Unlock Condition | Tier |
+|--------|------------------|------|
+| Members | Always unlocked | Stabilize |
+| Issues | 1+ members beyond admin | Stabilize |
+| Relationships | 1+ members beyond admin | Orient |
+| Rhythms | Issues unlocked AND 1+ issue exists | Orient |
+| Vision | 1+ rhythm completed | Operate |
+| Responsibilities | Vision complete (mission_statement 10+ chars) | Operate |
+| Rituals | Vision complete (mission_statement 10+ chars) | Operate |
 
 **Helper Methods** (`app/helpers/application_helper.rb`):
 - `module_unlocked?(module_name)` — checks if a module is accessible based on family state
@@ -336,9 +401,28 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 - `rhythms/run.html.erb`: "Log Issue" button wrapped in `module_unlocked?(:issues)` check
 - `relationships/assess.html.erb`: "Create Issue" link wrapped in `module_unlocked?(:issues)` check
 
-**No Database Changes**: Unlock state is purely derived from existing family data (members count, vision presence, issues count, rhythms count). Existing families automatically have their correct unlock state calculated.
+**No Database Changes**: Unlock state is purely derived from existing family data (members count, issues count, rhythm completions, vision presence). Existing families automatically have their correct unlock state calculated.
 
-**Tests**: `test/helpers/application_helper_test.rb` covers all unlock logic (31 tests).
+**Tests**: `test/helpers/application_helper_test.rb` covers all unlock logic.
+
+### Signup Codes & Beta Access
+
+Users can enter a signup code during registration to get special access:
+
+**Valid Codes** (defined in `User::VALID_SIGNUP_CODES`):
+- `beta26`, `betatester`, `familyhub2026` → Beta tester access (full module access)
+
+**Module Availability Logic** (`families/show.html.erb`):
+- `current_user.has_full_access?` returns true if: admin OR beta_tester OR is_subscribed
+- Users with full access: all modules available
+- Users without full access: only Issues and Members are free, rest require subscription
+
+**User Model Methods**:
+- `signup_code_type` → returns `:beta_tester` or `nil` based on code
+- `beta_tester?` → true if user signed up with a beta tester code
+- `has_full_access?` → true if admin, beta tester, or subscribed
+
+**Registration Form**: `devise/registrations/new.html.erb` includes optional "Access Code" field. Permitted via `configure_permitted_parameters` in ApplicationController.
 
 ## Things to Watch Out For
 

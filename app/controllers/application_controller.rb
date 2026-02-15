@@ -2,6 +2,8 @@ class ApplicationController < ActionController::Base
 
   before_action :set_no_cache
   before_action :enforce_canonical_host
+  before_action :redirect_to_onboarding
+  before_action :configure_permitted_parameters, if: :devise_controller?
   helper_method :current_family, :current_member, :viewing_as_user?, :show_admin_features?, :visible_modules
 
   DASHBOARD_MODULES = %w[Members Issues Vision Rhythms Relationships Responsibilities Rituals].freeze
@@ -9,6 +11,8 @@ class ApplicationController < ActionController::Base
   def after_sign_in_path_for(resource)
     if session[:invitation_token].present?
       accept_family_invitation_path(token: session[:invitation_token])
+    elsif !resource.onboarding_complete?
+      onboarding_path
     elsif resource.active_family
       family_path(resource.active_family)
     else
@@ -19,6 +23,8 @@ class ApplicationController < ActionController::Base
   def after_sign_up_path_for(resource)
     if session[:invitation_token].present?
       accept_family_invitation_path(token: session[:invitation_token])
+    elsif !resource.onboarding_complete?
+      onboarding_path
     elsif resource.active_family
       family_path(resource.active_family)
     else
@@ -78,8 +84,36 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def redirect_to_onboarding
+    return unless user_signed_in?
+    return if onboarding_exempt_controller?
+    return if current_user.onboarding_complete?
+
+    redirect_to onboarding_path
+  end
+
+  def onboarding_exempt_controller?
+    # Controllers that should be accessible during onboarding
+    exempt_controllers = %w[
+      onboardings
+      devise/sessions
+      devise/registrations
+      devise/passwords
+      family_invitations
+      families
+      members
+      issues
+    ]
+    exempt_controllers.include?(controller_path)
+  end
+
   def set_no_cache
     response.headers["Cache-Control"] = "no-store"
+  end
+
+  def configure_permitted_parameters
+    devise_parameter_sanitizer.permit(:sign_up, keys: [:signup_code])
+    devise_parameter_sanitizer.permit(:account_update, keys: [:signup_code])
   end
 
   def enforce_canonical_host

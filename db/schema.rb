@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
+ActiveRecord::Schema[7.1].define(version: 2026_02_14_160001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
@@ -147,6 +147,43 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
     t.index ["signal_strength"], name: "index_leads_on_signal_strength"
   end
 
+  create_table "maturity_behaviors", force: :cascade do |t|
+    t.bigint "maturity_level_id", null: false
+    t.string "category"
+    t.text "description", null: false
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maturity_level_id", "category"], name: "index_maturity_behaviors_on_maturity_level_id_and_category"
+    t.index ["maturity_level_id"], name: "index_maturity_behaviors_on_maturity_level_id"
+  end
+
+  create_table "maturity_levels", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.string "name", null: false
+    t.string "color_code"
+    t.integer "age_min"
+    t.integer "age_max"
+    t.integer "position", default: 0
+    t.text "description"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "position"], name: "index_maturity_levels_on_family_id_and_position"
+    t.index ["family_id"], name: "index_maturity_levels_on_family_id"
+  end
+
+  create_table "maturity_privileges", force: :cascade do |t|
+    t.bigint "maturity_level_id", null: false
+    t.string "category"
+    t.text "description", null: false
+    t.string "value"
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["maturity_level_id", "category"], name: "index_maturity_privileges_on_maturity_level_id_and_category"
+    t.index ["maturity_level_id"], name: "index_maturity_privileges_on_maturity_level_id"
+  end
+
   create_table "members", force: :cascade do |t|
     t.bigint "family_id", null: false
     t.string "name"
@@ -247,6 +284,45 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
     t.index ["next_due_at"], name: "index_rhythms_on_next_due_at"
   end
 
+  create_table "ritual_components", force: :cascade do |t|
+    t.bigint "ritual_id", null: false
+    t.string "component_type", default: "perform"
+    t.string "title", null: false
+    t.text "description"
+    t.integer "duration_minutes"
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["ritual_id", "position"], name: "index_ritual_components_on_ritual_id_and_position"
+    t.index ["ritual_id"], name: "index_ritual_components_on_ritual_id"
+  end
+
+  create_table "ritual_values", force: :cascade do |t|
+    t.bigint "ritual_id", null: false
+    t.bigint "family_value_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_value_id"], name: "index_ritual_values_on_family_value_id"
+    t.index ["ritual_id", "family_value_id"], name: "index_ritual_values_on_ritual_id_and_family_value_id", unique: true
+    t.index ["ritual_id"], name: "index_ritual_values_on_ritual_id"
+  end
+
+  create_table "rituals", force: :cascade do |t|
+    t.bigint "family_id", null: false
+    t.string "name", null: false
+    t.text "description"
+    t.string "ritual_type", null: false
+    t.string "frequency"
+    t.text "purpose"
+    t.boolean "is_active", default: true
+    t.integer "position", default: 0
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["family_id", "is_active"], name: "index_rituals_on_family_id_and_is_active"
+    t.index ["family_id", "ritual_type"], name: "index_rituals_on_family_id_and_ritual_type"
+    t.index ["family_id"], name: "index_rituals_on_family_id"
+  end
+
   create_table "thrive_assessments", force: :cascade do |t|
     t.bigint "member_id", null: false
     t.bigint "completed_by_id"
@@ -283,10 +359,15 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
     t.boolean "admin"
     t.boolean "is_subscribed"
     t.bigint "current_family_id"
+    t.string "onboarding_state", default: "pending"
+    t.datetime "onboarding_completed_at"
+    t.string "signup_code"
     t.index ["current_family_id"], name: "index_users_on_current_family_id"
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["family_id"], name: "index_users_on_family_id"
+    t.index ["onboarding_state"], name: "index_users_on_onboarding_state"
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
+    t.index ["signup_code"], name: "index_users_on_signup_code"
   end
 
   add_foreign_key "agenda_items", "rhythms"
@@ -303,6 +384,9 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
   add_foreign_key "issue_values", "family_values"
   add_foreign_key "issue_values", "issues"
   add_foreign_key "issues", "families"
+  add_foreign_key "maturity_behaviors", "maturity_levels"
+  add_foreign_key "maturity_levels", "families"
+  add_foreign_key "maturity_privileges", "maturity_levels"
   add_foreign_key "members", "families"
   add_foreign_key "members", "users"
   add_foreign_key "relationship_assessments", "relationships"
@@ -314,6 +398,10 @@ ActiveRecord::Schema[7.1].define(version: 2026_02_14_044504) do
   add_foreign_key "rhythm_completions", "rhythms"
   add_foreign_key "rhythm_completions", "users", column: "completed_by_id"
   add_foreign_key "rhythms", "families"
+  add_foreign_key "ritual_components", "rituals"
+  add_foreign_key "ritual_values", "family_values"
+  add_foreign_key "ritual_values", "rituals"
+  add_foreign_key "rituals", "families"
   add_foreign_key "thrive_assessments", "members"
   add_foreign_key "thrive_assessments", "rhythm_completions"
   add_foreign_key "thrive_assessments", "users", column: "completed_by_id"

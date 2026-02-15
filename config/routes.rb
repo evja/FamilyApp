@@ -4,6 +4,12 @@ Rails.application.routes.draw do
 
   devise_for :users
 
+  # Onboarding wizard
+  resource :onboarding, only: [:show, :update], controller: 'onboardings' do
+    post :complete, on: :collection
+    post :skip, on: :collection
+  end
+
   resources :leads, only: [:create, :update]
 
   resources :families do
@@ -32,6 +38,7 @@ Rails.application.routes.draw do
       collection do
         get :setup
         post :update_setup
+        get :templates
       end
       member do
         post :start
@@ -43,6 +50,9 @@ Rails.application.routes.draw do
       end
       resources :agenda_items, only: [:new, :create, :edit, :update, :destroy]
     end
+
+    resources :maturity_levels, only: [:index, :show]
+    resources :rituals
 
     resources :relationships, only: [:index, :show] do
       collection do
