@@ -3,37 +3,10 @@
 %>
 
 <div class="max-w-6xl mx-auto mt-6 md:mt-12 px-4 md:px-6">
-  <div class="flex flex-wrap justify-between items-center mb-8 gap-4">
+  <div class="mb-8">
     <h2 class="text-3xl font-bold" style="color: <%= colors[:primary] %>">
-      Welcome to the <%= @family.name %> Family Dashboard
+      <%= @family.name %> Dashboard
     </h2>
-    
-    <div class="flex flex-wrap gap-4">
-      <% unless current_user.is_subscribed? %>
-        <%= button_to checkout_path, 
-            method: :post,
-            class: "inline-block" do %>
-          <button type="submit" 
-            class="px-4 py-2 rounded transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 hover:scale-105"
-            style="background-color: <%= colors[:primary] %>; color: white;"
-            onmouseover="this.style.backgroundColor='<%= colors[:secondary] %>'"
-            onmouseout="this.style.backgroundColor='<%= colors[:primary] %>'">
-            Subscribe to FamilyHub
-          </button>
-        <% end %>
-      <% end %>
-      
-      <%= link_to edit_family_path(@family),
-          class: "px-4 py-2 rounded border transition-all duration-300 flex items-center gap-2",
-          style: "border-color: #{colors[:primary]}; color: #{colors[:primary]}; 
-                 hover:background-color: #{colors[:primary]}; hover:color: white;" do %>
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        Settings
-      <% end %>
-    </div>
   </div>
   
   <%# Progressive Unlock - Next Step Banner %>
@@ -100,9 +73,13 @@
     <% end %>
   <% end %>
 
+  <%# First Rhythm Banner - For parents without rhythms %>
+  <% if @show_first_rhythm_prompt %>
+    <%= render 'families/first_rhythm_banner' %>
+  <% end %>
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
     <% dashboard_items = [
-      { label: "Members", icon: "users", path: family_members_path(@family), badge_count: @pending_invites_count },
       { label: "Issues", icon: "alert-circle", path: family_issues_path(@family), badge_count: @issues_needing_attention },
       { label: "Vision", icon: "eye", path: family_vision_path(@family), badge_count: @vision_incomplete_count },
       { label: "Rhythms", icon: "repeat", path: family_rhythms_path(@family), badge_count: @overdue_rhythms_count },
@@ -116,8 +93,8 @@
       <% is_visible = module_visible_to_user?(module_key) %>
       <% next unless is_visible || show_admin_features? %>
       <%# Module availability: admins, beta testers, and subscribers get all modules %>
-      <%# Others: only Issues and Members are free, rest require subscription %>
-      <% is_available = current_user.has_full_access? || ["Issues", "Members"].include?(item[:label]) %>
+      <%# Others: only Issues is free, rest require subscription %>
+      <% is_available = current_user.has_full_access? || item[:label] == "Issues" %>
       <%= link_to is_available ? item[:path] : "#",
           class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow hover:shadow-lg hover:scale-[1.02] #{!is_available ? 'cursor-not-allowed' : ''}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] : 'transparent'}; hover:border-color: #{colors[:primary]};" do %>
@@ -145,12 +122,6 @@
                 All issues resolved
               <% else %>
                 No issues logged yet
-              <% end %>
-            <% when "Members" %>
-              <% if @pending_invites_count.to_i > 0 %>
-                <%= pluralize(@pending_invites_count, 'invite') %> pending
-              <% else %>
-                <%= pluralize(@family.members.count, 'member') %>
               <% end %>
             <% when "Vision" %>
               <% if @vision_incomplete_count.to_i > 0 %>

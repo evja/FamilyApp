@@ -33,6 +33,12 @@ class FamiliesController < ApplicationController
     # Rituals
     @rituals_count = @family.rituals.active.count
     @has_any_rituals = @family.rituals.exists?
+
+    # First rhythm prompt - show for parents when no rhythms exist
+    current_member = current_user.member_in(@family)
+    @show_first_rhythm_prompt = current_user.onboarding_complete? &&
+                                 !@has_any_rhythms &&
+                                 current_member&.parent_or_above?
   end
 
   def new

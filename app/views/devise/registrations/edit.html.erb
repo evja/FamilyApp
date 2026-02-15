@@ -1,53 +1,155 @@
-<h2 class="text-2xl font-bold mb-6">Update Account</h2>
-<div class="max-w-md mx-auto mt-12 p-8 bg-white shadow rounded">
-  <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
-    <div class="space-y-4">
-      <div>
-        <%= f.label :email %><br />
-        <%= f.email_field :email, autofocus: true, class: "w-full border rounded px-3 py-2" %>
-      </div>
+<%
+  active_family = current_user.active_family
+  colors = active_family&.theme_colors || { primary: '#4F46E5', secondary: '#6366F1', background: '#F5F3FF' }
+%>
 
-      <div>
-        <%= f.label :password, "New password" %>
-        <%= f.password_field :password, autocomplete: "new-password", class: "w-full border rounded px-3 py-2" %>
-      </div>
+<div class="max-w-2xl mx-auto mt-8 px-4">
+  <%= render "shared/back_link", path: active_family ? family_path(active_family) : root_path, text: "Back to Dashboard" %>
 
-      <div>
-        <%= f.label :password_confirmation, "Confirm new password" %>
-        <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full border rounded px-3 py-2" %>
-      </div>
+  <h1 class="text-3xl font-bold mb-8 mt-4" style="color: <%= colors[:primary] %>">Settings</h1>
 
-      <div>
-        <%= f.label :current_password, "Current password" %>
-        <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full border rounded px-3 py-2" %>
-      </div>
+  <% if active_family %>
+    <!-- Family Settings Section -->
+    <div class="bg-white shadow rounded-lg p-6 mb-6">
+      <h2 class="text-xl font-semibold mb-6" style="color: <%= colors[:primary] %>">Family Settings</h2>
+
+      <%= form_with model: active_family, url: family_path(active_family), method: :patch, local: true, data: { turbo: false } do |form| %>
+        <% if active_family.errors.any? %>
+          <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded">
+            <ul class="list-disc list-inside text-sm text-red-600">
+              <% active_family.errors.full_messages.each do |message| %>
+                <li><%= message %></li>
+              <% end %>
+            </ul>
+          </div>
+        <% end %>
+
+        <div class="space-y-6">
+          <div>
+            <%= form.label :name, "Family Name", class: "block mb-2 font-medium text-gray-700" %>
+            <%= form.text_field :name, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+          </div>
+
+          <div>
+            <%= form.label :theme, "Color Theme", class: "block mb-2 font-medium text-gray-700" %>
+            <div class="relative">
+              <%= form.select :theme,
+                  Family::THEME_PRESETS.map { |key, theme| [theme[:name], key] },
+                  { selected: active_family.theme },
+                  class: "w-full px-4 py-2 border border-gray-300 rounded-lg appearance-none cursor-pointer focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500",
+                  id: "theme-select"
+              %>
+              <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+            <div class="flex gap-2 mt-3 items-center">
+              <div id="primaryColorPreview" class="w-6 h-6 rounded-full border border-gray-200"></div>
+              <div id="secondaryColorPreview" class="w-6 h-6 rounded-full border border-gray-200"></div>
+              <span id="themeName" class="text-sm text-gray-600"></span>
+            </div>
+          </div>
+
+          <div>
+            <%= form.submit "Save Family Settings",
+                class: "px-5 py-2 rounded-lg font-medium text-white transition-all duration-300 hover:shadow-md cursor-pointer",
+                style: "background-color: #{colors[:primary]};" %>
+          </div>
+        </div>
+      <% end %>
     </div>
-
-    <div class="mt-6 flex gap-4">
-      <%= f.submit "Update", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
-      <%= link_to "Cancel", family_path(current_user.family), class: "text-gray-600 hover:underline" %>
-    </div>
-    <hr class="my-8">
   <% end %>
 
+  <!-- Account Settings Section -->
+  <div class="bg-white shadow rounded-lg p-6 mb-6">
+    <h2 class="text-xl font-semibold mb-6" style="color: <%= colors[:primary] %>">Account Settings</h2>
+
+    <%= form_for(resource, as: resource_name, url: registration_path(resource_name), html: { method: :put }) do |f| %>
+      <div class="space-y-6">
+        <div>
+          <%= f.label :email, class: "block mb-2 font-medium text-gray-700" %>
+          <%= f.email_field :email, autofocus: true, class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <div>
+          <h3 class="font-medium text-gray-700 mb-4">Change Password</h3>
+          <div class="space-y-4">
+            <div>
+              <%= f.label :password, "New Password", class: "block mb-2 text-sm text-gray-600" %>
+              <%= f.password_field :password, autocomplete: "new-password", class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+              <p class="text-xs text-gray-500 mt-1">Leave blank if you don't want to change it</p>
+            </div>
+
+            <div>
+              <%= f.label :password_confirmation, "Confirm New Password", class: "block mb-2 text-sm text-gray-600" %>
+              <%= f.password_field :password_confirmation, autocomplete: "new-password", class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-gray-200">
+
+        <div>
+          <%= f.label :current_password, class: "block mb-2 font-medium text-gray-700" %>
+          <%= f.password_field :current_password, autocomplete: "current-password", class: "w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" %>
+          <p class="text-xs text-gray-500 mt-1">Required to save changes</p>
+        </div>
+
+        <div>
+          <%= f.submit "Save Account Settings",
+              class: "px-5 py-2 rounded-lg font-medium text-white transition-all duration-300 hover:shadow-md cursor-pointer",
+              style: "background-color: #{colors[:primary]};" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <!-- Danger Zone -->
+  <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+    <h2 class="text-lg font-semibold text-red-700 mb-4">Danger Zone</h2>
+
+    <% if active_family && current_user.family_admin? %>
+      <!-- Delete Family -->
+      <div data-controller="confirm-delete"
+           data-confirm-delete-phrase-value="Delete <%= active_family.name %>"
+           class="mb-6 pb-6 border-b border-red-200">
+        <h3 class="font-medium text-red-700 mb-2">Delete Family</h3>
+        <p class="text-sm text-red-600 mb-3">
+          This will permanently delete the <%= active_family.name %> family, including all members, issues, vision, rhythms, and relationships.
+        </p>
+        <button data-action="click->confirm-delete#open"
+                type="button"
+                class="px-4 py-2 rounded font-medium bg-red-600 text-white hover:bg-red-700 transition-all text-sm">
+          Delete Family
+        </button>
+
+        <%= render 'shared/confirm_delete_modal',
+            title: "Delete #{active_family.name}?",
+            phrase: "Delete #{active_family.name}",
+            cascade_items: ['All family members', 'All issues and history', 'Vision and values', 'Rhythms and completions', 'Relationships and assessments'],
+            form_path: family_path(active_family),
+            button_text: 'Delete Family',
+            item_name: active_family.name %>
+      </div>
+    <% end %>
+
+    <!-- Delete Account -->
     <div data-controller="confirm-delete"
-         data-confirm-delete-phrase-value="Delete my account"
-         class="bg-red-50 border border-red-200 rounded p-4 mt-6">
-      <h3 class="text-red-700 font-semibold mb-2">Danger Zone</h3>
-      <p class="text-sm text-red-600 mb-4">
+         data-confirm-delete-phrase-value="Delete my account">
+      <h3 class="font-medium text-red-700 mb-2">Delete Account</h3>
+      <p class="text-sm text-red-600 mb-3">
         Deleting your account will remove all your data permanently. This action cannot be undone.
       </p>
-
-      <!-- Trigger Button -->
-      <button
-        data-action="click->confirm-delete#open"
-        type="button"
-        class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded text-sm"
-      >
+      <button data-action="click->confirm-delete#open"
+              type="button"
+              class="px-4 py-2 rounded font-medium bg-red-600 text-white hover:bg-red-700 transition-all text-sm">
         Delete My Account
       </button>
 
-      <!-- Typed Confirmation Modal -->
       <%= render 'shared/confirm_delete_modal',
           title: "Delete Your Account?",
           phrase: "Delete my account",
@@ -56,4 +158,30 @@
           button_text: 'Delete My Account',
           item_name: 'Your account' %>
     </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const themeSelect = document.getElementById('theme-select');
+  if (!themeSelect) return;
+
+  const primaryPreview = document.getElementById('primaryColorPreview');
+  const secondaryPreview = document.getElementById('secondaryColorPreview');
+  const themeName = document.getElementById('themeName');
+
+  const themePresets = <%= raw Family::THEME_PRESETS.to_json %>;
+
+  function updatePreviews() {
+    const selectedTheme = themePresets[themeSelect.value];
+    if (selectedTheme) {
+      primaryPreview.style.backgroundColor = selectedTheme.primary;
+      secondaryPreview.style.backgroundColor = selectedTheme.secondary;
+      themeName.textContent = selectedTheme.name;
+    }
+  }
+
+  themeSelect.addEventListener('change', updatePreviews);
+  updatePreviews();
+});
+</script>
