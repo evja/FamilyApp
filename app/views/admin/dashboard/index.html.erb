@@ -52,20 +52,6 @@
 
 </div>
 
-<div class="bg-white shadow rounded-lg p-4 mt-6">
-  <h3 class="font-semibold mb-3">Module Visibility</h3>
-  <p class="text-sm text-gray-500 mb-4">Toggle which modules regular users can see</p>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-    <% ApplicationController::DASHBOARD_MODULES.each do |mod| %>
-      <%= button_to toggle_module_visibility_path(module_name: mod), method: :post, class: "text-left" do %>
-        <span class="<%= visible_modules.include?(mod) ? 'text-green-600' : 'text-gray-400' %>">
-          <%= visible_modules.include?(mod) ? '✓' : '○' %> <%= mod %>
-        </span>
-      <% end %>
-    <% end %>
-  </div>
-</div>
-
 <div class="mt-8">
   <h2 class="text-lg font-semibold mb-2">Beta Feedback</h2>
   <%= link_to "View Feedback Responses", "https://docs.google.com/spreadsheets/d/1kouRJJARR8xK7cHiGI4QOuthcELv0Y2YzQI7ApGZnKg/edit?resourcekey=&gid=1291355705#gid=1291355705", target: "_blank", class: "text-blue-600 underline" %>

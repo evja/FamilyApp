@@ -9,8 +9,8 @@
     </h2>
   </div>
   
-  <%# Progressive Unlock - Next Step Banner %>
-  <% unless show_admin_features? %>
+  <%# Progressive Unlock - Next Step Banner (only for free users who need to progress) %>
+  <% unless show_admin_features? || current_user.has_full_access? %>
     <% if next_module = next_unlockable_module %>
       <!-- Next Step Banner -->
       <div class="mb-8 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 rounded-lg shadow-sm overflow-hidden" style="border-left-color: <%= colors[:primary] %>;">
@@ -49,6 +49,28 @@
                       <div class="h-2.5 rounded-full transition-all duration-500" style="width: <%= [[progress[:current].to_f / progress[:required] * 100, 100].min, 0].max %>%; background-color: <%= colors[:primary] %>;"></div>
                     </div>
                   </div>
+                <% end %>
+              <% end %>
+
+              <%# Action button based on what's needed %>
+              <% action_path = case next_module
+                when :issues, :relationships then new_family_member_path(@family)
+                when :rhythms then family_issues_path(@family)
+                when :vision then family_rhythms_path(@family)
+                when :responsibilities, :rituals then family_vision_path(@family)
+                end %>
+              <% action_text = case next_module
+                when :issues, :relationships then "Add Family Members"
+                when :rhythms then "Create an Issue"
+                when :vision then "Start a Rhythm"
+                when :responsibilities, :rituals then "Complete Your Vision"
+                end %>
+              <% if action_path && action_text %>
+                <%= link_to action_path, class: "mt-3 inline-flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-white transition-all hover:shadow-md", style: "background-color: #{colors[:primary]};" do %>
+                  <%= action_text %>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 <% end %>
               <% end %>
             </div>
@@ -92,20 +114,18 @@
     <% dashboard_items.each do |item| %>
       <% module_key = item[:label].downcase.to_sym %>
       <% is_unlocked = module_unlocked?(module_key) %>
-      <% is_hidden_by_admin = session[:hidden_modules]&.include?(item[:label]) %>
-      <% next if is_hidden_by_admin && !show_admin_features? %>
 
-      <%# Two-level access: progression unlock AND subscription %>
-      <%# 1. Progression lock: must complete previous steps to unlock %>
-      <%# 2. Subscription lock: only Issues is free, rest need subscription %>
-      <% has_subscription = current_user.has_full_access? %>
+      <%# Access logic: %>
+      <%# - Full access users (admin, beta, subscribed): ALL modules available (bypass progression) %>
+      <%# - Free users: only Issues is free, must subscribe AND progress for others %>
+      <% has_full_access = current_user.has_full_access? %>
       <% is_free_module = item[:label] == "Issues" %>
-      <% is_available = is_unlocked && (has_subscription || is_free_module) %>
-      <% progression_locked = !is_unlocked %>
-      <% subscription_locked = is_unlocked && !has_subscription && !is_free_module %>
+      <% is_available = has_full_access || (is_unlocked && is_free_module) %>
+      <% progression_locked = !has_full_access && !is_unlocked %>
+      <% subscription_locked = !has_full_access && is_unlocked && !is_free_module %>
 
       <%= link_to is_available ? item[:path] : "#",
-          class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative overflow-hidden #{is_available ? 'hover:shadow-lg hover:scale-[1.02]' : 'cursor-not-allowed opacity-75'}",
+          class: "block bg-white shadow rounded-lg p-6 transition-all duration-300 ease-in-out group relative #{is_available ? 'hover:shadow-lg hover:scale-[1.02]' : 'cursor-not-allowed opacity-75'}",
           style: "border: 2px solid #{!is_available ? colors[:secondary] + '40' : 'transparent'};" do %>
 
         <%# Notification Badge - only for available modules %>
@@ -213,10 +233,6 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
               Subscribe to unlock
-            </span>
-          <% elsif show_admin_features? && is_hidden_by_admin %>
-            <span class="mt-1 text-xs font-medium px-2 py-1 bg-yellow-100 text-yellow-800 rounded">
-              Admin Preview - Hidden
             </span>
           <% end %>
         </div>

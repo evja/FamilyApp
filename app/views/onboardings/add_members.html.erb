@@ -7,10 +7,10 @@
       </svg>
     </div>
     <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mb-2">
-      Add Your Family Members
+      Who Else Is in Your Family?
     </h1>
     <p class="text-gray-600">
-      Start with one or two members - you can always add more later.
+      You're already set up as a parent. Now add your spouse, kids, or other family members.
     </p>
   </div>
 
@@ -40,7 +40,7 @@
   <!-- Add Member Form -->
   <div class="bg-gray-50 rounded-xl p-6 mb-8" x-data="{ role: 'child', showAge: true }">
     <h3 class="text-lg font-semibold text-gray-900 mb-4">
-      <%= @members.any? ? 'Add Another Member' : 'Add Your First Member' %>
+      <%= @members.any? ? 'Add Another Member' : 'Add a Family Member' %>
     </h3>
 
     <%= form_with model: [@family, @member], url: family_members_path(@family), method: :post, local: true do |f| %>
