@@ -297,7 +297,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 - **Issue status flow**: Issues progress through `new → acknowledged → working_on_it → resolved`. One-click `advance_status` action moves to next step. `resolved_at` timestamp is set when reaching resolved.
 - **AI writing assistant**: `IssueAssistant` service calls Anthropic API (Claude Haiku) via `Net::HTTP`. Rate limited to 20 per family per day via `IssueAssist` model. API key stored in `Rails.application.credentials.dig(:anthropic, :api_key)`. Gracefully degrades if key is not configured.
 - **Vision Builder**: 4-step Alpine.js wizard (Values → Mission Statement → 10-Year Dream → Review & Save) in `family_visions/edit.html.erb`. Values are synced via delete-all + recreate on save, wrapped in a transaction that rolls back on validation failure. `VisionAssistant` service generates 3 mission statement suggestions from selected values (same Anthropic API pattern as `IssueAssistant`). Rate limiting reuses `IssueAssist` table (shared family-wide 20/day limit). Route: `POST /families/:family_id/vision/assist`.
-- **Dashboard Layout**: Clean 6-card module grid (Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals). Members card removed - access via navbar dropdown instead. First Rhythm Banner shows for parents who have completed onboarding but have no rhythms yet, prompting them to set up a Weekly Parent Sync. `FamiliesController#show` sets `@show_first_rhythm_prompt` based on: `current_user.onboarding_complete? && !@has_any_rhythms && current_member.parent_or_above?`.
+- **Dashboard Layout**: Clean 6-card module grid ordered by progression: Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (matches Stabilize → Orient → Operate tiers). Members card removed - access via navbar dropdown instead. First Rhythm Banner shows for parents who have completed onboarding but have no rhythms yet, prompting them to set up a Weekly Parent Sync. `FamiliesController#show` sets `@show_first_rhythm_prompt` based on: `current_user.onboarding_complete? && !@has_any_rhythms && current_member.parent_or_above?`.
 - **Dashboard stats**: Issues card shows "X open · Y resolved this week" counts from `@open_issue_count` and `@resolved_this_week_count` set in `FamiliesController#show`.
 - **Rhythms module**: Recurring family meetings with customizable agendas. Rhythms have frequency settings (daily to annually) and categories (parent_sync, family_huddle, retreat, check_in, custom). Each rhythm has agenda items with optional links to other sections (issues, vision, members, thrive). Meeting flow: start → check items → finish. Progress is tracked via `RhythmCompletion` and `CompletionItem` records. Turbo Streams update both checkbox items and the actions section (`_rhythm_actions.html.erb` partial) so the "Complete Meeting" button enables when all items are checked.
 - **Agenda Items**: Managed via `AgendaItemsController` nested under rhythms. Each item has title, instructions, duration, position, and optional link type. Items are displayed in order during meeting runs. CRUD available from rhythm edit page.
@@ -308,7 +308,7 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
   - Member show page: "+ Issue" button pre-tags the member, sets list_type to individual
   - Rhythm run page: "Log Issue" button prefills description with rhythm name, returns to running meeting
   - Relationship assess page: "Create Issue" link pre-tags both members, sets list_type to individual
-- **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps (Members → Vision → Issues → Rhythms). Prevents new user overwhelm. See "Progressive Module Unlock System" section under MVP Simplification for details.
+- **Progressive module unlock**: Dashboard modules unlock sequentially as families complete setup steps. Card order: Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (matches Stabilize → Orient → Operate progression). Two-level access: progression lock + subscription lock. See "Progressive Module Unlock System" section under MVP Simplification for details.
 - **Multi-Family Support**: Users can belong to multiple families through Member records. `User#active_family` returns current_family or first family. Switch families via `POST /families/:id/switch`. Navbar shows family switcher dropdown when user has 2+ families. Each family has its own `subscription_status`. Invitations now allow joining additional families.
 - **Navbar Layout**: Desktop navbar includes: Dashboard link, Members dropdown (shows all family members with avatars, "+ Add" button, "Manage members" link), Help link, Settings icon (gear), and Subscribe button (for non-subscribers). Mobile menu has equivalent links. The family dropdown (left side) includes: family switcher (if multi-family), Settings link, Create New Family, and Log Out.
 - **Consolidated Settings Page** (`devise/registrations/edit.html.erb`): Single page combining Family Settings (name, theme) and Account Settings (email, password). Family Settings section only shows if user has an active family. Danger Zone at bottom includes Delete Family (for family admins) and Delete Account options with typed confirmation modals.
@@ -333,8 +333,13 @@ All family-scoped controllers use this pattern (defined in `ApplicationControlle
 The app has been simplified for MVP launch. Fields and features are hidden from the UI but preserved in the database for future use.
 
 ### Dashboard Card Visibility
-- **Dashboard modules**: Issues, Vision, Rhythms, Relationships, Responsibilities, Rituals (6 cards in grid)
+- **Dashboard modules** (ordered by progression): Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (6 cards in grid)
+- **Card order rationale**: Matches Stabilize → Orient → Operate transformation tiers
 - **Members**: Accessed via navbar dropdown, not in dashboard grid
+- **Two-level access control**: Each module has both progression lock AND subscription lock
+  - **Progression lock**: Must complete previous steps to unlock (gray lock icon, "Complete steps to unlock")
+  - **Subscription lock**: Only Issues is free, rest require subscription (themed lock icon, "Subscribe to unlock")
+  - Both locks must be cleared for a module to be accessible
 - Admins can toggle which modules are visible to regular users via the admin dashboard
 - Hidden modules stored in `session[:hidden_modules]` (no database migration needed)
 - `visible_modules` helper returns array of currently visible module names
@@ -397,6 +402,12 @@ New families are guided through FamilyHub with a linear unlock path to prevent o
 - `module_visible_to_user?(module_key)` — combines unlock state with admin visibility settings
 
 **Dashboard Behavior**:
+- **Card Order**: Issues → Relationships → Rhythms → Vision → Responsibilities → Rituals (matches progression)
+- **Two-Level Access**: Modules require both progression unlock AND subscription
+  - `is_available = is_unlocked && (has_subscription || is_free_module)`
+  - Only Issues is free; all others require subscription
+  - Progression-locked modules show gray "Complete steps to unlock" badge
+  - Subscription-locked modules show themed "Subscribe to unlock" badge
 - **Next Step Banner**: Shows above module cards for non-admins, displays the next module to unlock with progress indicator
 - **All Unlocked Celebration**: Green banner when all modules are unlocked
 - **Admin Bypass**: Admins always see all modules with contextual badges ("Locked for users" or "Hidden by admin")
@@ -420,9 +431,10 @@ Users can enter a signup code during registration to get special access:
 
 **Module Availability Logic** (`families/show.html.erb`):
 - `current_user.has_full_access?` returns true if: admin OR beta_tester OR is_subscribed
-- Users with full access: all modules available
-- Users without full access: only Issues is free in the dashboard grid, rest require subscription
+- Users with full access: subscription lock bypassed, but still must progress through unlock flow
+- Users without full access: only Issues is free, rest show "Subscribe to unlock"
 - Members access is always available via navbar dropdown (not gated by subscription)
+- All modules visible on dashboard (no hiding), but locked appropriately based on progression + subscription
 
 **User Model Methods**:
 - `signup_code_type` → returns `:beta_tester` or `nil` based on code
