@@ -1,12 +1,13 @@
 <%# Waitlist Modal - wrap content in a modal dialog %>
 <%# Usage: render "shared/waitlist_modal", lead: Lead.new %>
+<%# Progressive enhancement: link fallback when JS fails, modal when JS works %>
 <div data-controller="modal">
-  <%# Trigger button - styled as primary CTA %>
-  <button
-    data-action="modal#open"
-    class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+  <%# Trigger button - link fallback for when JS doesn't load %>
+  <a href="<%= new_user_registration_path %>"
+     data-action="click->modal#open"
+     class="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold text-white bg-blue-600 rounded-full hover:bg-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
     Join the Waitlist
-  </button>
+  </a>
 
   <%# Modal dialog %>
   <div

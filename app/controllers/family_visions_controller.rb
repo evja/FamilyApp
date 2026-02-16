@@ -36,6 +36,9 @@ class FamilyVisionsController < ApplicationController
     end
 
     if update_successful
+      # Mark vision tour as completed to prevent modal showing after save
+      session[:completed_tours] ||= []
+      session[:completed_tours] << "vision" unless session[:completed_tours].include?("vision")
       redirect_to family_vision_path(@family), notice: "Family vision updated!"
     else
       @existing_values = @family.family_values.reload.pluck(:name)

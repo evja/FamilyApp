@@ -18,6 +18,8 @@ class Family < ApplicationRecord
   validates :name, presence: true, length: { minimum: 2, maximum: 100 }
   validates :subscription_status, inclusion: { in: SUBSCRIPTION_STATUSES }, allow_nil: true
 
+  scope :subscribed, -> { where(subscription_status: %w[active trial]) }
+
   before_destroy :check_last_family
 
   def invite_user(email)

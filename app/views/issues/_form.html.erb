@@ -85,7 +85,7 @@
                 var textarea = document.getElementById('issue_description');
                 var description = textarea.value.trim();
                 if (!description) {
-                  this.error = 'Please write a description first.';
+                  this.error = 'Oops.. white some description first so i know best how to help.';
                   return;
                 }
                 this.loading = true;
@@ -194,7 +194,7 @@
         <%= form.submit "Save Issue",
             class: "px-4 py-2 rounded transition-all duration-300",
             style: "background-color: #{colors[:primary]}; color: white; hover:background-color: #{colors[:secondary]};" %>
-        <%= link_to "Cancel", family_issues_path(@family),
+        <%= link_to "Cancel", (@return_to.presence || family_issues_path(@family)),
             class: "text-sm hover:underline",
             style: "color: #{colors[:secondary]};" %>
       </div>

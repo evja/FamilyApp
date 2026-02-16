@@ -232,6 +232,7 @@ export default class extends Controller {
       .attr('stroke-linecap', 'round')
       .attr('stroke-opacity', d => this.getLinkOpacity(d))
       .style('cursor', 'pointer')
+      .style('pointer-events', d => this.getLinkPointerEvents(d))
       .style('transition', 'stroke-width 0.2s')
       .on('mouseenter', function() {
         d3.select(this).attr('stroke-width', hoverStroke)
@@ -312,6 +313,19 @@ export default class extends Controller {
     return isConnected ? 1.0 : 0.05
   }
 
+  getLinkPointerEvents(link) {
+    if (this.mode === 'web') {
+      return 'auto'
+    }
+
+    // Focus mode - disable clicks on faded (unconnected) links
+    const sourceId = typeof link.source === 'object' ? link.source.id : link.source
+    const targetId = typeof link.target === 'object' ? link.target.id : link.target
+    const isConnected = sourceId === this.focusedMemberId || targetId === this.focusedMemberId
+
+    return isConnected ? 'auto' : 'none'
+  }
+
   handleNodeClick(node) {
     if (this.mode === 'focus' && this.focusedMemberId === node.id) {
       // Clicking the same focused node returns to web mode
@@ -347,11 +361,13 @@ export default class extends Controller {
     // Reheat simulation
     this.simulation.alpha(0.5).restart()
 
-    // Animate link opacity
+    // Animate link opacity and restore pointer events
     this.linkContainer.selectAll('line')
       .transition()
       .duration(400)
       .attr('stroke-opacity', d => this.getLinkOpacity(d))
+    this.linkContainer.selectAll('line')
+      .style('pointer-events', d => this.getLinkPointerEvents(d))
 
     // Reset node scales
     this.nodeContainer.selectAll('g.node')
@@ -390,11 +406,13 @@ export default class extends Controller {
     // Reheat simulation
     this.simulation.alpha(0.5).restart()
 
-    // Animate link opacity
+    // Animate link opacity and disable pointer events on faded links
     this.linkContainer.selectAll('line')
       .transition()
       .duration(400)
       .attr('stroke-opacity', d => this.getLinkOpacity(d))
+    this.linkContainer.selectAll('line')
+      .style('pointer-events', d => this.getLinkPointerEvents(d))
 
     // Scale focused node
     this.nodeContainer.selectAll('g.node')

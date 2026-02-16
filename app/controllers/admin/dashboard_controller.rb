@@ -6,7 +6,25 @@ class Admin::DashboardController < ApplicationController
     @users = User.all
     @leads = Lead.all
     @families = Family.all
-    @subscribers = User.where(is_subscribed: true)# Adjust when Stripe is fully integrated
+
+    # Subscribers (users and families)
+    @user_subscribers = User.subscribed.includes(:families).order(created_at: :desc)
+    @family_subscribers = Family.subscribed.includes(:members).order(created_at: :desc)
+    @total_subscribers = @user_subscribers.count + @family_subscribers.count
+
+    # Lead filtering
+    @lead_filter = params[:lead_filter] || "all"
+    @filtered_leads = case @lead_filter
+      when "hot" then Lead.hot_leads.order(created_at: :desc).limit(10)
+      when "warm" then Lead.warm_leads.order(created_at: :desc).limit(10)
+      when "cold" then Lead.cold_leads.order(created_at: :desc).limit(10)
+      else Lead.order(created_at: :desc).limit(10)
+    end
+
+    # Lead counts by signal
+    @hot_leads_count = Lead.hot_leads.count
+    @warm_leads_count = Lead.warm_leads.count
+    @cold_leads_count = Lead.cold_leads.count
   end
 
   private
